@@ -128,7 +128,6 @@ export const nodeService = {
     const targetNode = await nodeRepository.findOne({ _id: targetId });
     if (!targetNode) return [];
 
-    // Permissions
     if (user.role !== 'admin') {
       await Promise.all([ensureWorkspaceMember(targetNode.workspaceId, user.email), ensureProjectMember(targetNode.projectId, user.email)]);
     }
@@ -142,48 +141,54 @@ export const nodeService = {
     for (const otherNode of allNodes) {
       if (otherNode._id.toString() === targetId || !otherNode.content) continue;
 
-      const lines = otherNode.content.split('\n');
+      const content = otherNode.content;
       const mentions: Mention[] = [];
 
-      lines.forEach((lineText, lineIndex) => {
-        // Combined regex for standard Markdown [text](link) and internal [[link|alias]]
-        const linkRegex = /\[\[([^\]]+)\]\]|\[([^\]]+)\]\(([^)]+)\)/g;
-        let match: RegExpExecArray | null;
+      const linkRegex = /\[\[([^\]]+)\]\]|\[([^\]]+)\]\(([^)]+)\)/g;
+      let match: RegExpExecArray | null;
 
-        while ((match = linkRegex.exec(lineText)) !== null) {
-          let rawLink: string;
-          let alias: string | undefined;
+      while ((match = linkRegex.exec(content)) !== null) {
+        let rawLink: string;
+        let alias: string | undefined;
 
-          if (match[1]) {
-            // Internal [[link|alias]]
-            rawLink = match[1];
-          } else {
-            // Standard Markdown [text](link)
-            alias = match[2];
-            rawLink = match[3];
-          }
-
-          const parsed: ParsedLink = parseLink(rawLink);
-
-          // Resolve relative path if needed
-          const resolvedPath = parsed.path.startsWith('.') ? resolveRelativePath(otherNode.path, parsed.path) : parsed.path;
-
-          // Match either by full normalized path or file name
-          const targetFileName = targetName.toLowerCase();
-          const resolvedFileName = path.basename(resolvedPath).toLowerCase();
-          const isMatch = resolvedPath === targetFullPath || resolvedFileName === targetFileName;
-
-          if (isMatch) {
-            mentions.push({
-              excerpt: lineText.trim(),
-              line: lineIndex + 1,
-              index: match.index,
-              heading: parsed.heading,
-              alias: alias || parsed.alias,
-            });
-          }
+        if (match[1]) {
+          // Internal [[link|alias]]
+          rawLink = match[1];
+        } else {
+          // Standard Markdown [text](link)
+          alias = match[2];
+          rawLink = match[3];
         }
-      });
+
+        const parsed: ParsedLink = parseLink(rawLink);
+
+        // Resolve path relative to the current file being scanned
+        const resolvedPath = parsed.path.startsWith('.') ? resolveRelativePath(otherNode.path, parsed.path) : parsed.path;
+
+        const targetFileName = targetName.toLowerCase();
+        const resolvedFileName = path.basename(resolvedPath).toLowerCase();
+
+        // Match if paths are identical OR if the link just references the file name
+        const isMatch = resolvedPath === targetFullPath || resolvedFileName === targetFileName;
+
+        if (isMatch) {
+          // Determine absolute Line Number (for UI display)
+          const lineIndex = content.substring(0, match.index).split('\n').length;
+
+          // Extract the specific line for the Sidebar Excerpt
+          const lineStart = content.lastIndexOf('\n', match.index) + 1;
+          const lineEnd = content.indexOf('\n', match.index);
+          const excerptEnd = lineEnd === -1 ? content.length : lineEnd;
+
+          mentions.push({
+            excerpt: content.substring(lineStart, excerptEnd).trim(),
+            line: lineIndex,
+            index: match.index, // The "Secret Sauce": Accurate Global Index
+            heading: parsed.heading,
+            alias: alias || parsed.alias,
+          });
+        }
+      }
 
       if (mentions.length > 0) {
         backlinks.push({
@@ -196,7 +201,6 @@ export const nodeService = {
       }
     }
 
-    console.log(`Backlinks found for ${targetNode.path}:`, backlinks.length);
     return backlinks;
   },
   getProjectNodeTree: async (user: User, projectId: string, exclude?: string): Promise<{ nodes: TreeNode[] }> => {

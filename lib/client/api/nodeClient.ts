@@ -2,13 +2,18 @@ import { INode } from '@/types';
 
 const BASE_URL = '/api/nodes';
 const BASE_URL_PROJECT = `${process.env.NEXT_PUBLIC_BASE_URL}/api/projects`;
-
+interface BacklinkMention {
+  excerpt: string;
+  line: number;
+  index: number;
+  alias?: string;
+}
 interface IBacklink {
   _id: string;
   title: string;
   path: string;
   type: 'file' | 'folder';
-  mentions: { excerpt: string; line: number; index: number; alias?: string };
+  mentions: BacklinkMention[];
 }
 interface IBacklinkResponse {
   backlinks: IBacklink[];

@@ -9,8 +9,9 @@ export const nodeController = {
     const session = await ensureAuthenticated();
     if (!id) throw new HttpError('BAD_INPUT');
     const backlinks = await nodeService.getBacklink(id, session.user);
-    return backlinks;
+    return { backlinks };
   },
+
   getProjectTree: async (pid: string, exclude?: string | null) => {
     const session = await ensureAuthenticated();
     if (!pid) throw new HttpError('BAD_INPUT');

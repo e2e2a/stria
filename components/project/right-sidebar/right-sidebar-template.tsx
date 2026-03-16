@@ -218,8 +218,17 @@ const RightSidebarTemplate = () => {
           </TabsContent>
 
           <TabsContent value="backlink" className="m-0 flex-1 overflow-y-auto bg-sidebar/80">
-            backlinks
-            <BacklinkTabItems />
+            <div className="p-2">
+              <div className="space-y-0.5">
+                {nLoading ? (
+                  <p className="text-xs text-zinc-500 italic mt-2 px-2 animate-pulse">Loading backlinks...</p>
+                ) : bData?.backlinks && bData.backlinks.length > 0 ? (
+                  bData.backlinks.map(file => <BacklinkTabItems key={file._id} file={file} />)
+                ) : (
+                  <p className="text-xs text-zinc-500 italic mt-2 px-2">No backlinks found</p>
+                )}
+              </div>
+            </div>
           </TabsContent>
           <TabsContent value="outgoing" className="m-0 flex-1 overflow-y-auto bg-sidebar/80">
             outgoing links
