@@ -8,7 +8,7 @@ import { UnitOfWork } from '@/common/UnitOfWork';
 import { User } from 'next-auth';
 import Node from '@/modules/projects/nodes/node.model';
 import { Types } from 'mongoose';
-import { normalizeFilePath, ParsedLink, parseLink, resolveRelativePath } from '@/helpers/server/link-helpers';
+import { normalizeFilePath, parseLink, resolveRelativePath } from '@/helpers/server/link-helpers';
 import path from 'path';
 
 export interface Mention {
