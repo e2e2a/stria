@@ -124,9 +124,9 @@ async function checkNodeExistence(params: { projectId: string; path: string; typ
 }
 
 export const nodeService = {
-  getBacklink: async (targetId: string, user: User): Promise<BacklinkResponse[]> => {
+  getBacklink: async (targetId: string, user: User): Promise<{ linked: BacklinkResponse[]; unlinked: BacklinkResponse[] }> => {
     const targetNode = await nodeRepository.findOne({ _id: targetId });
-    if (!targetNode) return [];
+    if (!targetNode) return { linked: [], unlinked: [] };
 
     if (user.role !== 'admin') {
       await Promise.all([ensureWorkspaceMember(targetNode.workspaceId, user.email), ensureProjectMember(targetNode.projectId, user.email)]);
@@ -135,73 +135,94 @@ export const nodeService = {
     const targetFullPath = normalizeFilePath(targetNode.path);
     const targetName = path.basename(targetFullPath);
 
+    const targetTitle = targetNode.title;
+    const escapedTitle = targetTitle.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+    const unlinkedRegex = new RegExp(`\\b${escapedTitle}\\b`, 'gi');
+
     const allNodes = await nodeRepository.findMany({ projectId: targetNode.projectId });
-    const backlinks: BacklinkResponse[] = [];
+    const linkedBacklinks: BacklinkResponse[] = [];
+    const unlinkedMentions: BacklinkResponse[] = [];
 
     for (const otherNode of allNodes) {
       if (otherNode._id.toString() === targetId || !otherNode.content) continue;
 
       const content = otherNode.content;
-      const mentions: Mention[] = [];
+      const linkedInThisFile: Mention[] = [];
+      const unlinkedInThisFile: Mention[] = [];
+
+      const linkedIndices = new Set<number>();
 
       const linkRegex = /\[\[([^\]]+)\]\]|\[([^\]]+)\]\(([^)]+)\)/g;
       let match: RegExpExecArray | null;
 
+      // 1. SCAN FOR LINKED BACKLINKS
       while ((match = linkRegex.exec(content)) !== null) {
-        let rawLink: string;
-        let alias: string | undefined;
+        const rawLink: string = match[1] || match[3];
+        const alias: string | undefined = match[2];
 
-        if (match[1]) {
-          // Internal [[link|alias]]
-          rawLink = match[1];
-        } else {
-          // Standard Markdown [text](link)
-          alias = match[2];
-          rawLink = match[3];
-        }
-
-        const parsed: ParsedLink = parseLink(rawLink);
-
-        // Resolve path relative to the current file being scanned
+        const parsed = parseLink(rawLink);
         const resolvedPath = parsed.path.startsWith('.') ? resolveRelativePath(otherNode.path, parsed.path) : parsed.path;
 
-        const targetFileName = targetName.toLowerCase();
-        const resolvedFileName = path.basename(resolvedPath).toLowerCase();
-
-        // Match if paths are identical OR if the link just references the file name
-        const isMatch = resolvedPath === targetFullPath || resolvedFileName === targetFileName;
+        const isMatch = resolvedPath === targetFullPath || path.basename(resolvedPath).toLowerCase() === targetName.toLowerCase();
 
         if (isMatch) {
-          // Determine absolute Line Number (for UI display)
-          const lineIndex = content.substring(0, match.index).split('\n').length;
+          for (let i = match.index; i < match.index + match[0].length; i++) {
+            linkedIndices.add(i);
+          }
 
-          // Extract the specific line for the Sidebar Excerpt
+          const lineIndex = content.substring(0, match.index).split('\n').length;
           const lineStart = content.lastIndexOf('\n', match.index) + 1;
           const lineEnd = content.indexOf('\n', match.index);
           const excerptEnd = lineEnd === -1 ? content.length : lineEnd;
 
-          mentions.push({
+          linkedInThisFile.push({
             excerpt: content.substring(lineStart, excerptEnd).trim(),
             line: lineIndex,
-            index: match.index, // The "Secret Sauce": Accurate Global Index
+            index: match.index,
             heading: parsed.heading,
             alias: alias || parsed.alias,
           });
         }
       }
 
-      if (mentions.length > 0) {
-        backlinks.push({
+      let uMatch: RegExpExecArray | null;
+      while ((uMatch = unlinkedRegex.exec(content)) !== null) {
+        if (!linkedIndices.has(uMatch.index)) {
+          const lineIndex = content.substring(0, uMatch.index).split('\n').length;
+          const lineStart = content.lastIndexOf('\n', uMatch.index) + 1;
+          const lineEnd = content.indexOf('\n', uMatch.index);
+          const excerptEnd = lineEnd === -1 ? content.length : lineEnd;
+
+          unlinkedInThisFile.push({
+            excerpt: content.substring(lineStart, excerptEnd).trim(),
+            line: lineIndex,
+            index: uMatch.index,
+          });
+        }
+      }
+
+      if (linkedInThisFile.length > 0) {
+        linkedBacklinks.push({
           _id: otherNode._id.toString(),
           title: otherNode.title,
           path: otherNode.path,
           type: otherNode.type,
-          mentions,
+          mentions: linkedInThisFile,
+        });
+      }
+
+      if (unlinkedInThisFile.length > 0) {
+        unlinkedMentions.push({
+          _id: otherNode._id.toString(),
+          title: otherNode.title,
+          path: otherNode.path,
+          type: otherNode.type,
+          mentions: unlinkedInThisFile,
         });
       }
     }
 
-    return backlinks;
+    return { linked: linkedBacklinks, unlinked: unlinkedMentions };
   },
   getProjectNodeTree: async (user: User, projectId: string, exclude?: string): Promise<{ nodes: TreeNode[] }> => {
     const project = await projectService.findById(projectId);

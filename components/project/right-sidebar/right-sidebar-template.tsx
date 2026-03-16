@@ -6,7 +6,7 @@ import { useProjectPresence } from '@/features/editor/stores/project-pressence';
 import { useSession } from 'next-auth/react';
 import { NavUser } from '../../nav-user';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { List, Users, Search, ChevronsDownUp, ChevronsUpDown, X, ArrowUpRight, Link, ArrowDownLeft } from 'lucide-react';
+import { List, Users, Search, ChevronsDownUp, ChevronsUpDown, X, ArrowUpRight, Link, ArrowDownLeft, ChevronRight } from 'lucide-react';
 import { useProjectUIStore } from '@/features/editor/stores/project-ui';
 import { useNodeStore } from '@/features/editor/stores/nodes';
 import { Button } from '../../ui/button';
@@ -15,6 +15,7 @@ import { IconTrident } from '@tabler/icons-react';
 import { OutlineTabItem } from './outline-tab-item';
 import BacklinkTabItems from './backlink-tab-items';
 import { useNodeBacklinksQuery } from '@/hooks/node/useNodeQuery';
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
 
 interface OutlineNode {
   text: string;
@@ -71,7 +72,8 @@ const RightSidebarTemplate = () => {
   const [searchQuery, setSearchQuery] = useState('');
   const [defaultExpand, setDefaultExpand] = useState(true);
   const [refreshKey, setRefreshKey] = useState(0);
-
+  const linkedMentions = bData?.linked || [];
+  const unlinkedMentions = bData?.unlinked || [];
   const tree = useMemo(() => {
     if (!content) return [];
     const headingRegex = /^#{1,6}\s+(.*)/gm;
@@ -120,7 +122,7 @@ const RightSidebarTemplate = () => {
           defaultValue="nodes"
           value={rightSidebarTab}
           onValueChange={e => setRightSidebarTab(e as 'pressence' | 'outline' | 'backlink' | 'outgoing' | 'mermaid')}
-          className="flex flex-col min-h-0 gap-y-0 w-full"
+          className="flex flex-col h-screen min-h-0 gap-y-0 w-full"
         >
           <SidebarHeader className="h-12 bg-sidebar flex text-xs text-muted-foreground border-b border-white/5">
             <div className="flex flex-row items-center justify-between w-full">
@@ -217,17 +219,48 @@ const RightSidebarTemplate = () => {
             </div>
           </TabsContent>
 
-          <TabsContent value="backlink" className="m-0 flex-1 overflow-y-auto bg-sidebar/80">
-            <div className="p-2">
-              <div className="space-y-0.5">
-                {nLoading ? (
-                  <p className="text-xs text-zinc-500 italic mt-2 px-2 animate-pulse">Loading backlinks...</p>
-                ) : bData?.backlinks && bData.backlinks.length > 0 ? (
-                  bData.backlinks.map(file => <BacklinkTabItems key={file._id} file={file} />)
-                ) : (
-                  <p className="text-xs text-zinc-500 italic mt-2 px-2">No backlinks found</p>
-                )}
-              </div>
+          <TabsContent
+            value="backlink"
+            className="m-0 flex-1 h-full overflow-y-auto bg-sidebar/80 [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden" // no scrollbar to show visually
+          >
+            <div className="p-2 space-y-4">
+              <Collapsible defaultOpen className="group/linked">
+                <CollapsibleTrigger className="flex items-center justify-between w-full px-2 py-1 hover:bg-white/5 rounded transition-colors">
+                  <div className="flex items-center gap-1">
+                    <ChevronRight className="h-3 w-3 text-muted-foreground transition-transform duration-200 group-data-[state=open]/linked:rotate-90" />
+                    <h3 className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest">Linked mentions</h3>
+                  </div>
+                  <span className="text-[10px] text-muted-foreground">{linkedMentions.length}</span>
+                </CollapsibleTrigger>
+
+                <CollapsibleContent className="space-y-0.5 mt-1">
+                  {nLoading ? (
+                    <p className="text-xs text-zinc-500 italic mt-2 px-2 animate-pulse">Loading...</p>
+                  ) : linkedMentions.length > 0 ? (
+                    linkedMentions.map(file => <BacklinkTabItems key={file._id} file={file} />)
+                  ) : (
+                    <p className="text-xs text-zinc-500 italic mt-2 px-2">No linked mentions found</p>
+                  )}
+                </CollapsibleContent>
+              </Collapsible>
+
+              <Collapsible className="group/unlinked pt-2 border-t border-white/5">
+                <CollapsibleTrigger className="flex items-center justify-between w-full px-2 py-1 hover:bg-white/5 rounded transition-colors">
+                  <div className="flex items-center gap-1">
+                    <ChevronRight className="h-3 w-3 text-muted-foreground transition-transform duration-200 group-data-[state=open]/unlinked:rotate-90" />
+                    <h3 className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest">Unlinked mentions</h3>
+                  </div>
+                  <span className="text-[10px] text-muted-foreground">{unlinkedMentions.length}</span>
+                </CollapsibleTrigger>
+
+                <CollapsibleContent className="space-y-0.5 mt-1">
+                  {!nLoading && unlinkedMentions.length > 0 ? (
+                    unlinkedMentions.map(file => <BacklinkTabItems key={file._id} file={file} />)
+                  ) : (
+                    <p className="text-xs text-zinc-500 italic mt-2 px-2">No unlinked mentions found</p>
+                  )}
+                </CollapsibleContent>
+              </Collapsible>
             </div>
           </TabsContent>
           <TabsContent value="outgoing" className="m-0 flex-1 overflow-y-auto bg-sidebar/80">

@@ -8,8 +8,8 @@ export const nodeController = {
   getBacklink: async (id: string) => {
     const session = await ensureAuthenticated();
     if (!id) throw new HttpError('BAD_INPUT');
-    const backlinks = await nodeService.getBacklink(id, session.user);
-    return { backlinks };
+    const res = await nodeService.getBacklink(id, session.user);
+    return res;
   },
 
   getProjectTree: async (pid: string, exclude?: string | null) => {

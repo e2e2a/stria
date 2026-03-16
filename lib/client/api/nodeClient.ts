@@ -16,7 +16,8 @@ interface IBacklink {
   mentions: BacklinkMention[];
 }
 interface IBacklinkResponse {
-  backlinks: IBacklink[];
+  linked: IBacklink[];
+  unlinked: IBacklink[];
 }
 
 export const nodeClient = {
