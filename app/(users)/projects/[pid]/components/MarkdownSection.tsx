@@ -239,10 +239,11 @@ function MarkdownSection({ node, isDirty }: { node: INode; isDirty: boolean }) {
     let timer: NodeJS.Timeout;
 
     const observer = () => {
+      const currentContent = ytext.toString();
+      if (currentContent === '' && !synced) return;
+      if (currentContent === node.content) return;
       clearTimeout(timer);
       timer = setTimeout(() => {
-        const currentContent = ytext.toString();
-
         useNodeStore.getState().updateNode(node._id, { content: currentContent });
       }, 1000);
     };
@@ -252,7 +253,7 @@ function MarkdownSection({ node, isDirty }: { node: INode; isDirty: boolean }) {
       ytext.unobserve(observer);
       clearTimeout(timer);
     };
-  }, [ytext, node._id]);
+  }, [ytext, node._id, node.content, synced]);
 
   useEffect(() => {
     if (instance && ytext) {

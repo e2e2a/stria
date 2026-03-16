@@ -60,7 +60,6 @@ const RightSidebarTemplate = () => {
 
   const id = useNodeStore(state => state.activeNode?._id);
   const { data: bData, isLoading: nLoading } = useNodeBacklinksQuery(id ?? '');
-  console.log('activeId', bData);
 
   const rightSidebarTab = useProjectUIStore(state => state.rightSidebarTab);
   const setRightSidebarTab = useProjectUIStore(state => state.setRightSidebarTab);
