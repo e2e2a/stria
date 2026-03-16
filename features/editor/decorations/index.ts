@@ -763,44 +763,6 @@ export function getMathBlockDecos(state: EditorState, activeLineNum: number): St
   return decos;
 }
 
-// export function getInternalLinkDecos(state: EditorState, text: string, lineFrom: number, isLineActive: boolean): StateRange<Decoration>[] {
-//   const decos: StateRange<Decoration>[] = [];
-//   const wikiRegex = /\[\[([^\]]+)\]\]/g;
-//   const sourceMode = state.field(sourceModeField, false);
-//   const viewMode = state.facet(EditorState.readOnly);
-//   const selection = state.selection.main;
-
-//   let match;
-//   while ((match = wikiRegex.exec(text)) !== null) {
-//     const start = lineFrom + match.index;
-//     const end = start + match[0].length;
-
-//     const fullPath = match[1];
-//     const lastSlashIndex = fullPath.lastIndexOf('/');
-//     const isCursorInside = selection.from >= start && selection.to <= end;
-//     const shouldHide = viewMode || (!isLineActive && !isCursorInside && !sourceMode);
-
-//     decos.push(
-//       Decoration.mark({
-//         class: 'cm-internal-link',
-//         ...(shouldHide ? { attributes: { 'data-internal-link': fullPath } } : {}),
-//       }).range(start, end)
-//     );
-
-//     if (shouldHide) {
-//       decos.push(Decoration.mark({ class: 'cm-syntax-hide' }).range(start, start + 2));
-
-//       if (lastSlashIndex !== -1) {
-//         const pathPartEnd = start + 2 + lastSlashIndex + 1;
-//         decos.push(Decoration.mark({ class: 'cm-syntax-hide' }).range(start + 2, pathPartEnd));
-//       }
-
-//       decos.push(Decoration.mark({ class: 'cm-syntax-hide' }).range(end - 2, end));
-//     }
-//   }
-//   return decos;
-// }
-
 export function getInternalLinkDecos(state: EditorState, text: string, lineFrom: number, isLineActive: boolean): StateRange<Decoration>[] {
   const decos: StateRange<Decoration>[] = [];
 

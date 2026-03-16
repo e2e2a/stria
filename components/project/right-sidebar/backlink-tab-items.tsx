@@ -58,7 +58,7 @@ export const BacklinkTabItems = ({ file }: { file: BacklinkFile }) => {
       }
     }
 
-    const jumpData = { nodeId: file._id, offset: mention.index, length: mention.excerpt.length };
+    const jumpData = { nodeId: file._id, offset: mention.index, length: mention.excerpt.length - 2 };
     Object.assign(window, { __PENDING_JUMP__: jumpData });
 
     openTab(targetNode.projectId, targetNode, true);

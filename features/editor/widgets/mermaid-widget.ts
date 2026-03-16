@@ -62,16 +62,15 @@ export class MermaidWidget extends WidgetType {
     scrollWrapper.className = 'block! w-full! max-w-full! relative contain-[inline-size]';
 
     const renderArea = document.createElement('div');
-    renderArea.className = 'mermaid-render-area relative inline-block pr-[5px] pb-[5px] w-auto! min-w-full';
+    renderArea.className = 'mermaid-render-area min-h-auto h-auto relative inline-block pr-[5px] pb-[5px] w-auto! min-w-full';
     const id = `mermaid-${Math.random().toString(36).slice(2, 9)}`;
     renderArea.id = id;
 
-    // container.appendChild(btn);
     scrollWrapper.appendChild(renderArea);
     container.appendChild(scrollWrapper);
     mainContainer.appendChild(btn);
     mainContainer.appendChild(container);
-    requestAnimationFrame(async () => {
+    const test = async () => {
       try {
         const isValid = await mermaid.parse(this.code, { suppressErrors: true });
         if (!isValid) throw new Error('Syntax Error');
@@ -86,11 +85,13 @@ export class MermaidWidget extends WidgetType {
           svgElement.style.height = 'auto';
           // svgElement.setAttribute('height', 'auto');
         }
+        view.requestMeasure();
       } catch {
         renderArea.innerHTML = `<div style="line-height: normal; color: #ef4444; font-size: 12px; padding: 10px;">Syntax Error</div>`;
+        view.requestMeasure();
       }
-    });
-
+    };
+    test();
     return mainContainer;
   }
   eq(other: MermaidWidget) {

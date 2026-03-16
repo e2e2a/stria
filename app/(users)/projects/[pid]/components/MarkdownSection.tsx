@@ -95,12 +95,11 @@ function MarkdownSection({ node, isDirty }: { node: INode; isDirty: boolean }) {
       requestAnimationFrame(() => {
         view.dispatch({
           selection: { anchor: offset, head: Math.min(offset + pending.length, docLength) },
-          scrollIntoView: true,
+          effects: [EditorView.scrollIntoView(offset, { y: 'center' })],
           userEvent: 'select',
         });
         view.focus();
 
-        // Clear it
         window.__PENDING_JUMP__ = null;
       });
     };
@@ -178,7 +177,6 @@ function MarkdownSection({ node, isDirty }: { node: INode; isDirty: boolean }) {
     return [
       EditorView.domEventHandlers({
         mousedown: event => {
-          // setActiveNode(node._id);
           React.startTransition(() => {
             setActiveNode(node._id);
           });
@@ -196,7 +194,6 @@ function MarkdownSection({ node, isDirty }: { node: INode; isDirty: boolean }) {
           React.startTransition(() => {
             setActiveNode(node._id);
           });
-          // setActiveNode(node._id);
         },
         contextmenu: (event, view) => {
           const pos = view.posAtCoords({ x: event.clientX, y: event.clientY });
@@ -283,15 +280,8 @@ function MarkdownSection({ node, isDirty }: { node: INode; isDirty: boolean }) {
         requestAnimationFrame(() => {
           view.focus();
           view.dispatch({
-            selection: {
-              anchor: line.from,
-              head: line.to,
-            },
-            effects: [
-              EditorView.scrollIntoView(line.from, {
-                y: 'center',
-              }),
-            ],
+            selection: { anchor: line.from, head: line.to },
+            effects: [EditorView.scrollIntoView(line.from, { y: 'center' })],
             userEvent: 'select',
           });
         });

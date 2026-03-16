@@ -78,29 +78,6 @@ export const markdownLivePreviewField = StateField.define<RangeSet<Decoration>>(
     }
     return buildDecorations(state);
   },
-  // update(decos, tr) {
-  //   const rebuildEffect = tr.effects.some(e => e.is(rebuildDecorationsEffect));
-  //   const docChanged = tr.docChanged || tr.reconfigured || tr.effects.some(e => e.is(toggleSourceMode));
-  //   const selectionChanged = !tr.startState.selection.eq(tr.state.selection);
-
-  //   if (docChanged || rebuildEffect || (selectionChanged && !isDragging)) {
-  //     return buildDecorations(tr.state);
-  //   }
-
-  //   return decos.map(tr.changes);
-  // },
-  // update(decos, tr) {
-  //   // Check if the transaction specifically requested a scroll
-  //   const didScroll = tr.effects.some(e => e.value && typeof e.value === 'object' && 'y' in e.value);
-  //   const docChanged = tr.docChanged || tr.reconfigured;
-  //   const selectionChanged = !tr.startState.selection.eq(tr.state.selection);
-
-  //   if (docChanged || selectionChanged || didScroll) {
-  //     return buildDecorations(tr.state);
-  //   }
-
-  //   return decos.map(tr.changes);
-  // },
   update(decos, tr) {
     const isDragging = tr.state.field(dragStatusField); // Get local status
     const rebuildEffect = tr.effects.some(e => e.is(rebuildDecorationsEffect));
@@ -114,13 +91,6 @@ export const markdownLivePreviewField = StateField.define<RangeSet<Decoration>>(
 
     return decos.map(tr.changes);
   },
-  // update(decos, tr) {
-  //   console.log('run');
-  //   if (tr.docChanged || tr.selection || tr.reconfigured || tr.effects.some(e => e.is(toggleSourceMode))) {
-  //     return buildDecorations(tr.state);
-  //   }
-  //   return decos.map(tr.changes);
-  // },
   provide: f => EditorView.decorations.from(f),
 });
 
