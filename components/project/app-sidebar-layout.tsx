@@ -52,10 +52,18 @@ const MainContentArea = memo(function MainContentArea({ children, RightSidebarRe
   );
 });
 
-const RightSidebarArea = ({ activeNodeId, activeNodeType }: { activeNodeId: string; activeNodeType: string }) => {
+const RightSidebarArea = ({
+  activeNodeId,
+  activeNodeType,
+  activeNodeContent,
+}: {
+  activeNodeId: string;
+  activeNodeType: string;
+  activeNodeContent: string;
+}) => {
   return (
     <AppContent variant="sidebar" className="text-muted-foreground">
-      <RightSidebarTemplate activeNodeId={activeNodeId} activeNodeType={activeNodeType} />
+      <RightSidebarTemplate activeNodeId={activeNodeId} activeNodeType={activeNodeType} activeNodeContent={activeNodeContent} />
     </AppContent>
   );
 };
@@ -231,7 +239,7 @@ export default function AppSidebarLayout({ children }: { children: React.ReactNo
             }}
             className="flex-1 h-full max-h-full p-0"
           >
-            <RightSidebarArea activeNodeId={activeNode?._id ?? ''} activeNodeType={activeNode?.type ?? ''} />
+            <RightSidebarArea activeNodeId={activeNode?._id ?? ''} activeNodeType={activeNode?.type ?? ''} activeNodeContent={activeNode?.content ?? ''} />
           </ResizablePanel>
         </ResizablePanelGroup>
       </AppShell>

@@ -8,12 +8,11 @@ import { NavUser } from '../../nav-user';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { List, Users, Search, ChevronsDownUp, ChevronsUpDown, X, ArrowUpRight, Link, ArrowDownLeft, ChevronRight } from 'lucide-react';
 import { useProjectUIStore } from '@/features/editor/stores/project-ui';
-import { useNodeStore } from '@/features/editor/stores/nodes';
 import { Button } from '../../ui/button';
 import { Input } from '../../ui/input';
 import { IconTrident } from '@tabler/icons-react';
 import { OutlineTabItem } from './outline-tab-item';
-import BacklinkTabItems from './backlink-tab-items';
+import LinkTabItems from './link-tab-items';
 import { useNodeBacklinksQuery } from '@/hooks/node/useNodeQuery';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
 
@@ -56,14 +55,13 @@ const buildOutlineTree = (headings: { level: number; text: string }[]): OutlineN
   return root;
 };
 
-const RightSidebarTemplate = ({ activeNodeId }: { activeNodeId: string; activeNodeType: string }) => {
+const RightSidebarTemplate = ({ activeNodeId, activeNodeContent }: { activeNodeId: string; activeNodeType: string; activeNodeContent: string }) => {
   const { data } = useSession();
   const { data: bData, isLoading: nLoading } = useNodeBacklinksQuery(activeNodeId ?? '');
 
   const rightSidebarTab = useProjectUIStore(state => state.rightSidebarTab);
   const setRightSidebarTab = useProjectUIStore(state => state.setRightSidebarTab);
 
-  const content = useNodeStore(state => state.activeNode?.content);
   const activeUsers = useProjectPresence(state => state.activeUsers);
 
   const [isSearching, setIsSearching] = useState(false);
@@ -73,9 +71,9 @@ const RightSidebarTemplate = ({ activeNodeId }: { activeNodeId: string; activeNo
   const linkedMentions = bData?.linked || [];
   const unlinkedMentions = bData?.unlinked || [];
   const tree = useMemo(() => {
-    if (!content) return [];
+    if (!activeNodeContent) return [];
     const headingRegex = /^#{1,6}\s+(.*)/gm;
-    const matches = Array.from(content.matchAll(headingRegex)).map(match => ({
+    const matches = Array.from(activeNodeContent.matchAll(headingRegex)).map(match => ({
       level: match[0].split(' ')[0].length,
       text: match[1],
     }));
@@ -94,7 +92,7 @@ const RightSidebarTemplate = ({ activeNodeId }: { activeNodeId: string; activeNo
       }, []);
     };
     return filterNodes(fullTree);
-  }, [content, searchQuery]);
+  }, [activeNodeContent, searchQuery]);
 
   const handleToggleExpand = (val: boolean) => {
     setDefaultExpand(val);
@@ -235,7 +233,7 @@ const RightSidebarTemplate = ({ activeNodeId }: { activeNodeId: string; activeNo
                   {nLoading ? (
                     <p className="text-xs text-zinc-500 italic mt-2 px-2 animate-pulse">Loading...</p>
                   ) : linkedMentions.length > 0 ? (
-                    linkedMentions.map(file => <BacklinkTabItems key={file._id} file={file} />)
+                    linkedMentions.map(file => <LinkTabItems key={file._id} file={file} />)
                   ) : (
                     <p className="text-xs text-zinc-500 italic mt-2 px-2">No linked mentions found</p>
                   )}
@@ -253,7 +251,7 @@ const RightSidebarTemplate = ({ activeNodeId }: { activeNodeId: string; activeNo
 
                 <CollapsibleContent className="space-y-0.5 mt-1">
                   {!nLoading && unlinkedMentions.length > 0 ? (
-                    unlinkedMentions.map(file => <BacklinkTabItems key={file._id} file={file} />)
+                    unlinkedMentions.map(file => <LinkTabItems key={file._id} file={file} />)
                   ) : (
                     <p className="text-xs text-zinc-500 italic mt-2 px-2">No unlinked mentions found</p>
                   )}

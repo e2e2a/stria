@@ -5,19 +5,19 @@ import { useNodeStore } from '@/features/editor/stores/nodes';
 import { useTabStore } from '@/features/editor/stores/tabs';
 import { flattenNodeTree } from '@/utils/client/node-utils';
 
-interface BacklinkMention {
+interface LinkMention {
   excerpt: string;
   line: number;
   index: number;
   alias?: string;
 }
 
-interface BacklinkFile {
+interface LinkFile {
   _id: string;
   title: string;
   path: string;
   type: 'file' | 'folder';
-  mentions: BacklinkMention[];
+  mentions: LinkMention[];
 }
 
 const HighlightedLink = ({ text }: { text: string }) => {
@@ -38,12 +38,12 @@ const HighlightedLink = ({ text }: { text: string }) => {
   );
 };
 
-export const BacklinkTabItems = ({ file }: { file: BacklinkFile }) => {
+export const LinkTabItems = ({ file }: { file: LinkFile }) => {
   const setActiveNode = useNodeStore(state => state.setActiveNode);
   const nodes = useNodeStore(state => state.nodes);
   const openTab = useTabStore(state => state.openTab);
 
-  const onMentionClick = (mention: BacklinkMention) => {
+  const onMentionClick = (mention: LinkMention) => {
     const flatNodes = flattenNodeTree(nodes);
     const targetNode = flatNodes.find(n => n._id === file._id);
     if (!targetNode) return;
@@ -128,4 +128,4 @@ export const BacklinkTabItems = ({ file }: { file: BacklinkFile }) => {
   );
 };
 
-export default BacklinkTabItems;
+export default LinkTabItems;
