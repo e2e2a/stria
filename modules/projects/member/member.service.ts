@@ -95,7 +95,6 @@ export const projectMemberService = {
   getMemberships: async (data: { projectId: string; email: string }) => {
     const { email, projectId } = data;
     const project = await projectRepository.findOne({ _id: projectId });
-    console.log('kaplskd', project._id, email);
     await Promise.all([
       ensureWorkspaceMember(project.workspaceId, email), // wCtx
       ensureProjectMember(project._id, email), // pCtx

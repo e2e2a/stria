@@ -13,7 +13,6 @@ export const workspaceController = {
     if (!resParse.success) throw new HttpError('BAD_INPUT', 'Invalid member fields.');
 
     const res = await workspaceService.initializeWorkspace(session.user, { ownerUserId: session.user._id, title: body.title }, resParse.data);
-    console.log('res', res);
     return res;
   },
 

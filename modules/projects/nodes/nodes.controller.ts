@@ -51,7 +51,6 @@ export const nodeController = {
     const validatedBody = NodeDTO.restore.safeParse(rawBody.nodes);
     if (!validatedBody.success) {
       const errorMessage = validatedBody.error.issues[0].message;
-      console.log('errorMessage', errorMessage);
       throw new HttpError('BAD_INPUT', errorMessage);
     }
 

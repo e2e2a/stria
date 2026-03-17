@@ -58,7 +58,6 @@ const buildOutlineTree = (headings: { level: number; text: string }[]): OutlineN
 
 const RightSidebarTemplate = ({ activeNodeId }: { activeNodeId: string; activeNodeType: string }) => {
   const { data } = useSession();
-  console.log('activeNodeId', activeNodeId);
   const { data: bData, isLoading: nLoading } = useNodeBacklinksQuery(activeNodeId ?? '');
 
   const rightSidebarTab = useProjectUIStore(state => state.rightSidebarTab);

@@ -63,7 +63,6 @@ export const invitationServices = {
   getPendingInvitations: async (data: { email: string }) => {
     const docs = await workspaceMemberRepository.findByEmailAndStatus({ email: data.email, status: 'pending' }, { invitedBy: true });
     const invitations = docs.map(doc => {
-      console.log('doc', doc);
       return {
         role: doc.role,
         _id: doc._id,

@@ -25,7 +25,6 @@ export const tabActions = {
       else nextActive = tabs[0]?.nodeId ?? null;
       nodeStore.setActiveNode(nextActive);
     }
-    console.log('running node', nextActive);
 
     // Call the store's existing closeTab method
     tabStore.closeTab(projectId, nodeId);

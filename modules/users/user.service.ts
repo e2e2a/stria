@@ -29,7 +29,6 @@ export const userServices = {
         ...result3.data,
         ownerUserId: authUser._id!.toString(),
       });
-      console.log('workspace', workspace);
       await workspaceMemberService.initializeOwnership({
         email: authUser.email,
         workspaceId: workspace._id,
