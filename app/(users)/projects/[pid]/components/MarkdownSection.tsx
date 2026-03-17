@@ -148,7 +148,6 @@ function MarkdownSection({ node, isDirty }: { node: INode; isDirty: boolean }) {
   useEffect(() => {
     return () => {
       if (providerRef.current) {
-        console.log('🧹 Janitor: Component unmounting, destroying socket.');
         providerRef.current.destroy();
         providerRef.current = null;
       }

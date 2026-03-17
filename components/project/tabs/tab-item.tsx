@@ -16,6 +16,7 @@ interface TabItemProps {
 }
 
 export const TabItem = ({ tab, isActive, draggedTabId, isDropBefore, pid, onDragStart }: TabItemProps) => {
+  const activeNode = useNodeStore(state => state.activeNode);
   const setActiveTab = useTabStore(state => state.setActiveTab);
   const pinTab = useTabStore(state => state.pinTab);
   const setActiveNode = useNodeStore(state => state.setActiveNode);
@@ -27,13 +28,43 @@ export const TabItem = ({ tab, isActive, draggedTabId, isDropBefore, pid, onDrag
       draggable
       onDragStart={e => onDragStart(e, tab.nodeId)}
       onMouseDown={() => {
-        setActiveTab(pid, tab.nodeId);
-        setActiveNode(tab.nodeId);
-        // scroll the tab into view
-        const elTab = document.querySelector(`[data-tab-id="${tab.nodeId}"]`);
+        const targetId = tab.nodeId;
+        setActiveTab(pid, targetId);
+
+        const elNode = document.querySelector(`[data-node-id="${targetId}"]`);
+        if (elNode) {
+          setTimeout(() => {
+            setActiveNode(targetId);
+
+            requestAnimationFrame(() => {
+              elNode.scrollIntoView({ behavior: 'smooth', block: 'center' });
+            });
+          }, 0);
+        } else {
+          const isAlreadyActive = activeNode?._id === targetId;
+
+          if (isAlreadyActive) {
+            setTimeout(() => {
+              setActiveNode(targetId);
+            }, 0);
+          } else {
+            setTimeout(() => {
+              setActiveNode(null);
+            }, 0);
+            setActiveNode(targetId);
+          }
+
+          requestAnimationFrame(() => {
+            requestAnimationFrame(() => {
+              const foundNode = document.querySelector(`[data-node-id="${targetId}"]`);
+              foundNode?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+            });
+          });
+        }
+
+        // Handle Tab scroll (Always visible)
+        const elTab = document.querySelector(`[data-tab-id="${targetId}"]`);
         elTab?.scrollIntoView({ behavior: 'smooth', inline: 'nearest' });
-        const elNode = document.querySelector(`[data-node-id="${tab.nodeId}"]`);
-        elNode?.scrollIntoView({ behavior: 'smooth', inline: 'nearest' });
       }}
       onDoubleClick={() => pinTab(pid, tab.nodeId)}
       onDragEnter={e => e.preventDefault()}

@@ -52,13 +52,13 @@ const MainContentArea = memo(function MainContentArea({ children, RightSidebarRe
   );
 });
 
-const RightSidebarArea = memo(function RightSidebarArea() {
+const RightSidebarArea = ({ activeNodeId, activeNodeType }: { activeNodeId: string; activeNodeType: string }) => {
   return (
     <AppContent variant="sidebar" className="text-muted-foreground">
-      <RightSidebarTemplate />
+      <RightSidebarTemplate activeNodeId={activeNodeId} activeNodeType={activeNodeType} />
     </AppContent>
   );
-});
+};
 
 export default function AppSidebarLayout({ children }: { children: React.ReactNode }) {
   const params = useParams();
@@ -67,6 +67,7 @@ export default function AppSidebarLayout({ children }: { children: React.ReactNo
   const { data: nData, isLoading: nLoading } = useNodesProjectIdQuery(pid);
   const activeNode = useNodeStore(state => state.activeNode);
   const selectedNode = useNodeStore(state => state.selectedNode);
+  const setSelectedNode = useNodeStore(state => state.setSelectedNode);
   const setIsUpdatingNode = useNodeStore(state => state.setIsUpdatingNode);
   const clearHistory = useNodeStore(state => state.clearHistory);
   const setNodes = useNodeStore(state => state.setNodes);
@@ -156,13 +157,14 @@ export default function AppSidebarLayout({ children }: { children: React.ReactNo
           direction="horizontal"
           autoSaveId="sidebar-layout"
           className="overflow-y-hidden rounded-none bg-white font-(family-name:--font-IBM)"
-          // onMouseDownCapture={e => {
-          //   const target = e.target as HTMLElement;
-          //   if (target.closest('[data-sidebar-node]')) return;
-          //   if (e.button !== 2) {
-          //     setSelectedNode(null);
-          //   }
-          // }}
+          onMouseDownCapture={e => {
+            const target = e.target as HTMLElement;
+            if (target.closest('[data-sidebar-node]')) return;
+            if (e.button !== 2) {
+              if (!selectedNode) return;
+              setSelectedNode(null);
+            }
+          }}
         >
           <MiniSidebarTemplate LeftSidebarRef={LeftSidebarRef} isLeftCollapsed={isLeftCollapsed} />
 
@@ -229,7 +231,7 @@ export default function AppSidebarLayout({ children }: { children: React.ReactNo
             }}
             className="flex-1 h-full max-h-full p-0"
           >
-            <RightSidebarArea />
+            <RightSidebarArea activeNodeId={activeNode?._id ?? ''} activeNodeType={activeNode?.type ?? ''} />
           </ResizablePanel>
         </ResizablePanelGroup>
       </AppShell>

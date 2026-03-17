@@ -29,18 +29,15 @@ export function DangerConfirmDialog({ triggerTitle, title, description, node }: 
       { _id: node._id as string, pid: node.projectId },
       {
         onSuccess: () => {
-          console.log('running in frontedn');
           useNodeStore.getState().deleteNodeWithUndo(node._id);
           setIsOpen(false);
           return;
         },
         onError: err => {
-          console.log('running in frontedn2');
           makeToastError(err.message);
           return;
         },
         onSettled: () => {
-          console.log('running in frontedn3');
           setIsOpen(false);
         },
       }
@@ -49,11 +46,7 @@ export function DangerConfirmDialog({ triggerTitle, title, description, node }: 
 
   return (
     <AlertDialog open={isOpen} onOpenChange={setIsOpen}>
-      <AlertDialogTrigger
-        className="w-full py-1.5 flex items-center pl-8 cursor-pointer"
-        onClick={() => setIsOpen(true)}
-        asChild
-      >
+      <AlertDialogTrigger className="w-full py-1.5 flex items-center pl-8 cursor-pointer" onClick={() => setIsOpen(true)} asChild>
         <span>{triggerTitle}</span>
       </AlertDialogTrigger>
       <AlertDialogContent onClick={e => e.preventDefault()} onContextMenu={e => e.preventDefault()}>

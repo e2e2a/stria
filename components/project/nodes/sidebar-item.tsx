@@ -52,6 +52,7 @@ export default function SidebarItem({ item, depth, nodesById, activeDrag, target
   const activeNode = useNodeStore(state => state.activeNode);
   const collapseVersion = useNodeStore(state => state.collapseVersion);
   const isUpdatingNode = useNodeStore(state => state.isUpdatingNode);
+  const userToggledRef = useRef(false);
   const [isOpen, setIsOpen] = useState(() => {
     try {
       return localStorage.getItem(localStorageKey) === 'true';
@@ -61,10 +62,10 @@ export default function SidebarItem({ item, depth, nodesById, activeDrag, target
   });
 
   const [prevVersion, setPrevVersion] = useState(collapseVersion);
-  if (collapseVersion !== prevVersion) {
-    setPrevVersion(collapseVersion);
-    setIsOpen(false);
-  }
+  // if (collapseVersion !== prevVersion) {
+  //   setPrevVersion(collapseVersion);
+  //   setIsOpen(false);
+  // }
 
   useEffect(() => {
     localStorage.setItem(localStorageKey, String(isOpen));
@@ -74,18 +75,25 @@ export default function SidebarItem({ item, depth, nodesById, activeDrag, target
   const isDirectTarget = activeDrag?._id === item._id;
   const isInForbiddenZone = isDirectTarget || isParentDragging;
 
-  const userToggledRef = useRef(false);
   const handleToggle = (value: boolean) => {
     userToggledRef.current = true;
     setIsOpen(value);
   };
-  // Compute all folders that need to be open for the activeNode
+
   useEffect(() => {
     if (item.type !== 'folder') return;
-    if (!activeNode) return;
+
+    const isGlobalCollapseTriggered = collapseVersion !== prevVersion;
+
+    if (isGlobalCollapseTriggered || (!activeNode && isGlobalCollapseTriggered)) {
+      // eslint-disable-next-line react-hooks/set-state-in-effect
+      setIsOpen(false);
+      setPrevVersion(collapseVersion);
+      userToggledRef.current = true;
+      return;
+    }
     let current = activeNode;
     let shouldOpen = false;
-
     while (current?.parentId) {
       if (current.parentId === item._id) {
         shouldOpen = true;
@@ -94,13 +102,17 @@ export default function SidebarItem({ item, depth, nodesById, activeDrag, target
       current = nodesById[current.parentId];
     }
 
-    if (activeNode._id === item._id) shouldOpen = true;
-    // eslint-disable-next-line react-hooks/set-state-in-effect
+    if (activeNode?._id === item?._id) shouldOpen = true;
     if (shouldOpen && !isOpen && !userToggledRef.current) setIsOpen(true);
-  }, [activeNode, isOpen, item._id, item.type, nodesById]);
+  }, [activeNode, isOpen, item._id, item.type, nodesById, collapseVersion, prevVersion]);
+
+  const lastActiveIdRef = useRef<string | null>(activeNode?._id || null);
 
   useEffect(() => {
-    userToggledRef.current = false;
+    if (activeNode?._id !== lastActiveIdRef.current) {
+      userToggledRef.current = false;
+      lastActiveIdRef.current = activeNode?._id || null;
+    }
   }, [activeNode?._id]);
 
   useEffect(() => {

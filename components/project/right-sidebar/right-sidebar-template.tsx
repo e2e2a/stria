@@ -1,6 +1,6 @@
 'use client';
 
-import { useMemo, useState } from 'react';
+import { memo, useMemo, useState } from 'react';
 import { Sidebar, SidebarContent, SidebarHeader } from '@/components/ui/sidebar';
 import { useProjectPresence } from '@/features/editor/stores/project-pressence';
 import { useSession } from 'next-auth/react';
@@ -56,11 +56,10 @@ const buildOutlineTree = (headings: { level: number; text: string }[]): OutlineN
   return root;
 };
 
-const RightSidebarTemplate = () => {
+const RightSidebarTemplate = ({ activeNodeId }: { activeNodeId: string; activeNodeType: string }) => {
   const { data } = useSession();
-
-  const id = useNodeStore(state => state.activeNode?._id);
-  const { data: bData, isLoading: nLoading } = useNodeBacklinksQuery(id ?? '');
+  console.log('activeNodeId', activeNodeId);
+  const { data: bData, isLoading: nLoading } = useNodeBacklinksQuery(activeNodeId ?? '');
 
   const rightSidebarTab = useProjectUIStore(state => state.rightSidebarTab);
   const setRightSidebarTab = useProjectUIStore(state => state.setRightSidebarTab);
@@ -304,4 +303,9 @@ const RightSidebarTemplate = () => {
   );
 };
 
-export default RightSidebarTemplate;
+export default memo(RightSidebarTemplate, (prevProps, nextProps) => {
+  if (!nextProps.activeNodeType || nextProps.activeNodeType === 'folder') return true;
+  if (prevProps.activeNodeId === nextProps.activeNodeId) return true;
+
+  return false;
+});

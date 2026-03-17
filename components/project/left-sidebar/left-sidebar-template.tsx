@@ -205,11 +205,29 @@ export function LeftSidebarTemplate({ projectData }: { projectData: IProject }) 
                           <Button
                             className="px-2! py-1! border border-transparent"
                             variant={'ghost'}
-                            title="Collapse All"
+                            title="Auto-reveal current path"
                             onClick={() => {
-                              setActiveNode(null); // first clear
+                              const targetId = activeTabId;
+
+                              // 1. If it's visible, just scroll.
+                              const elNode = document.querySelector(`[data-node-id="${targetId}"]`);
+                              if (elNode) return elNode.scrollIntoView({ behavior: 'smooth', block: 'center' });
+
+                              // 2. If it's hidden, we need to "Pulse" the state to bypass the lock.
+                              // By setting it to null and then immediately back to the ID,
+                              // we trigger the [activeNode?._id] reset in the SidebarItem.
+                              setActiveNode(null);
+
                               setTimeout(() => {
-                                setActiveNode(activeTabId);
+                                setActiveNode(targetId);
+
+                                // Give React two frames to render the newly opened folders
+                                requestAnimationFrame(() => {
+                                  requestAnimationFrame(() => {
+                                    const foundNode = document.querySelector(`[data-node-id="${targetId}"]`);
+                                    foundNode?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                                  });
+                                });
                               }, 0);
                             }}
                           >
@@ -223,7 +241,7 @@ export function LeftSidebarTemplate({ projectData }: { projectData: IProject }) 
                             onClick={e => {
                               e.preventDefault();
                               e.stopPropagation();
-                              setActiveNode(null);
+                              // setActiveNode(null);
                               setCollapseAll(true);
                             }}
                           >
@@ -254,7 +272,6 @@ export function LeftSidebarTemplate({ projectData }: { projectData: IProject }) 
                               }
                             }}
                             onBlur={() => {
-                              console.log('running');
                               setIsDropdownOpen(false);
                             }}
                             placeholder="Search content..."
