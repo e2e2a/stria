@@ -1,4 +1,5 @@
 import { EditorView, WidgetType } from '@codemirror/view';
+import { useProjectUIStore } from '../stores/project-ui';
 
 const AVAILABLE_PROPS = [
   { id: 'tags', label: 'tags', icon: '🏷' },
@@ -66,21 +67,41 @@ export class FrontmatterWidget extends WidgetType {
       if (data[prop.id]) {
         const row = document.createElement('div');
         row.className = 'flex items-center gap-3 text-xs';
-        // @ToDo this val will have a link to search th tags, description and etc.
+        const valuesHtml = data[prop.id]
+          .map(val => {
+            // Only 'tags' label gets the button and search functionality
+            if (prop.label === 'tags') {
+              return `
+        <button
+          type="button"
+          data-val="${val}"
+          class="appearance-none py-0.5 px-2 border border-white/10 p-0 m-0 text-inherit font-inherit cursor-pointer leading-none inline bg-white/5 rounded hover:bg-white/10"
+        >${val}</button>`;
+            }
+            // All other labels (aliases, description, etc.) are plain text
+            return `<span class="py-0.5 px-2 text-white/60">${val}</span>`;
+          })
+          .join('');
         row.innerHTML = `
           <div class="w-24 flex items-center gap-2">
             <span>${prop.icon}</span> <span>${prop.label}</span>
           </div>
-          <div class="flex flex-wrap gap-1 ">
-            ${data[prop.id]
-              .map(
-                val => `
-              <span class="px-2 py-0.5 bg-white/5 rounded border border-white/10 cursor-pointer">${val}</span> 
-            `
-              )
-              .join('')}
-          </div>
-        `;
+          <div class="flex flex-wrap flex-row gap-1 w-auto h-fit!">${valuesHtml}</div>`;
+        if (prop.label === 'tags') {
+          row.querySelectorAll('button[data-val]').forEach(btn => {
+            btn.addEventListener('click', e => {
+              e.preventDefault();
+              e.stopPropagation();
+
+              const val = (btn as HTMLElement).dataset.val;
+              const query = `tag:${val}`;
+
+              const store = useProjectUIStore.getState();
+              store.setSearchQuery(query);
+              store.setLeftSidebarTab('search');
+            });
+          });
+        }
         container.appendChild(row);
       }
     });

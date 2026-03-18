@@ -308,8 +308,8 @@ export function LeftSidebarTemplate({ projectData }: { projectData: IProject }) 
                   {/* 4. SEARCH RESULTS CONTENT */}
                   <TabsContent value="search" className="h-full min-h-0 p-0! gap-0! space-x-0 space-y-0! m-0! flex">
                     <div className="flex-1 flex px-0 pb-0 flex-col overflow-hidden">
-                      {searchQuery.length < 2 ? (
-                        <div className="p-4 text-muted-foreground text-center text-sm">Type at least 2 characters to search...</div>
+                      {searchQuery.length < 1 ? (
+                        <div className="p-4 text-muted-foreground text-center text-sm">Type at least 1 characters to search...</div>
                       ) : (
                         <div className="flex flex-col gap-y-4 px-4 overflow-y-auto pt-16 [&::-webkit-scrollbar-track]:mt-[56px]">
                           <div className="text-[10px] uppercase font-bold text-muted-foreground flex justify-between">

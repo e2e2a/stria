@@ -1,5 +1,3 @@
-// utils/search-utils.ts
-
 import { INode } from '@/types';
 
 export interface SearchMatch {
@@ -39,6 +37,53 @@ export function performSearch(query: string, nodes: INode[] | null): SearchResul
     let regex: RegExp;
     if (operator === 'tag') {
       const cleanTerm = searchTerm.replace(/^#/, '');
+
+      const fmMatch = content.match(/^---\s*([\s\S]*?)\s*---/);
+      if (fmMatch) {
+        const fmContent = fmMatch[1];
+        const lines = fmContent.split('\n');
+        const tagBlock: string[] = [];
+        let inBlock = false;
+        let found = false;
+        let finalTargetIndex = -1;
+
+        const fmStartIndex = content.indexOf(fmContent);
+
+        lines.forEach(line => {
+          const isStart = line.startsWith('tags:');
+          const isList = line.trim().startsWith('-');
+
+          if (isStart) inBlock = true;
+          else if (inBlock && !isList && line.trim() !== '') inBlock = false;
+
+          if (inBlock) {
+            tagBlock.push(line);
+            const lowerLine = line.toLowerCase();
+            const lowerTerm = cleanTerm.toLowerCase();
+
+            if (lowerLine.includes(lowerTerm)) {
+              found = true;
+              const termInLineIdx = lowerLine.indexOf(lowerTerm);
+              // Math: Start of FM + Start of Line + Offset to the actual word
+              finalTargetIndex = fmStartIndex + fmContent.indexOf(line) + termInLineIdx;
+            }
+          }
+        });
+
+        if (found && tagBlock.length > 0) {
+          const fullBlock = tagBlock.join('\n');
+          const termIdx = fullBlock.toLowerCase().indexOf(cleanTerm.toLowerCase());
+
+          matches.push({
+            text: fullBlock.substring(termIdx, termIdx + cleanTerm.length),
+            before: fullBlock.substring(0, termIdx),
+            after: fullBlock.substring(termIdx + cleanTerm.length),
+            index: finalTargetIndex, // Precisely targets the start of the word
+          });
+        }
+      }
+
+      // 2. Body Hashtag Search
       regex = new RegExp(`#(?!\\s)(${cleanTerm})(\\s|$)`, 'gi');
     } else if (operator === 'line') {
       const keywords = searchTerm.split(/\s+/).filter(k => k.length > 0);
