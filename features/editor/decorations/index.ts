@@ -856,70 +856,10 @@ export function getInternalLinkDecos(state: EditorState, text: string, lineFrom:
   }
   return decos;
 }
-// asd
-// export function getFrontmatterDecos(state: EditorState) {
-//   const doc = state.doc;
-//   if (doc.lines < 1) return null;
-
-//   const firstLine = doc.line(1);
-//   if (firstLine.text.trim() !== '---') return null;
-
-//   let endLine = -1;
-//   for (let i = 2; i <= doc.lines; i++) {
-//     if (doc.line(i).text.trim() === '---') {
-//       endLine = i;
-//       break;
-//     }
-//   }
-
-//   const from = firstLine.from;
-//   const sourceMode = state.field(sourceModeField, false);
-//   if (sourceMode) return null;
-
-//   // Manual Start (Line 1 only)
-//   if (endLine === -1) {
-//     return {
-//       decos: [
-//         Decoration.replace({
-//           widget: new FrontmatterWidget('---\n---', from),
-//           block: true,
-//           // 🔥 This prevents the cursor from entering the widget from the sides
-//           // inclusive: false,
-//           side: -1,
-//         }).range(from),
-//       ],
-//       skipToLine: 1,
-//     };
-//   }
-
-//   // Complete Block (Everything between --- and ---)
-//   const to = doc.line(endLine).to;
-//   const rawContent = state.sliceDoc(from, to);
-
-//   return {
-//     decos: [
-//       Decoration.replace({
-//         widget: new FrontmatterWidget(rawContent, from),
-//         block: true,
-//       }).range(from, to),
-//     ],
-//     skipToLine: endLine,
-//   };
-// }
-const AVAILABLE_PROPS = [
-  { id: 'tags', label: 'tags', icon: '🏷' },
-  { id: 'aliases', label: 'aliases', icon: '↪' },
-  { id: 'description', label: 'description', icon: '≡' },
-  { id: 'cssclasses', label: 'cssclasses', icon: '≡' },
-];
 
 export function getFrontmatterDecos(state: EditorState, activeLineNum: number): { decos: StateRange<Decoration>[]; skipToLine: number } {
-  const decos: StateRange<Decoration>[] = [];
   const doc = state.doc;
-
-  if (doc.lines < 2 || doc.line(1).text.trim() !== '---') {
-    return { decos: [], skipToLine: -1 };
-  }
+  if (doc.lines < 2 || doc.line(1).text.trim() !== '---') return { decos: [], skipToLine: -1 };
 
   let endLineNum = -1;
   for (let i = 2; i <= Math.min(doc.lines, 50); i++) {
@@ -935,25 +875,15 @@ export function getFrontmatterDecos(state: EditorState, activeLineNum: number): 
   const to = doc.line(endLineNum).to;
   const rawContent = doc.sliceString(from, to);
 
-  const validKeys = AVAILABLE_PROPS.map(p => p.id);
-  const hasValidProp = validKeys.some(key => {
-    const reg = new RegExp(`^${key}:`, 'm');
-    return reg.test(rawContent);
-  });
+  const hasAnyProp = /^[a-zA-Z0-9_-]+:/m.test(rawContent);
+  if (!hasAnyProp) return { decos: [], skipToLine: -1 };
 
-  if (!hasValidProp) return { decos: [], skipToLine: -1 };
   const mainSel = state.selection.main;
-  const isFreshStart = mainSel.anchor === 0 && mainSel.head === 0;
-
-  const sourceMode = state.field(sourceModeField, false);
-  const viewMode = state.facet(EditorState.readOnly);
   const isBlockActive = activeLineNum >= 1 && activeLineNum <= endLineNum;
-  const isSelected = isRangeSelected(state, from, to);
 
-  if (viewMode || isFreshStart || (!isBlockActive && !isSelected && !sourceMode)) {
-    for (let i = 1; i <= endLineNum; i++) {
-      decos.push(Decoration.line({ attributes: { class: 'cm-syntax-hide' } }).range(doc.line(i).from));
-    }
+  if (!isBlockActive && (mainSel.anchor < from || mainSel.anchor > to)) {
+    const decos: StateRange<Decoration>[] = [];
+    for (let i = 1; i <= endLineNum; i++) decos.push(Decoration.line({ attributes: { class: 'cm-syntax-hide' } }).range(doc.line(i).from));
 
     decos.push(
       Decoration.widget({
@@ -964,9 +894,10 @@ export function getFrontmatterDecos(state: EditorState, activeLineNum: number): 
     );
 
     decos.push(Decoration.replace({}).range(from, to));
+    return { decos, skipToLine: endLineNum };
   }
 
-  return { decos, skipToLine: endLineNum };
+  return { decos: [], skipToLine: -1 };
 }
 
 export function buildDecorations(state: EditorState): RangeSet<Decoration> {

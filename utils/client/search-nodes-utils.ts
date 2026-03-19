@@ -71,8 +71,9 @@ function handleOperatorSearch(operator: string, searchTerm: string, nodes: INode
 
         if (lowerLine.trim().startsWith('tags:')) {
           const valuePart = line.split('tags:')[1];
-          const valueStartIdx = line.indexOf(valuePart);
+          if (!valuePart || !cleanTerm) return;
 
+          const valueStartIdx = line.indexOf(valuePart);
           let pos = valuePart.toLowerCase().indexOf(cleanTerm);
           while (pos !== -1) {
             matchIndices.push(valueStartIdx + pos);
@@ -80,6 +81,8 @@ function handleOperatorSearch(operator: string, searchTerm: string, nodes: INode
           }
         } else {
           const tagWithHash = `#${cleanTerm}`;
+          if (cleanTerm.length === 0) return;
+
           let pos = lowerLine.indexOf(tagWithHash);
           while (pos !== -1) {
             matchIndices.push(pos);
@@ -148,6 +151,8 @@ function handlePlainTextSearch(searchTerm: string, nodes: INode[]): SearchResult
     lines.forEach((line, i) => {
       const lowerLine = line.toLowerCase();
       const lineMatchIndices: number[] = [];
+
+      if (searchLen === 0) return;
 
       // 2. Efficiently find all occurrences in the line
       let pos = lowerLine.indexOf(lowerSearchTerm);
