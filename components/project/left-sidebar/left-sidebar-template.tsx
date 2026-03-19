@@ -12,10 +12,11 @@ import { IProject } from '@/types';
 import { LeftSidebarFooter } from './left-sidebar-footer';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { useTabStore } from '@/features/editor/stores/tabs';
-import { performSearch } from '@/utils/client/search-nodes-utils';
 import { flattenNodeTree } from '@/utils/client/node-utils';
 import { useProjectUIStore } from '@/features/editor/stores/project-ui';
 import { SearchOverlay } from './left-sidebar-search-button-overlay';
+import { SearchTabContent } from './left-sidebar-search-tab-content';
+import { cn } from '@/lib/utils';
 
 export function LeftSidebarTemplate({ projectData }: { projectData: IProject }) {
   const nodes = useNodeStore(state => state.nodes);
@@ -32,6 +33,7 @@ export function LeftSidebarTemplate({ projectData }: { projectData: IProject }) 
   const leftSidebarTab = useProjectUIStore(state => state.leftSidebarTab);
   const setSearchQuery = useProjectUIStore(state => state.setSearchQuery);
   const setLeftSidebarTab = useProjectUIStore(state => state.setLeftSidebarTab);
+
   const [history, setHistory] = useState<string[]>([]);
   const STORAGE_KEY = 'left_sidebar_search_history';
 
@@ -111,8 +113,6 @@ export function LeftSidebarTemplate({ projectData }: { projectData: IProject }) 
   if (selectedNode) parentId = selectedNode.type === 'folder' ? selectedNode._id : selectedNode.parentId;
   const deferredNodes = useDeferredValue(nodes);
   const flatNodes = useMemo(() => flattenNodeTree(deferredNodes), [deferredNodes]);
-
-  const searchResults = useMemo(() => performSearch(searchQuery, flatNodes), [searchQuery, flatNodes]);
 
   const handleSearchResultClick = (nodeId: string) => {
     const node = flatNodes.find(n => n._id === nodeId);
@@ -209,19 +209,14 @@ export function LeftSidebarTemplate({ projectData }: { projectData: IProject }) 
                             onClick={() => {
                               const targetId = activeTabId;
 
-                              // 1. If it's visible, just scroll.
                               const elNode = document.querySelector(`[data-node-id="${targetId}"]`);
                               if (elNode) return elNode.scrollIntoView({ behavior: 'smooth', block: 'center' });
 
-                              // 2. If it's hidden, we need to "Pulse" the state to bypass the lock.
-                              // By setting it to null and then immediately back to the ID,
-                              // we trigger the [activeNode?._id] reset in the SidebarItem.
                               setActiveNode(null);
 
                               setTimeout(() => {
                                 setActiveNode(targetId);
 
-                                // Give React two frames to render the newly opened folders
                                 requestAnimationFrame(() => {
                                   requestAnimationFrame(() => {
                                     const foundNode = document.querySelector(`[data-node-id="${targetId}"]`);
@@ -241,7 +236,6 @@ export function LeftSidebarTemplate({ projectData }: { projectData: IProject }) 
                             onClick={e => {
                               e.preventDefault();
                               e.stopPropagation();
-                              // setActiveNode(null);
                               setCollapseAll(true);
                             }}
                           >
@@ -256,9 +250,8 @@ export function LeftSidebarTemplate({ projectData }: { projectData: IProject }) 
                             value={searchQuery}
                             onChange={e => {
                               setSearchQuery(e.target.value);
-                              if (!e.target.value)
-                                setIsDropdownOpen(true); // Re-open if cleared
-                              else setIsDropdownOpen(false); // Close when typing
+                              if (!e.target.value) setIsDropdownOpen(true);
+                              else setIsDropdownOpen(false);
                             }}
                             onFocus={() => {
                               if (!searchQuery) setIsDropdownOpen(true);
@@ -305,53 +298,16 @@ export function LeftSidebarTemplate({ projectData }: { projectData: IProject }) 
                   <TabsContent className="h-full min-h-0 p-0! gap-0! space-x-0 space-y-0! m-0!" value="nodes">
                     <NavMain />
                   </TabsContent>
-                  {/* 4. SEARCH RESULTS CONTENT */}
-                  <TabsContent value="search" className="h-full min-h-0 p-0! gap-0! space-x-0 space-y-0! m-0! flex">
-                    <div className="flex-1 flex px-0 pb-0 flex-col overflow-hidden">
-                      {searchQuery.length < 1 ? (
-                        <div className="p-4 text-muted-foreground text-center text-sm">Type at least 1 characters to search...</div>
-                      ) : (
-                        <div className="flex flex-col gap-y-4 px-4 overflow-y-auto pt-16 [&::-webkit-scrollbar-track]:mt-[56px]">
-                          <div className="text-[10px] uppercase font-bold text-muted-foreground flex justify-between">
-                            <span>{searchResults.length} Files Found</span>
-                          </div>
-                          {searchResults.map(res => (
-                            <div key={res.nodeId} className="space-y-1">
-                              <div
-                                className="text-sm font-semibold text-foreground truncate cursor-pointer hover:underline"
-                                onClick={() => handleSearchResultClick(res.nodeId)}
-                              >
-                                {res.title}
-                              </div>
-                              {res.matches.map((m, i) => (
-                                <div
-                                  key={i}
-                                  onClick={() => {
-                                    const jumpData = {
-                                      nodeId: res.nodeId,
-                                      offset: m.index,
-                                      length: m.text.length,
-                                    };
 
-                                    window.__PENDING_JUMP__ = jumpData;
-
-                                    handleSearchResultClick(res.nodeId);
-
-                                    window.dispatchEvent(new CustomEvent('editor-jump-to', { detail: jumpData }));
-                                  }}
-                                  className="text-xs text-muted-foreground h-fit bg-white/5 rounded border border-white/5 cursor-default"
-                                >
-                                  {m.before}
-                                  <span className="text-yellow-500 font-bold">{m.text}</span>
-                                  {m.after}
-                                </div>
-                              ))}
-                            </div>
-                          ))}
-                        </div>
-                      )}
-                    </div>
+                  {/* SEARCH RESULTS CONTENT */}
+                  <TabsContent
+                    forceMount // i force it to not hide so it wont rerender everytime tabs change.
+                    value="search"
+                    className={cn('h-full min-h-0 p-0! gap-0! space-x-0 space-y-0! flex', leftSidebarTab !== 'search' && 'hidden')}
+                  >
+                    <SearchTabContent query={searchQuery} flatNodes={flatNodes} onResultClick={handleSearchResultClick} />
                   </TabsContent>
+
                   <TabsContent value="bookmarks" className="text-white pt-16">
                     Bookmarks
                   </TabsContent>
