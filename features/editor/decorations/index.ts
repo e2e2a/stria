@@ -880,8 +880,10 @@ export function getFrontmatterDecos(state: EditorState, activeLineNum: number): 
 
   const mainSel = state.selection.main;
   const isBlockActive = activeLineNum >= 1 && activeLineNum <= endLineNum;
+  const isAtStart = activeLineNum === 1 && mainSel.anchor === 0;
+  const isCursorInside = mainSel.anchor < from || mainSel.anchor > to;
 
-  if (!isBlockActive && (mainSel.anchor < from || mainSel.anchor > to)) {
+  if ((isAtStart || !isBlockActive) && (isAtStart || isCursorInside)) {
     const decos: StateRange<Decoration>[] = [];
     for (let i = 1; i <= endLineNum; i++) decos.push(Decoration.line({ attributes: { class: 'cm-syntax-hide' } }).range(doc.line(i).from));
 
@@ -897,7 +899,7 @@ export function getFrontmatterDecos(state: EditorState, activeLineNum: number): 
     return { decos, skipToLine: endLineNum };
   }
 
-  return { decos: [], skipToLine: -1 };
+  return { decos: [], skipToLine: endLineNum };
 }
 
 export function buildDecorations(state: EditorState): RangeSet<Decoration> {
