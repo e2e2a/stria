@@ -6,7 +6,7 @@ import { useProjectPresence } from '@/features/editor/stores/project-pressence';
 import { useSession } from 'next-auth/react';
 import { NavUser } from '../../nav-user';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { List, Users, Search, ChevronsDownUp, ChevronsUpDown, X, ArrowUpRight, Link, ArrowDownLeft, ChevronRight } from 'lucide-react';
+import { List, Users, Search, ChevronsDownUp, ChevronsUpDown, X, ArrowUpRight, Link, ArrowDownLeft, ChevronRight, Archive } from 'lucide-react';
 import { useProjectUIStore } from '@/features/editor/stores/project-ui';
 import { Button } from '../../ui/button';
 import { Input } from '../../ui/input';
@@ -15,6 +15,7 @@ import { OutlineTabItem } from './outline-tab-item';
 import LinkTabItems from './link-tab-items';
 import { useNodeBacklinksQuery } from '@/hooks/node/useNodeQuery';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
+import { PropertiesTabItems } from './properties-tab-items';
 
 interface OutlineNode {
   text: string;
@@ -129,6 +130,9 @@ const RightSidebarTemplate = ({ activeNodeId, activeNodeContent }: { activeNodeI
                 <TabsTrigger className="grow-0" value="outgoing">
                   <OutboundLinkIcon className="w-6! h-6!" />
                 </TabsTrigger>
+                <TabsTrigger className="grow-0" value="properties">
+                  <Archive className="w-6! h-6!" />
+                </TabsTrigger>
                 <TabsTrigger className="grow-0" value="outline">
                   <List className="w-6! h-6!" />
                 </TabsTrigger>
@@ -149,6 +153,54 @@ const RightSidebarTemplate = ({ activeNodeId, activeNodeContent }: { activeNodeI
           </SidebarHeader>
 
           <div className="h-1! w-full bg-background" />
+
+          <TabsContent
+            value="backlink"
+            className="m-0 flex-1 h-full overflow-y-auto bg-sidebar/80 [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden" // no scrollbar to show visually
+          >
+            <div className="p-2 space-y-4">
+              <Collapsible defaultOpen className="group/linked">
+                <CollapsibleTrigger className="flex items-center justify-between w-full px-2 py-1 hover:bg-white/5 rounded transition-colors">
+                  <div className="flex items-center gap-1">
+                    <ChevronRight className="h-3 w-3 text-muted-foreground transition-transform duration-200 group-data-[state=open]/linked:rotate-90" />
+                    <h3 className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest">Linked mentions</h3>
+                  </div>
+                  <span className="text-[10px] text-muted-foreground">{linkedMentions.length}</span>
+                </CollapsibleTrigger>
+
+                <CollapsibleContent className="space-y-0.5 mt-1">
+                  {nLoading ? (
+                    <p className="text-xs text-zinc-500 italic mt-2 px-2 animate-pulse">Loading...</p>
+                  ) : linkedMentions.length > 0 ? (
+                    linkedMentions.map(file => <LinkTabItems key={file._id} file={file} />)
+                  ) : (
+                    <p className="text-xs text-zinc-500 italic mt-2 px-2">No linked mentions found</p>
+                  )}
+                </CollapsibleContent>
+              </Collapsible>
+
+              <Collapsible className="group/unlinked pt-2 border-t border-white/5">
+                <CollapsibleTrigger className="flex items-center justify-between w-full px-2 py-1 hover:bg-white/5 rounded transition-colors">
+                  <div className="flex items-center gap-1">
+                    <ChevronRight className="h-3 w-3 text-muted-foreground transition-transform duration-200 group-data-[state=open]/unlinked:rotate-90" />
+                    <h3 className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest">Unlinked mentions</h3>
+                  </div>
+                  <span className="text-[10px] text-muted-foreground">{unlinkedMentions.length}</span>
+                </CollapsibleTrigger>
+
+                <CollapsibleContent className="space-y-0.5 mt-1">
+                  {!nLoading && unlinkedMentions.length > 0 ? (
+                    unlinkedMentions.map(file => <LinkTabItems key={file._id} file={file} />)
+                  ) : (
+                    <p className="text-xs text-zinc-500 italic mt-2 px-2">No unlinked mentions found</p>
+                  )}
+                </CollapsibleContent>
+              </Collapsible>
+            </div>
+          </TabsContent>
+          <TabsContent value="outgoing" className="m-0 flex-1 overflow-y-auto bg-sidebar/80">
+            outgoing links
+          </TabsContent>
 
           <div className="h-14 flex items-center border-b text-muted-foreground border-white/5 w-full">
             <TabsContent className="h-full min-h-0 w-full px-3" value="outline">
@@ -201,6 +253,10 @@ const RightSidebarTemplate = ({ activeNodeId, activeNodeContent }: { activeNodeI
             </TabsContent>
           </div>
 
+          <TabsContent value="properties" className="m-0 flex-1 overflow-y-auto bg-sidebar/80">
+            <PropertiesTabItems />
+          </TabsContent>
+
           <TabsContent value="outline" className="m-0 flex-1 overflow-y-auto bg-sidebar/80">
             <div className="p-2">
               <div className="space-y-0.5">
@@ -215,56 +271,6 @@ const RightSidebarTemplate = ({ activeNodeId, activeNodeContent }: { activeNodeI
             </div>
           </TabsContent>
 
-          <TabsContent
-            value="backlink"
-            className="m-0 flex-1 h-full overflow-y-auto bg-sidebar/80 [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden" // no scrollbar to show visually
-          >
-            <div className="p-2 space-y-4">
-              <Collapsible defaultOpen className="group/linked">
-                <CollapsibleTrigger className="flex items-center justify-between w-full px-2 py-1 hover:bg-white/5 rounded transition-colors">
-                  <div className="flex items-center gap-1">
-                    <ChevronRight className="h-3 w-3 text-muted-foreground transition-transform duration-200 group-data-[state=open]/linked:rotate-90" />
-                    <h3 className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest">Linked mentions</h3>
-                  </div>
-                  <span className="text-[10px] text-muted-foreground">{linkedMentions.length}</span>
-                </CollapsibleTrigger>
-
-                <CollapsibleContent className="space-y-0.5 mt-1">
-                  {nLoading ? (
-                    <p className="text-xs text-zinc-500 italic mt-2 px-2 animate-pulse">Loading...</p>
-                  ) : linkedMentions.length > 0 ? (
-                    linkedMentions.map(file => <LinkTabItems key={file._id} file={file} />)
-                  ) : (
-                    <p className="text-xs text-zinc-500 italic mt-2 px-2">No linked mentions found</p>
-                  )}
-                </CollapsibleContent>
-              </Collapsible>
-
-              <Collapsible className="group/unlinked pt-2 border-t border-white/5">
-                <CollapsibleTrigger className="flex items-center justify-between w-full px-2 py-1 hover:bg-white/5 rounded transition-colors">
-                  <div className="flex items-center gap-1">
-                    <ChevronRight className="h-3 w-3 text-muted-foreground transition-transform duration-200 group-data-[state=open]/unlinked:rotate-90" />
-                    <h3 className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest">Unlinked mentions</h3>
-                  </div>
-                  <span className="text-[10px] text-muted-foreground">{unlinkedMentions.length}</span>
-                </CollapsibleTrigger>
-
-                <CollapsibleContent className="space-y-0.5 mt-1">
-                  {!nLoading && unlinkedMentions.length > 0 ? (
-                    unlinkedMentions.map(file => <LinkTabItems key={file._id} file={file} />)
-                  ) : (
-                    <p className="text-xs text-zinc-500 italic mt-2 px-2">No unlinked mentions found</p>
-                  )}
-                </CollapsibleContent>
-              </Collapsible>
-            </div>
-          </TabsContent>
-          <TabsContent value="outgoing" className="m-0 flex-1 overflow-y-auto bg-sidebar/80">
-            outgoing links
-          </TabsContent>
-          <TabsContent value="mermaid" className="m-0 flex-1 overflow-y-auto bg-sidebar/80">
-            mermaid
-          </TabsContent>
           <TabsContent value="pressence" className="m-0 flex-1 overflow-y-auto bg-sidebar/80">
             <div className="p-6">
               <div className="flex items-center justify-between mb-6">
@@ -293,6 +299,10 @@ const RightSidebarTemplate = ({ activeNodeId, activeNodeContent }: { activeNodeI
                 </div>
               </section>
             </div>
+          </TabsContent>
+
+          <TabsContent value="mermaid" className="m-0 flex-1 overflow-y-auto bg-sidebar/80">
+            mermaid
           </TabsContent>
         </Tabs>
       </SidebarContent>
