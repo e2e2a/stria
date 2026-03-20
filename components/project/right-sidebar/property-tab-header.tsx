@@ -25,9 +25,6 @@ export const PropertyTabHeader = ({
       <div className="bg-transparent w-full h-full flex items-center gap-x-1 justify-start">
         {!isSearchingInProperty ? (
           <>
-            <Button onClick={() => setIsSearchingInProperty(true)} className="px-2! py-1! border border-transparent" variant="ghost">
-              <Search className="h-6! w-6!" />
-            </Button>
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
                 <Button className="px-2! py-1! border border-transparent" variant="ghost" title="Change sort order">
@@ -50,6 +47,9 @@ export const PropertyTabHeader = ({
                 </DropdownMenuItem>
               </DropdownMenuContent>
             </DropdownMenu>
+            <Button onClick={() => setIsSearchingInProperty(true)} className="px-2! py-1! border border-transparent" variant="ghost">
+              <Search className="h-6! w-6!" />
+            </Button>
           </>
         ) : (
           <div className="relative px-1 w-full gap-x-2 animate-in slide-in-from-left-1 duration-800">
