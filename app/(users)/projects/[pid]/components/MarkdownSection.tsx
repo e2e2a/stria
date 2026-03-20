@@ -118,19 +118,17 @@ function MarkdownSection({ node, isDirty }: { node: INode; isDirty: boolean }) {
 
     const handleActionEvent = (e: Event) => {
       const { nodeId, text } = (e as CustomEvent).detail;
-      console.log('node._id', node._id);
-      console.log('nodeId', nodeId);
+      if (!nodeId) return;
       if (nodeId._id !== node._id) return;
 
       const view = editorViewRef.current;
+      if (!view || !synced || view.state.doc.length === 0) return (timer = setTimeout(() => handleActionEvent(e), 50));
 
-      if (!view || !synced || view.state.doc.length === 0) {
-        timer = setTimeout(() => handleActionEvent(e), 50);
-        return;
-      }
+      const { from, to, head } = view.state.selection.main;
+      const activeLine = view.state.doc.lineAt(head);
 
-      const { from, to } = view.state.selection.main;
-
+      const isAtStartOfDoc = head === 0;
+      if (activeLine.length > 0 && isAtStartOfDoc) return;
       view.dispatch({
         changes: { from, to, insert: text },
         selection: { anchor: from + text.length },
