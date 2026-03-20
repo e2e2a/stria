@@ -67,7 +67,7 @@ const HighlightedLink = ({ text, searchQuery }: { text: string; searchQuery?: st
   );
 };
 
-export const LinkTabItems = ({ file, defaultOpen = true, searchQuery }: IProps) => {
+export const LinkTabItems = ({ file, defaultOpen = false, searchQuery }: IProps) => {
   const setActiveNode = useNodeStore(state => state.setActiveNode);
   const nodes = useNodeStore(state => state.nodes);
   const openTab = useTabStore(state => state.openTab);

@@ -74,9 +74,7 @@ const LinkTabContent = ({ activeNodeId, searchQueryInLink, linkSortMode, backlin
           {isLoading ? (
             <p className="text-xs text-zinc-500 italic mt-2 px-2 animate-pulse">Loading...</p>
           ) : linkedMentions.length > 0 ? (
-            linkedMentions.map(file => (
-              <LinkTabItems key={`${file._id}-${linkRefreshKey}`} file={file} defaultOpen={backlinkExpand} searchQuery={searchQueryInLink} />
-            ))
+            linkedMentions.map(file => <LinkTabItems key={file._id} file={file} defaultOpen={false} searchQuery={searchQueryInLink} />)
           ) : (
             <p className="text-xs text-zinc-500 italic mt-2 px-6">No linked mentions found</p>
           )}
@@ -97,9 +95,7 @@ const LinkTabContent = ({ activeNodeId, searchQueryInLink, linkSortMode, backlin
           {isLoading ? (
             <p className="text-xs text-zinc-500 italic mt-2 px-2 animate-pulse">Loading...</p>
           ) : unlinkedMentions.length > 0 ? (
-            unlinkedMentions.map(file => (
-              <LinkTabItems key={`${file._id}-${linkRefreshKey}`} file={file} defaultOpen={backlinkExpand} searchQuery={searchQueryInLink} />
-            ))
+            unlinkedMentions.map(file => <LinkTabItems key={file._id} file={file} defaultOpen={false} searchQuery={searchQueryInLink} />)
           ) : (
             <p className="text-xs text-zinc-500 italic mt-2 px-6">No unlinked mentions found</p>
           )}

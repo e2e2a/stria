@@ -73,7 +73,7 @@ const FooterLinks = ({ activeNodeId }: FooterLinksProps) => {
   };
 
   return (
-    <div className="pb-20 mt-10 w-full max-w-5xl mx-auto px-4">
+    <div className="pb-20 mt-10 w-full max-w-5xl mx-auto">
       <Separator className="w-full bg-white/5 mb-4" />
 
       <div className={cn('flex items-center  w-full gap-x-1 mb-6 h-9', isSearching ? 'flex-row justify-between' : 'justify-end')}>
@@ -153,9 +153,7 @@ const FooterLinks = ({ activeNodeId }: FooterLinksProps) => {
                 <div className="h-4 w-64 bg-white/5 animate-pulse rounded" />
               </div>
             ) : linkedMentions.length > 0 ? (
-              linkedMentions.map(file => (
-                <LinkItems key={`${file._id}-${refreshKey}`} file={file} defaultOpen={backlinkExpand} searchQuery={searchQuery} />
-              ))
+              linkedMentions.map(file => <LinkItems key={file._id} file={file} defaultOpen={false} searchQuery={searchQuery} />)
             ) : (
               <p className="text-xs text-muted-foreground/60 italic ml-6">No linked mentions found.</p>
             )}
@@ -171,9 +169,7 @@ const FooterLinks = ({ activeNodeId }: FooterLinksProps) => {
           </CollapsibleTrigger>
           <CollapsibleContent className="space-y-1">
             {!isLoading && unlinkedMentions.length > 0 ? (
-              unlinkedMentions.map(file => (
-                <LinkItems key={`${file._id}-${refreshKey}`} file={file} defaultOpen={backlinkExpand} searchQuery={searchQuery} />
-              ))
+              unlinkedMentions.map(file => <LinkItems key={file._id} file={file} defaultOpen={false} searchQuery={searchQuery} />)
             ) : (
               <p className="text-xs text-muted-foreground/60 italic ml-6">No unlinked mentions found.</p>
             )}

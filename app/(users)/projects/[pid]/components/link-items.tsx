@@ -67,7 +67,7 @@ const HighlightedLink = ({ text, searchQuery }: { text: string; searchQuery?: st
   );
 };
 
-export const LinkItems = ({ file, defaultOpen = true, searchQuery }: IProps) => {
+export const LinkItems = ({ file, defaultOpen = false, searchQuery }: IProps) => {
   const setActiveNode = useNodeStore(state => state.setActiveNode);
   const nodes = useNodeStore(state => state.nodes);
   const openTab = useTabStore(state => state.openTab);
@@ -77,13 +77,7 @@ export const LinkItems = ({ file, defaultOpen = true, searchQuery }: IProps) => 
     const targetNode = flatNodes.find(n => n._id === file._id);
     if (!targetNode) return;
 
-    // Use a jump offset logic similar to Obsidian/VSCode
-    const jumpData = {
-      nodeId: file._id,
-      offset: mention.index,
-      length: mention.excerpt.length,
-    };
-
+    const jumpData = { nodeId: file._id, offset: mention.index, length: mention.excerpt.length };
     Object.assign(window, { __PENDING_JUMP__: jumpData });
 
     openTab(targetNode.projectId, targetNode, true);
