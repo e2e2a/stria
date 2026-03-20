@@ -110,28 +110,30 @@ export default function AppSidebarLayout({ children }: { children: React.ReactNo
   const containerRef = useRef<HTMLDivElement>(null);
   const [leftMinPercent, setLeftMinPercent] = useState(14);
   const [rightMinPercent, setRightMinPercent] = useState(16);
-
+  const isDraggingRef = useRef(false);
   const lastWidthRef = useRef<number>(0);
 
   const updatePanelConstraints = useCallback(() => {
-    if (!containerRef.current) return;
+    // If user is dragging a handle, DO NOT run the zoom math.
+    // This prevents the "jitter" where the mouse and the code fight for control.
+    if (isDraggingRef.current || !containerRef.current) return;
+
     const currentTotalWidth = containerRef.current.offsetWidth;
     if (currentTotalWidth === 0) return;
 
-    // 1. Calculate the base min-size (260px / Total)
+    // Calculate constraints
     const leftMin = (260 / currentTotalWidth) * 100;
     const rightMin = (300 / currentTotalWidth) * 100;
 
     setLeftMinPercent(leftMin);
     setRightMinPercent(rightMin);
 
-    // 2. ZOOM LOGIC: Only run if the screen width actually changed
+    // Zoom Logic: Only run if the width actually changed (Window Resize / Inspect)
     if (lastWidthRef.current !== 0 && lastWidthRef.current !== currentTotalWidth) {
       const ratio = lastWidthRef.current / currentTotalWidth;
 
       if (LeftSidebarRef.current && !isLeftCollapsed) {
         const currentSize = LeftSidebarRef.current.getSize();
-        // Adjust the current size by the zoom ratio so it stays physically the same
         LeftSidebarRef.current.resize(currentSize * ratio);
       }
       if (RightSidebarRef.current && !isRightCollapsed) {
@@ -196,6 +198,7 @@ export default function AppSidebarLayout({ children }: { children: React.ReactNo
             tabIndex={-1}
             hitAreaMargins={{ coarse: 1, fine: 1 }}
             onDragging={isDragging => {
+              isDraggingRef.current = isDragging;
               if (isDragging) {
                 document.documentElement.classList.add('is-dragging-panels');
               } else {
@@ -217,6 +220,7 @@ export default function AppSidebarLayout({ children }: { children: React.ReactNo
             tabIndex={-1}
             hitAreaMargins={{ coarse: 1, fine: 1 }}
             onDragging={isDragging => {
+              isDraggingRef.current = isDragging;
               if (isDragging) {
                 document.documentElement.classList.add('is-dragging-panels');
               } else {

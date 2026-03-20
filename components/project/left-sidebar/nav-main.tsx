@@ -11,7 +11,6 @@ import SidebarCreateFileItem from '../nodes/sidebar-create-file-item';
 import { makeToastError } from '@/lib/toast';
 import { useNodeMutations } from '@/hooks/node/useNodeMutations';
 import { sortNodeTree } from '@/utils/client/sortNode';
-// import { sortNodeTree } from '@/modules/projects/nodes/node.service';
 
 export function clearAllFolderDragOver() {
   document.querySelectorAll('[data-drag-over]').forEach(el => el.removeAttribute('data-drag-over'));
