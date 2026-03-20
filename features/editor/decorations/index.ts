@@ -858,6 +858,9 @@ export function getInternalLinkDecos(state: EditorState, text: string, lineFrom:
 }
 
 export function getFrontmatterDecos(state: EditorState, activeLineNum: number): { decos: StateRange<Decoration>[]; skipToLine: number } {
+  const sourceMode = state.field(sourceModeField, false);
+  const viewMode = state.facet(EditorState.readOnly);
+
   const doc = state.doc;
   if (doc.lines < 2 || doc.line(1).text.trim() !== '---') return { decos: [], skipToLine: -1 };
 
@@ -883,7 +886,7 @@ export function getFrontmatterDecos(state: EditorState, activeLineNum: number): 
   const isAtStart = activeLineNum === 1 && mainSel.anchor === 0;
   const isCursorInside = mainSel.anchor < from || mainSel.anchor > to;
 
-  if ((isAtStart || !isBlockActive) && (isAtStart || isCursorInside)) {
+  if (viewMode || (!sourceMode && (isAtStart || !isBlockActive) && (isAtStart || isCursorInside))) {
     const decos: StateRange<Decoration>[] = [];
     for (let i = 1; i <= endLineNum; i++) decos.push(Decoration.line({ attributes: { class: 'cm-syntax-hide' } }).range(doc.line(i).from));
 
