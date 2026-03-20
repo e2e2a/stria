@@ -14,7 +14,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { useTabStore } from '@/features/editor/stores/tabs';
 import { flattenNodeTree } from '@/utils/client/node-utils';
 import { useProjectUIStore } from '@/features/editor/stores/project-ui';
-import { SearchOverlay } from './left-sidebar-search-button-overlay';
+import { SearchOverlay } from './search-button-overlay';
 import { SearchTabContent } from './search-tab-content';
 import { cn } from '@/lib/utils';
 
