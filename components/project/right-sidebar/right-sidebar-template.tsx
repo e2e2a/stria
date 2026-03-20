@@ -122,33 +122,38 @@ const RightSidebarTemplate = ({ activeNodeId, activeNodeContent }: { activeNodeI
           className="flex flex-col h-screen min-h-0 gap-y-0 w-full"
         >
           <SidebarHeader className="h-12 bg-sidebar flex text-xs text-muted-foreground border-b border-white/5">
-            <div className="flex flex-row items-center justify-between w-full">
-              <TabsList className="bg-transparent flex items-center gap-x-1">
-                <TabsTrigger className="grow-0" value="backlink">
-                  <InboundLinkIcon className="w-6! h-6!" />
-                </TabsTrigger>
-                <TabsTrigger className="grow-0" value="outgoing">
-                  <OutboundLinkIcon className="w-6! h-6!" />
-                </TabsTrigger>
-                <TabsTrigger className="grow-0" value="properties">
-                  <Archive className="w-6! h-6!" />
-                </TabsTrigger>
-                <TabsTrigger className="grow-0" value="outline">
-                  <List className="w-6! h-6!" />
-                </TabsTrigger>
-                <TabsTrigger className="grow-0 relative" value="pressence">
-                  <Users className="w-6! h-6!" />
-                  {filteredUsers.length > 0 && (
-                    <span className="absolute -top-1 -right-1 flex h-3 min-w-[12px] items-center justify-center rounded-full bg-primary text-[8px] font-bold text-white">
-                      {filteredUsers.length}
-                    </span>
-                  )}
-                </TabsTrigger>
-                <TabsTrigger className="grow-0" value="mermaid">
-                  <IconTrident className="w-6! h-6! rotate-45 -ml-1 mt-[4px]" />
-                </TabsTrigger>
-              </TabsList>
-              <NavUser />
+            <div className="flex items-center justify-between w-full overflow-hidden">
+              <div className="flex-1 min-w-0 overflow-x-auto overflow-y-hidden [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden">
+                <TabsList className="bg-transparent flex items-center gap-x-1 w-max">
+                  <TabsTrigger className="grow-0" value="backlink">
+                    <InboundLinkIcon className="w-6! h-6!" />
+                  </TabsTrigger>
+                  <TabsTrigger className="grow-0" value="outgoing">
+                    <OutboundLinkIcon className="w-6! h-6!" />
+                  </TabsTrigger>
+                  <TabsTrigger className="grow-0" value="properties">
+                    <Archive className="w-6! h-6!" />
+                  </TabsTrigger>
+                  <TabsTrigger className="grow-0" value="outline">
+                    <List className="w-6! h-6!" />
+                  </TabsTrigger>
+                  <TabsTrigger className="grow-0 relative" value="pressence">
+                    <Users className="w-6! h-6!" />
+                    {filteredUsers.length > 0 && (
+                      <span className="absolute -top-1 -right-1 flex h-3 min-w-[12px] items-center justify-center rounded-full bg-primary text-[8px] font-bold text-white">
+                        {filteredUsers.length}
+                      </span>
+                    )}
+                  </TabsTrigger>
+                  <TabsTrigger className="grow-0" value="mermaid">
+                    <IconTrident className="w-6! h-6! rotate-45 -ml-1 mt-[4px]" />
+                  </TabsTrigger>
+                </TabsList>
+              </div>
+
+              <div className="shrink-0 ml-2">
+                <NavUser />
+              </div>
             </div>
           </SidebarHeader>
 
@@ -227,11 +232,17 @@ const RightSidebarTemplate = ({ activeNodeId, activeNodeContent }: { activeNodeI
             />
           </div>
 
-          <TabsContent value="properties" className="m-0 flex-1 overflow-y-auto bg-sidebar/80">
+          <TabsContent
+            value="properties"
+            className="m-0 flex-1 overflow-y-auto bg-sidebar/80 [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden"
+          >
             <PropertyTabItems sortMode={propertySortMode} searchQuery={searchQueryInProperty} />
           </TabsContent>
 
-          <TabsContent value="outline" className="m-0 flex-1 overflow-y-auto bg-sidebar/80">
+          <TabsContent
+            value="outline"
+            className="m-0 flex-1 overflow-y-auto bg-sidebar/80 [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden"
+          >
             <div className="p-2">
               <div className="space-y-0.5">
                 {tree.length > 0 ? (

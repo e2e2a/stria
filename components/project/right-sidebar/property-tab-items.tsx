@@ -68,7 +68,7 @@ export const PropertyTabItems = ({ sortMode, searchQuery }: IProps) => {
         </button>
       ))}
 
-      {propertyStats.length === 0 && <div className="px-4 py-10 text-center opacity-30 text-xs italic">No properties found in vault</div>}
+      {propertyStats.length === 0 && <div className="px-4 py-10 text-center opacity-30 text-xs italic">No properties found in project</div>}
     </div>
   );
 };
