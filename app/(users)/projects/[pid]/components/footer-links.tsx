@@ -10,6 +10,7 @@ import { useNodeBacklinksQuery } from '@/hooks/node/useNodeQuery';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
 import { LinkItems } from './link-items';
 import { cn } from '@/lib/utils';
+import { Virtuoso } from 'react-virtuoso';
 
 // Types from your schema
 type ISortMode = 'name-asc' | 'name-desc' | 'freq-high' | 'freq-low';
@@ -41,8 +42,8 @@ const FooterLinks = ({ activeNodeId }: FooterLinksProps) => {
   const [refreshKey, setRefreshKey] = useState(0);
 
   const { data: bData, isLoading } = useNodeBacklinksQuery(activeNodeId ?? '');
+  const [scrollParent, setScrollParent] = useState<HTMLElement | null>(null);
 
-  // Stable processing function to satisfy React Compiler
   const processMentions = useCallback(
     (rawItems: IBacklink[] | undefined): IBacklink[] => {
       if (!rawItems) return [];
@@ -73,7 +74,15 @@ const FooterLinks = ({ activeNodeId }: FooterLinksProps) => {
   };
 
   return (
-    <div className="pb-20 mt-10 w-full max-w-5xl mx-auto">
+    <div
+      ref={el => {
+        if (el && !scrollParent) {
+          const parent = el.closest('.overflow-y-auto') as HTMLElement;
+          if (parent) setScrollParent(parent);
+        }
+      }}
+      className="pb-20 mt-10 w-full max-w-5xl mx-auto"
+    >
       <Separator className="w-full bg-white/5 mb-4" />
 
       <div className={cn('flex items-center  w-full gap-x-1 mb-6 h-9', isSearching ? 'flex-row justify-between' : 'justify-end')}>
@@ -169,7 +178,17 @@ const FooterLinks = ({ activeNodeId }: FooterLinksProps) => {
           </CollapsibleTrigger>
           <CollapsibleContent className="space-y-1">
             {!isLoading && unlinkedMentions.length > 0 ? (
-              unlinkedMentions.map(file => <LinkItems key={file._id} file={file} defaultOpen={false} searchQuery={searchQuery} />)
+              <Virtuoso
+                className="h-auto!"
+                useWindowScroll
+                customScrollParent={scrollParent || undefined}
+                increaseViewportBy={200}
+                totalCount={unlinkedMentions.length}
+                itemContent={index => {
+                  const file = unlinkedMentions[index];
+                  return <LinkItems key={file._id} file={file} defaultOpen={false} searchQuery={searchQuery} />;
+                }}
+              />
             ) : (
               <p className="text-xs text-muted-foreground/60 italic ml-6">No unlinked mentions found.</p>
             )}
