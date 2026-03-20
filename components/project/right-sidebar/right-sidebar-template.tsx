@@ -118,7 +118,7 @@ const RightSidebarTemplate = ({ activeNodeId, activeNodeContent }: { activeNodeI
         <Tabs
           defaultValue="nodes"
           value={rightSidebarTab}
-          onValueChange={e => setRightSidebarTab(e as 'pressence' | 'outline' | 'backlink' | 'outgoing' | 'mermaid')}
+          onValueChange={e => setRightSidebarTab(e as 'pressence' | 'properties' | 'outline' | 'backlink' | 'outgoing' | 'mermaid')}
           className="flex flex-col h-screen min-h-0 gap-y-0 w-full"
         >
           <SidebarHeader className="h-12 bg-sidebar flex text-xs text-muted-foreground border-b border-white/5">

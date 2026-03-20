@@ -2,9 +2,9 @@ import { create } from 'zustand';
 
 interface EditorState {
   leftSidebarTab: 'nodes' | 'search' | 'bookmarks';
-  rightSidebarTab: 'pressence' | 'outline' | 'backlink' | 'outgoing' | 'mermaid';
+  rightSidebarTab: 'pressence' | 'properties' | 'outline' | 'backlink' | 'outgoing' | 'mermaid';
   setLeftSidebarTab(tab: 'nodes' | 'search' | 'bookmarks'): void;
-  setRightSidebarTab(tab: 'pressence' | 'outline' | 'backlink' | 'outgoing' | 'mermaid'): void;
+  setRightSidebarTab(tab: 'pressence' | 'properties' | 'outline' | 'backlink' | 'outgoing' | 'mermaid'): void;
   searchQuery: string;
   setSearchQuery(query: string): void;
 }
