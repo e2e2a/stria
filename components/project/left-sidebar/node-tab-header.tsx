@@ -1,5 +1,5 @@
 import { useNodeStore } from '@/features/editor/stores/nodes';
-import { FolderPlus, ChevronsDownUp, SquarePen, ArrowUpNarrowWide, GalleryVertical } from 'lucide-react';
+import { FolderPlus, ChevronsDownUp, SquarePen, GalleryVertical } from 'lucide-react';
 import { Button } from '../../ui/button';
 import { TabsContent } from '@/components/ui/tabs';
 import { useTabStore } from '@/features/editor/stores/tabs';
@@ -35,6 +35,7 @@ const NodeTabHeader = ({ projectData }: { projectData: IProject }) => {
         >
           <SquarePen className="h-6! w-6!" />
         </Button>
+
         <Button
           className="px-2! py-1! w-fit h-fit border border-transparent"
           variant={'ghost'}
@@ -49,9 +50,7 @@ const NodeTabHeader = ({ projectData }: { projectData: IProject }) => {
         >
           <FolderPlus className="h-6! w-6!" />
         </Button>
-        <Button className="px-2! py-1! border border-transparent" variant={'ghost'} title="New Note" onClick={() => setCollapseAll(true)}>
-          <ArrowUpNarrowWide className="h-6! w-6!" />
-        </Button>
+
         <Button
           className="px-2! py-1! border border-transparent"
           variant={'ghost'}
@@ -78,6 +77,7 @@ const NodeTabHeader = ({ projectData }: { projectData: IProject }) => {
         >
           <GalleryVertical className="h-6! w-6!" />
         </Button>
+
         <Button
           className="px-2! py-1! border border-transparent"
           variant={'ghost'}
