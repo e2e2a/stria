@@ -15,6 +15,7 @@ import { PropertyTabHeader } from './property-tab-header';
 import { OutlineTabHeader } from './outline-tab-header';
 import { LinkTabHeader } from './link-tab-header';
 import LinkTabContent from './link-tab-content';
+import MermaidTabContent from './mermaid/mermaid-tab-content';
 
 interface OutlineNode {
   text: string;
@@ -171,7 +172,7 @@ const RightSidebarTemplate = ({ activeNodeId, activeNodeContent }: { activeNodeI
 
           <div className="h-1! w-full bg-background" />
 
-          {rightSidebarTab !== 'pressence' && (
+          {rightSidebarTab !== 'pressence' && rightSidebarTab !== 'mermaid' && (
             <div className="h-14 flex items-center border-b text-muted-foreground border-white/5 w-full">
               {/* Link Header Content */}
               <LinkTabHeader
@@ -283,7 +284,7 @@ const RightSidebarTemplate = ({ activeNodeId, activeNodeContent }: { activeNodeI
           </TabsContent>
 
           <TabsContent value="mermaid" className="m-0 flex-1 overflow-y-auto bg-sidebar/80">
-            mermaid
+            <MermaidTabContent />
           </TabsContent>
         </Tabs>
       </SidebarContent>

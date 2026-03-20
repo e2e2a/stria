@@ -113,6 +113,41 @@ function MarkdownSection({ node, isDirty }: { node: INode; isDirty: boolean }) {
     };
   }, [node._id, synced]);
 
+  useEffect(() => {
+    let timer: ReturnType<typeof setTimeout>;
+
+    const handleActionEvent = (e: Event) => {
+      const { nodeId, text } = (e as CustomEvent).detail;
+      console.log('node._id', node._id);
+      console.log('nodeId', nodeId);
+      if (nodeId._id !== node._id) return;
+
+      const view = editorViewRef.current;
+
+      if (!view || !synced || view.state.doc.length === 0) {
+        timer = setTimeout(() => handleActionEvent(e), 50);
+        return;
+      }
+
+      const { from, to } = view.state.selection.main;
+
+      view.dispatch({
+        changes: { from, to, insert: text },
+        selection: { anchor: from + text.length },
+        userEvent: 'input.sidebar',
+      });
+
+      view.focus();
+    };
+
+    window.addEventListener('editor-action', handleActionEvent as EventListener);
+
+    return () => {
+      window.removeEventListener('editor-action', handleActionEvent as EventListener);
+      clearTimeout(timer);
+    };
+  }, [node._id, synced]);
+
   const providerRef = useRef<HocuspocusProvider | null>(null);
 
   useEffect(() => {
