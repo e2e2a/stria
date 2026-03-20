@@ -164,7 +164,7 @@ export default function AppSidebarLayout({ children }: { children: React.ReactNo
         <ResizablePanelGroup
           direction="horizontal"
           autoSaveId="sidebar-layout"
-          className="overflow-y-hidden rounded-none bg-white font-(family-name:--font-IBM)"
+          className="overflow-y-hidden rounded-none bg-white"
           onMouseDownCapture={e => {
             const target = e.target as HTMLElement;
             if (target.closest('[data-sidebar-node]')) return;

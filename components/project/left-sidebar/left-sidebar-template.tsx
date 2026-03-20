@@ -295,7 +295,7 @@ export function LeftSidebarTemplate({ projectData }: { projectData: IProject }) 
               </SidebarHeader>
               <div className="min-h-0 flex-1 overflow-hidden!">
                 <SidebarContent className="ml-0 p-0! space-y-0! h-full flex">
-                  <TabsContent className="h-full min-h-0 p-0! gap-0! space-x-0 space-y-0! m-0!" value="nodes">
+                  <TabsContent className="h-full min-h-0 p-0! gap-0! space-x-0 space-y-0! m-0! font-(family-name:--font-IBM)" value="nodes">
                     <NavMain />
                   </TabsContent>
 
@@ -303,7 +303,7 @@ export function LeftSidebarTemplate({ projectData }: { projectData: IProject }) 
                   <TabsContent
                     forceMount // i force it to not hide so it wont rerender everytime tabs change.
                     value="search"
-                    className={cn('h-full min-h-0 p-0! gap-0! space-x-0 space-y-0! flex', leftSidebarTab !== 'search' && 'hidden')}
+                    className={cn('h-full min-h-0 p-0! gap-0! space-x-0 space-y-0! flex font-', leftSidebarTab !== 'search' && 'hidden')}
                   >
                     <SearchTabContent query={searchQuery} flatNodes={flatNodes} onResultClick={handleSearchResultClick} />
                   </TabsContent>

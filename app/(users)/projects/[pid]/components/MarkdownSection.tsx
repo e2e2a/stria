@@ -5,10 +5,7 @@ import CodeMirror, { Compartment, EditorState } from '@uiw/react-codemirror';
 import { yCollab, yUndoManagerKeymap } from 'y-codemirror.next';
 import { markdown, markdownLanguage } from '@codemirror/lang-markdown';
 import { createTheme } from '@uiw/codemirror-themes';
-// import { getSyncProvider } from '@/lib/client/sync-provider';
 import { EditorJumpDetail, INode } from '@/types';
-import { Separator } from '@/components/ui/separator';
-import { ArrowUpNarrowWide, List, Search } from 'lucide-react';
 import { tags as t } from '@lezer/highlight';
 import {
   columnSelectionField,
@@ -36,6 +33,7 @@ import { useNodeStore } from '@/features/editor/stores/nodes';
 import { useProjectUIStore } from '@/features/editor/stores/project-ui';
 import ContextMenuClient from './context-menu/context-menu-client';
 import { useSession } from 'next-auth/react';
+import FooterLinks from './footer-links';
 
 const myOwnDarkTheme = createTheme({
   theme: 'dark',
@@ -404,31 +402,7 @@ function MarkdownSection({ node, isDirty }: { node: INode; isDirty: boolean }) {
             />
           </div>
         </ContextMenuClient>
-        <div className="pb-12 ">
-          <Separator className="w-full border-border" />
-          <div className="flex items-center justify-end py-5 gap-x-2">
-            <List className="h-5 w-5" />
-            <ArrowUpNarrowWide className="h-5 w-5" />
-            <Search className="h-5 w-5" />
-          </div>
-
-          <div className="space-y-5">
-            <div className="flex flex-col">
-              <div className="flex gap-x-1 items-center">
-                <h3 className="text-foreground">Linked Mentions</h3>
-                <p>0</p>
-              </div>
-              <p className="text-muted-foreground/80">No backlinks found.</p>
-            </div>
-            <div className="flex flex-col">
-              <div className="flex gap-x-1 items-center">
-                <h3 className="text-foreground">Unlinked Mentions</h3>
-                <p>0</p>
-              </div>
-              <p className="text-muted-foreground/80">No backlinks found.</p>
-            </div>
-          </div>
-        </div>
+        <FooterLinks activeNodeId={node._id} />
       </div>
     </>
   );
