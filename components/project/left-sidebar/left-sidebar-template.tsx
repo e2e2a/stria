@@ -1,9 +1,8 @@
 'use client';
 import { NavMain } from './nav-main';
 import { Sidebar, SidebarContent, SidebarFooter, SidebarHeader, SidebarMenu } from '@/components/ui/sidebar';
-import { FolderPlus, Bookmark, FolderOpen, Search, ChevronsDownUp, SquarePen, ArrowUpNarrowWide, GalleryVertical, X } from 'lucide-react';
+import { Bookmark, FolderOpen, Search, X } from 'lucide-react';
 import { SidebarContextMenu } from './sidebar-context-menu';
-import { Button } from '../../ui/button';
 import { useNodeStore } from '@/features/editor/stores/nodes';
 import { useDeferredValue, useEffect, useMemo, useState } from 'react';
 import { makeToastError } from '@/lib/toast';
@@ -17,16 +16,13 @@ import { useProjectUIStore } from '@/features/editor/stores/project-ui';
 import { SearchOverlay } from './search-button-overlay';
 import { SearchTabContent } from './search-tab-content';
 import { cn } from '@/lib/utils';
+import NodeTabHeader from './node-tab-header';
 
 export function LeftSidebarTemplate({ projectData }: { projectData: IProject }) {
   const nodes = useNodeStore(state => state.nodes);
-  const setCollapseAll = useNodeStore(state => state.setCollapseAll);
   const setActiveNode = useNodeStore(state => state.setActiveNode);
-  const selectedNode = useNodeStore(state => state.selectedNode);
-  const activeNode = useNodeStore(state => state.activeNode);
-  const setIsCreating = useNodeStore(state => state.setIsCreating);
   const undo = useNodeStore(state => state.undo);
-  const activeTabs = useTabStore(state => state.activeTabs);
+
   const openTab = useTabStore(state => state.openTab);
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   const searchQuery = useProjectUIStore(state => state.searchQuery);
@@ -48,7 +44,7 @@ export function LeftSidebarTemplate({ projectData }: { projectData: IProject }) 
       }
     }
   }, []);
-  const activeTabId = activeTabs[projectData._id];
+
   const mutation = useNodeMutations();
 
   useEffect(() => {
@@ -77,7 +73,7 @@ export function LeftSidebarTemplate({ projectData }: { projectData: IProject }) 
       try {
         const op = undo();
         if (op) {
-          console.log('op', op);
+          // console.log('op', op);
           switch (op.type) {
             case 'create':
               mutation.trash.mutate({ _id: op.node._id as string, pid: op.node.projectId });
@@ -108,9 +104,6 @@ export function LeftSidebarTemplate({ projectData }: { projectData: IProject }) 
     return () => window.removeEventListener('keydown', handleKeyDown);
   }, [undo, projectData?._id, mutation]);
 
-  let parentId: string | null = null;
-  if (activeNode) parentId = activeNode.type === 'folder' ? activeNode._id : activeNode.parentId;
-  if (selectedNode) parentId = selectedNode.type === 'folder' ? selectedNode._id : selectedNode.parentId;
   const deferredNodes = useDeferredValue(nodes);
   const flatNodes = useMemo(() => flattenNodeTree(deferredNodes), [deferredNodes]);
 
@@ -164,85 +157,9 @@ export function LeftSidebarTemplate({ projectData }: { projectData: IProject }) 
                   <div className="absolute top-12 left-0 right-0 h-1 z-51 w-full bg-background" />
                   <div className="absolute top-13 left-0 right-0 h-14 z-50 flex px-3 items-center border-b border-white/5 bg-sidebar/80 backdrop-blur-lg pointer-events-auto cursor-default">
                     <div className="flex w-full">
-                      <TabsContent className="h-full min-h-0 w-full" value="nodes">
-                        <div className="bg-transparent w-full flex items-start gap-x-1 justify-start">
-                          <Button
-                            className="px-2! py-1! border border-transparent"
-                            variant={'ghost'}
-                            title="New Note"
-                            onClick={() => {
-                              setIsCreating({ type: 'file', parentId });
-                              setTimeout(() => {
-                                const input = document.querySelector<HTMLInputElement>('#sidebar-creating-file-item input');
-                                input?.focus();
-                              }, 0);
-                            }}
-                          >
-                            <SquarePen className="h-6! w-6!" />
-                          </Button>
-                          <Button
-                            className="px-2! py-1! w-fit h-fit border border-transparent"
-                            variant={'ghost'}
-                            title="New Folder"
-                            onClick={() => {
-                              setIsCreating({ type: 'folder', parentId });
-                              setTimeout(() => {
-                                const input = document.querySelector<HTMLInputElement>('#sidebar-creating-folder-item input');
-                                input?.focus();
-                              }, 0);
-                            }}
-                          >
-                            <FolderPlus className="h-6! w-6!" />
-                          </Button>
-                          <Button
-                            className="px-2! py-1! border border-transparent"
-                            variant={'ghost'}
-                            title="New Note"
-                            onClick={() => setCollapseAll(true)}
-                          >
-                            <ArrowUpNarrowWide className="h-6! w-6!" />
-                          </Button>
-                          <Button
-                            className="px-2! py-1! border border-transparent"
-                            variant={'ghost'}
-                            title="Auto-reveal current path"
-                            onClick={() => {
-                              const targetId = activeTabId;
+                      {/* Nodes Header Content */}
+                      <NodeTabHeader projectData={projectData} />
 
-                              const elNode = document.querySelector(`[data-node-id="${targetId}"]`);
-                              if (elNode) return elNode.scrollIntoView({ behavior: 'smooth', block: 'center' });
-
-                              setActiveNode(null);
-
-                              setTimeout(() => {
-                                setActiveNode(targetId);
-
-                                requestAnimationFrame(() => {
-                                  requestAnimationFrame(() => {
-                                    const foundNode = document.querySelector(`[data-node-id="${targetId}"]`);
-                                    foundNode?.scrollIntoView({ behavior: 'smooth', block: 'center' });
-                                  });
-                                });
-                              }, 0);
-                            }}
-                          >
-                            <GalleryVertical className="h-6! w-6!" />
-                          </Button>
-                          <Button
-                            className="px-2! py-1! border border-transparent"
-                            variant={'ghost'}
-                            title="Collapse All"
-                            tabIndex={0}
-                            onClick={e => {
-                              e.preventDefault();
-                              e.stopPropagation();
-                              setCollapseAll(true);
-                            }}
-                          >
-                            <ChevronsDownUp className="h-6! w-6!" />
-                          </Button>
-                        </div>
-                      </TabsContent>
                       <TabsContent className="h-full min-h-0 w-full flex items-center" value="search">
                         <div className="relative w-full px-1">
                           <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
