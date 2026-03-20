@@ -20,25 +20,54 @@ interface LinkFile {
   mentions: LinkMention[];
 }
 
-const HighlightedLink = ({ text }: { text: string }) => {
+interface IProps {
+  file: LinkFile;
+  defaultOpen?: boolean;
+  searchQuery?: string;
+}
+
+const HighlightedLink = ({ text, searchQuery }: { text: string; searchQuery?: string }) => {
+  // First split by WikiLinks/Markdown links
   const parts = text.split(/(\[\[.*?\]\]|\[.*?\]\(.*?\))/g);
+
   return (
     <span className="text-[12px] leading-relaxed text-zinc-400 group-hover/mention:text-zinc-200 transition-colors">
       {parts.map((part, i) => {
         const isLink = part.startsWith('[[') || (part.startsWith('[') && part.includes(']('));
-        return isLink ? (
-          <mark key={i} className="bg-primary/20 text-primary-foreground rounded-sm px-0.5 border border-primary/20">
-            {part}
-          </mark>
-        ) : (
-          <span key={i}>{part}</span>
-        );
+
+        if (isLink) {
+          return (
+            <mark key={i} className="bg-primary/20 text-primary-foreground rounded-sm px-0.5 border border-primary/20">
+              {part}
+            </mark>
+          );
+        }
+
+        // Apply search highlighting to non-link text
+        if (searchQuery && searchQuery.trim() && part.toLowerCase().includes(searchQuery.toLowerCase())) {
+          const searchParts = part.split(new RegExp(`(${searchQuery})`, 'gi'));
+          return (
+            <span key={i}>
+              {searchParts.map((sPart, j) =>
+                sPart.toLowerCase() === searchQuery.toLowerCase() ? (
+                  <mark key={j} className="bg-yellow-500/30 text-yellow-200 rounded-sm px-0.5">
+                    {sPart}
+                  </mark>
+                ) : (
+                  <span key={j}>{sPart}</span>
+                )
+              )}
+            </span>
+          );
+        }
+
+        return <span key={i}>{part}</span>;
       })}
     </span>
   );
 };
 
-export const LinkTabItems = ({ file }: { file: LinkFile }) => {
+export const LinkTabItems = ({ file, defaultOpen = true, searchQuery }: IProps) => {
   const setActiveNode = useNodeStore(state => state.setActiveNode);
   const nodes = useNodeStore(state => state.nodes);
   const openTab = useTabStore(state => state.openTab);
@@ -48,17 +77,13 @@ export const LinkTabItems = ({ file }: { file: LinkFile }) => {
     const targetNode = flatNodes.find(n => n._id === file._id);
     if (!targetNode) return;
 
-    const linkRegex = /\[\[([^\]]+)\]\]|\[([^\]]+)\]\(([^)]+)\)/g;
-    let match;
+    // Use a jump offset logic similar to Obsidian/VSCode
+    const jumpData = {
+      nodeId: file._id,
+      offset: mention.index,
+      length: mention.excerpt.length,
+    };
 
-    while ((match = linkRegex.exec(mention.excerpt)) !== null) {
-      const rawLink = match[1] || match[3];
-      if (rawLink.includes(file.title) || file.path.includes(rawLink)) {
-        break;
-      }
-    }
-
-    const jumpData = { nodeId: file._id, offset: mention.index, length: mention.excerpt.length - 2 };
     Object.assign(window, { __PENDING_JUMP__: jumpData });
 
     openTab(targetNode.projectId, targetNode, true);
@@ -67,7 +92,10 @@ export const LinkTabItems = ({ file }: { file: LinkFile }) => {
     window.dispatchEvent(new CustomEvent('editor-jump-to', { detail: jumpData }));
   };
 
-  const onHeaderClick = () => {
+  const onHeaderClick = (e: React.MouseEvent) => {
+    // Prevent navigation if clicking the toggle button specifically
+    if ((e.target as HTMLElement).closest('button')) return;
+
     const flatNodes = flattenNodeTree(nodes);
     const targetNode = flatNodes.find(n => n._id === file._id);
     if (!targetNode) return;
@@ -77,9 +105,8 @@ export const LinkTabItems = ({ file }: { file: LinkFile }) => {
   };
 
   return (
-    <Collapsible className="w-full" defaultOpen={true}>
-      <div className="group relative flex items-center gap-2 rounded cursor-pointer hover:bg-white/5 transition-colors w-full">
-        {/* Chevron Toggle - Matches OutlineTabItem layout */}
+    <Collapsible className="w-full" defaultOpen={defaultOpen}>
+      <div className="group relative flex items-center gap-2 rounded cursor-pointer hover:bg-white/5 transition-colors w-full" onClick={onHeaderClick}>
         <div className="flex items-center justify-center w-6! h-6! shrink-0 ml-1">
           <CollapsibleTrigger asChild>
             <button className="hover:bg-white/10 p-0.5 rounded transition-transform data-[state=open]:rotate-90">
@@ -88,8 +115,7 @@ export const LinkTabItems = ({ file }: { file: LinkFile }) => {
           </CollapsibleTrigger>
         </div>
 
-        {/* File Header */}
-        <div className="flex flex-col w-full h-auto text-start py-1.5 overflow-hidden" onClick={onHeaderClick}>
+        <div className="flex flex-col w-full h-auto text-start py-1.5 overflow-hidden">
           <div className="flex items-center gap-2 pr-2">
             <FileText className="w-3.5 h-3.5 text-zinc-500 shrink-0" />
             <span className="text-[13px] text-zinc-300 group-hover:text-white truncate font-medium tracking-tight">{file.title}</span>
@@ -99,7 +125,7 @@ export const LinkTabItems = ({ file }: { file: LinkFile }) => {
       </div>
 
       <CollapsibleContent className="relative w-full overflow-hidden">
-        {/* Vertical Guide Line - Positioned exactly like Outline */}
+        {/* Vertical Guide Line */}
         <div className="absolute top-0 bottom-0 w-px bg-white/5 pointer-events-none left-[20px]" />
 
         <div className="flex flex-col mt-0.5">
@@ -109,7 +135,7 @@ export const LinkTabItems = ({ file }: { file: LinkFile }) => {
               className="group/mention relative flex items-start gap-2 rounded cursor-pointer hover:bg-white/5 transition-colors w-full py-2 pl-[32px] pr-3"
               onClick={() => onMentionClick(mention)}
             >
-              {/* Dot indicator matching OutlineItem circle */}
+              {/* Dot indicator */}
               <div className="flex items-center justify-center w-4 h-4 mt-1 shrink-0">
                 <div className="w-1 h-1 rounded-full bg-zinc-600 group-hover/mention:bg-primary transition-colors" />
               </div>
@@ -117,7 +143,7 @@ export const LinkTabItems = ({ file }: { file: LinkFile }) => {
               <div className="flex flex-col gap-0.5 overflow-hidden">
                 <span className="text-[9px] font-mono text-zinc-600 uppercase">Line {mention.line}</span>
                 <div className="line-clamp-2">
-                  <HighlightedLink text={mention.excerpt} />
+                  <HighlightedLink text={mention.excerpt} searchQuery={searchQuery} />
                 </div>
               </div>
             </div>

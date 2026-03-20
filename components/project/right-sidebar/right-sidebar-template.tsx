@@ -6,16 +6,15 @@ import { useProjectPresence } from '@/features/editor/stores/project-pressence';
 import { useSession } from 'next-auth/react';
 import { NavUser } from '../../nav-user';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { List, Users, ArrowUpRight, Link, ArrowDownLeft, ChevronRight, Archive } from 'lucide-react';
+import { List, Users, Link, ArrowDownLeft, Archive } from 'lucide-react';
 import { useProjectUIStore } from '@/features/editor/stores/project-ui';
 import { IconTrident } from '@tabler/icons-react';
 import { OutlineTabItem } from './outline-tab-item';
-import LinkTabItems from './link-tab-items';
-import { useNodeBacklinksQuery } from '@/hooks/node/useNodeQuery';
-import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
 import { PropertyTabItems } from './property-tab-items';
 import { PropertyTabHeader } from './property-tab-header';
 import { OutlineTabHeader } from './outline-tab-header';
+import { LinkTabHeader } from './link-tab-header';
+import LinkTabContent from './link-tab-content';
 
 interface OutlineNode {
   text: string;
@@ -30,12 +29,12 @@ const InboundLinkIcon = ({ className }: { className?: string }) => (
   </div>
 );
 
-const OutboundLinkIcon = ({ className }: { className?: string }) => (
-  <div className="relative inline-flex items-center justify-center">
-    <Link className={className} />
-    <ArrowUpRight className="absolute -bottom-1 -right-1 h-3 w-3 bg-background rounded-full stroke-[3px]" />
-  </div>
-);
+// const OutboundLinkIcon = ({ className }: { className?: string }) => (
+//   <div className="relative inline-flex items-center justify-center">
+//     <Link className={className} />
+//     <ArrowUpRight className="absolute -bottom-1 -right-1 h-3 w-3 bg-background rounded-full stroke-[3px]" />
+//   </div>
+// );
 
 const buildOutlineTree = (headings: { level: number; text: string }[]): OutlineNode[] => {
   const root: OutlineNode[] = [];
@@ -56,28 +55,36 @@ const buildOutlineTree = (headings: { level: number; text: string }[]): OutlineN
   return root;
 };
 
-type PropertySortMode = 'name-asc' | 'name-desc' | 'freq-high' | 'freq-low';
+type ISortMode = 'name-asc' | 'name-desc' | 'freq-high' | 'freq-low';
 
 const RightSidebarTemplate = ({ activeNodeId, activeNodeContent }: { activeNodeId: string; activeNodeType: string; activeNodeContent: string }) => {
   const { data } = useSession();
-  const { data: bData, isLoading: nLoading } = useNodeBacklinksQuery(activeNodeId ?? '');
 
   const rightSidebarTab = useProjectUIStore(state => state.rightSidebarTab);
   const setRightSidebarTab = useProjectUIStore(state => state.setRightSidebarTab);
 
   const activeUsers = useProjectPresence(state => state.activeUsers);
 
+  // --- PROPERTY STATES ---
   const [isSearchingInProperty, setIsSearchingInProperty] = useState(false);
   const [searchQueryInProperty, setSearchQueryInProperty] = useState('');
-  const [propertySortMode, setPropertySortMode] = useState<PropertySortMode>('name-asc');
+  const [propertySortMode, setPropertySortMode] = useState<ISortMode>('name-asc');
+
+  // --- BACKLINK STATES ---
+  const [isSearchingInLink, setIsSearchingInLink] = useState(false);
+  const [searchQueryInLink, setSearchQueryInLink] = useState('');
+  const [linkSortMode, setLinkSortMode] = useState<ISortMode>('name-asc');
+  const [backlinkExpand, setBacklinkExpand] = useState(true);
+  const [linkRefreshKey, setBacklinkRefreshKey] = useState(0);
 
   const [isSearchingInOutline, setIsSearchingInOutline] = useState(false);
   const [searchQueryInOutline, setSearchQueryInOutline] = useState('');
 
+  // --- OUTLINE STATES ---
   const [defaultExpand, setDefaultExpand] = useState(true);
   const [refreshKey, setRefreshKey] = useState(0);
-  const linkedMentions = bData?.linked || [];
-  const unlinkedMentions = bData?.unlinked || [];
+  // const linkedMentions = bData?.linked || [];
+  // const unlinkedMentions = bData?.unlinked || [];
 
   const tree = useMemo(() => {
     if (!activeNodeContent) return [];
@@ -108,6 +115,11 @@ const RightSidebarTemplate = ({ activeNodeId, activeNodeContent }: { activeNodeI
     setRefreshKey(k => k + 1);
   };
 
+  const handleTogglelinkExpand = (val: boolean) => {
+    setBacklinkExpand(val);
+    setBacklinkRefreshKey(k => k + 1);
+  };
+
   const filteredUsers = useMemo(() => {
     return Array.from(activeUsers.values()).filter(user => user.id !== data?.user?._id);
   }, [activeUsers, data?.user?._id]);
@@ -118,19 +130,19 @@ const RightSidebarTemplate = ({ activeNodeId, activeNodeContent }: { activeNodeI
         <Tabs
           defaultValue="nodes"
           value={rightSidebarTab}
-          onValueChange={e => setRightSidebarTab(e as 'pressence' | 'properties' | 'outline' | 'backlink' | 'outgoing' | 'mermaid')}
+          onValueChange={e => setRightSidebarTab(e as 'pressence' | 'properties' | 'outline' | 'link' | 'outgoing' | 'mermaid')}
           className="flex flex-col h-screen min-h-0 gap-y-0 w-full"
         >
           <SidebarHeader className="h-12 bg-sidebar flex text-xs text-muted-foreground border-b border-white/5">
             <div className="flex items-center justify-between w-full overflow-hidden">
               <div className="flex-1 min-w-0 overflow-x-auto overflow-y-hidden [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden">
                 <TabsList className="bg-transparent flex items-center gap-x-1 w-max">
-                  <TabsTrigger className="grow-0" value="backlink">
+                  <TabsTrigger className="grow-0" value="link">
                     <InboundLinkIcon className="w-6! h-6!" />
                   </TabsTrigger>
-                  <TabsTrigger className="grow-0" value="outgoing">
+                  {/* <TabsTrigger className="grow-0" value="outgoing">
                     <OutboundLinkIcon className="w-6! h-6!" />
-                  </TabsTrigger>
+                  </TabsTrigger> */}
                   <TabsTrigger className="grow-0" value="properties">
                     <Archive className="w-6! h-6!" />
                   </TabsTrigger>
@@ -159,78 +171,62 @@ const RightSidebarTemplate = ({ activeNodeId, activeNodeContent }: { activeNodeI
 
           <div className="h-1! w-full bg-background" />
 
+          {rightSidebarTab !== 'pressence' && (
+            <div className="h-14 flex items-center border-b text-muted-foreground border-white/5 w-full">
+              {/* Link Header Content */}
+              <LinkTabHeader
+                isSearching={isSearchingInLink}
+                setIsSearching={setIsSearchingInLink}
+                searchQuery={searchQueryInLink}
+                setSearchQuery={setSearchQueryInLink}
+                defaultExpand={backlinkExpand}
+                setDefaultExpand={setBacklinkExpand}
+                setRefreshKey={setBacklinkRefreshKey}
+                handleToggleExpand={handleTogglelinkExpand}
+                sortMode={linkSortMode}
+                setSortMode={setLinkSortMode}
+              />
+
+              {/* Properties Header Content */}
+              <PropertyTabHeader
+                isSearchingInProperty={isSearchingInProperty}
+                setIsSearchingInProperty={setIsSearchingInProperty}
+                searchQueryInProperty={searchQueryInProperty}
+                setSearchQueryInProperty={setSearchQueryInProperty}
+                propertySortMode={propertySortMode}
+                setPropertySortMode={setPropertySortMode}
+              />
+
+              {/* Outline Header Content */}
+              <OutlineTabHeader
+                isSearchingInOutline={isSearchingInOutline}
+                setIsSearchingInOutline={setIsSearchingInOutline}
+                searchQueryInOutline={searchQueryInOutline}
+                setSearchQueryInOutline={setSearchQueryInOutline}
+                defaultExpand={defaultExpand}
+                setDefaultExpand={setDefaultExpand}
+                setRefreshKey={setRefreshKey}
+                handleToggleExpand={handleToggleExpand}
+              />
+            </div>
+          )}
+
           <TabsContent
-            value="backlink"
+            value="link"
             className="m-0 flex-1 h-full overflow-y-auto bg-sidebar/80 [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden" // no scrollbar to show visually
           >
-            <div className="p-2 space-y-4">
-              <Collapsible defaultOpen className="group/linked">
-                <CollapsibleTrigger className="flex items-center justify-between w-full px-2 py-1 hover:bg-white/5 rounded transition-colors">
-                  <div className="flex items-center gap-1">
-                    <ChevronRight className="h-3 w-3 text-muted-foreground transition-transform duration-200 group-data-[state=open]/linked:rotate-90" />
-                    <h3 className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest">Linked mentions</h3>
-                  </div>
-                  <span className="text-[10px] text-muted-foreground">{linkedMentions.length}</span>
-                </CollapsibleTrigger>
-
-                <CollapsibleContent className="space-y-0.5 mt-1">
-                  {nLoading ? (
-                    <p className="text-xs text-zinc-500 italic mt-2 px-2 animate-pulse">Loading...</p>
-                  ) : linkedMentions.length > 0 ? (
-                    linkedMentions.map(file => <LinkTabItems key={file._id} file={file} />)
-                  ) : (
-                    <p className="text-xs text-zinc-500 italic mt-2 px-2">No linked mentions found</p>
-                  )}
-                </CollapsibleContent>
-              </Collapsible>
-
-              <Collapsible className="group/unlinked pt-2 border-t border-white/5">
-                <CollapsibleTrigger className="flex items-center justify-between w-full px-2 py-1 hover:bg-white/5 rounded transition-colors">
-                  <div className="flex items-center gap-1">
-                    <ChevronRight className="h-3 w-3 text-muted-foreground transition-transform duration-200 group-data-[state=open]/unlinked:rotate-90" />
-                    <h3 className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest">Unlinked mentions</h3>
-                  </div>
-                  <span className="text-[10px] text-muted-foreground">{unlinkedMentions.length}</span>
-                </CollapsibleTrigger>
-
-                <CollapsibleContent className="space-y-0.5 mt-1">
-                  {!nLoading && unlinkedMentions.length > 0 ? (
-                    unlinkedMentions.map(file => <LinkTabItems key={file._id} file={file} />)
-                  ) : (
-                    <p className="text-xs text-zinc-500 italic mt-2 px-2">No unlinked mentions found</p>
-                  )}
-                </CollapsibleContent>
-              </Collapsible>
-            </div>
+            <LinkTabContent
+              activeNodeId={activeNodeId}
+              searchQueryInLink={searchQueryInLink}
+              linkSortMode={linkSortMode}
+              backlinkExpand={backlinkExpand}
+              linkRefreshKey={linkRefreshKey}
+            />
           </TabsContent>
 
-          <TabsContent value="outgoing" className="m-0 flex-1 overflow-y-auto bg-sidebar/80">
+          {/* <TabsContent value="outgoing" className="m-0 flex-1 overflow-y-auto bg-sidebar/80">
             outgoing links
-          </TabsContent>
-
-          <div className="h-14 flex items-center border-b text-muted-foreground border-white/5 w-full">
-            {/* Properties Header Content */}
-            <PropertyTabHeader
-              isSearchingInProperty={isSearchingInProperty}
-              setIsSearchingInProperty={setIsSearchingInProperty}
-              searchQueryInProperty={searchQueryInProperty}
-              setSearchQueryInProperty={setSearchQueryInProperty}
-              propertySortMode={propertySortMode}
-              setPropertySortMode={setPropertySortMode}
-            />
-
-            {/* Outline Header Content */}
-            <OutlineTabHeader
-              isSearchingInOutline={isSearchingInOutline}
-              setIsSearchingInOutline={setIsSearchingInOutline}
-              searchQueryInOutline={searchQueryInOutline}
-              setSearchQueryInOutline={setSearchQueryInOutline}
-              defaultExpand={defaultExpand}
-              setDefaultExpand={setDefaultExpand} // Pass this
-              setRefreshKey={setRefreshKey} // Pass this
-              handleToggleExpand={handleToggleExpand}
-            />
-          </div>
+          </TabsContent> */}
 
           <TabsContent
             value="properties"
