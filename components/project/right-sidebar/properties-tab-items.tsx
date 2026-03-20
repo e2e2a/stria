@@ -2,7 +2,7 @@ import { useNodeStore } from '@/features/editor/stores/nodes';
 import { useProjectUIStore } from '@/features/editor/stores/project-ui';
 import { getAllPropertyStats } from '@/features/helpers/editor/getPropertyStats';
 import { flattenNodeTree } from '@/utils/client/node-utils';
-import React, { useDeferredValue, useMemo } from 'react';
+import { useDeferredValue, useMemo } from 'react';
 
 const ICON_MAP: Record<string, string> = {
   tags: '🏷',
@@ -12,17 +12,45 @@ const ICON_MAP: Record<string, string> = {
   asd: '☑',
 };
 
-export const PropertiesTabItems = () => {
+interface PropertiesTabItemsProps {
+  sortMode: 'name-asc' | 'name-desc' | 'freq-high' | 'freq-low';
+  searchQuery: string;
+}
+
+export const PropertiesTabItems = ({ sortMode, searchQuery }: PropertiesTabItemsProps) => {
   const nodes = useNodeStore(state => state.nodes);
   const { setSearchQuery, setLeftSidebarTab } = useProjectUIStore();
   const deferredNodes = useDeferredValue(nodes);
   const flatNodes = useMemo(() => flattenNodeTree(deferredNodes), [deferredNodes]);
-  const propertyStats = useMemo(() => getAllPropertyStats(flatNodes || []), [flatNodes]);
+  // const propertyStats = useMemo(() => getAllPropertyStats(flatNodes || []), [flatNodes]);
 
   const handlePropertyClick = (key: string) => {
     setSearchQuery(`["${key}"]`);
     setLeftSidebarTab('search');
   };
+  const propertyStats = useMemo(() => {
+    let stats = getAllPropertyStats(flatNodes || []);
+
+    if (searchQuery.trim()) {
+      const lowerQuery = searchQuery.toLowerCase();
+      stats = stats.filter(item => item.key.toLowerCase().includes(lowerQuery));
+    }
+
+    return stats.sort((a, b) => {
+      switch (sortMode) {
+        case 'name-asc':
+          return a.key.localeCompare(b.key);
+        case 'name-desc':
+          return b.key.localeCompare(a.key);
+        case 'freq-high':
+          return b.count - a.count;
+        case 'freq-low':
+          return a.count - b.count;
+        default:
+          return 0;
+      }
+    });
+  }, [flatNodes, sortMode, searchQuery]);
 
   return (
     <div className="flex flex-col py-2">

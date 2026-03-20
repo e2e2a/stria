@@ -6,16 +6,16 @@ import { useProjectPresence } from '@/features/editor/stores/project-pressence';
 import { useSession } from 'next-auth/react';
 import { NavUser } from '../../nav-user';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { List, Users, Search, ChevronsDownUp, ChevronsUpDown, X, ArrowUpRight, Link, ArrowDownLeft, ChevronRight, Archive } from 'lucide-react';
+import { List, Users, ArrowUpRight, Link, ArrowDownLeft, ChevronRight, Archive } from 'lucide-react';
 import { useProjectUIStore } from '@/features/editor/stores/project-ui';
-import { Button } from '../../ui/button';
-import { Input } from '../../ui/input';
 import { IconTrident } from '@tabler/icons-react';
 import { OutlineTabItem } from './outline-tab-item';
 import LinkTabItems from './link-tab-items';
 import { useNodeBacklinksQuery } from '@/hooks/node/useNodeQuery';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
 import { PropertiesTabItems } from './properties-tab-items';
+import { PropertyTabHeader } from './property-tab-header';
+import { OutlineTabHeader } from './outline-tab-header';
 
 interface OutlineNode {
   text: string;
@@ -56,6 +56,8 @@ const buildOutlineTree = (headings: { level: number; text: string }[]): OutlineN
   return root;
 };
 
+type PropertySortMode = 'name-asc' | 'name-desc' | 'freq-high' | 'freq-low';
+
 const RightSidebarTemplate = ({ activeNodeId, activeNodeContent }: { activeNodeId: string; activeNodeType: string; activeNodeContent: string }) => {
   const { data } = useSession();
   const { data: bData, isLoading: nLoading } = useNodeBacklinksQuery(activeNodeId ?? '');
@@ -65,8 +67,11 @@ const RightSidebarTemplate = ({ activeNodeId, activeNodeContent }: { activeNodeI
 
   const activeUsers = useProjectPresence(state => state.activeUsers);
 
-  const [isSearchingInOutline, setIsSearchingInOutline] = useState(false);
+  const [isSearchingInProperty, setIsSearchingInProperty] = useState(false);
+  const [searchQueryInProperty, setSearchQueryInProperty] = useState('');
+  const [propertySortMode, setPropertySortMode] = useState<PropertySortMode>('name-asc');
 
+  const [isSearchingInOutline, setIsSearchingInOutline] = useState(false);
   const [searchQueryInOutline, setSearchQueryInOutline] = useState('');
 
   const [defaultExpand, setDefaultExpand] = useState(true);
@@ -101,14 +106,6 @@ const RightSidebarTemplate = ({ activeNodeId, activeNodeContent }: { activeNodeI
   const handleToggleExpand = (val: boolean) => {
     setDefaultExpand(val);
     setRefreshKey(k => k + 1);
-  };
-
-  const onSearchChange = (val: string) => {
-    setSearchQueryInOutline(val);
-    if (val.trim().length > 0) {
-      setDefaultExpand(true);
-      setRefreshKey(k => k + 1);
-    }
   };
 
   const filteredUsers = useMemo(() => {
@@ -207,60 +204,31 @@ const RightSidebarTemplate = ({ activeNodeId, activeNodeContent }: { activeNodeI
           </TabsContent>
 
           <div className="h-14 flex items-center border-b text-muted-foreground border-white/5 w-full">
-            <TabsContent className="h-full min-h-0 w-full px-3" value="outline">
-              <div className="bg-transparent w-full h-full flex items-center gap-x-1 justify-start">
-                {!isSearchingInOutline ? (
-                  <>
-                    <Button onClick={() => setIsSearchingInOutline(true)} className="px-2! py-1! border border-transparent" variant="ghost">
-                      <Search className="h-6! w-6!" />
-                    </Button>
-                    {defaultExpand ? (
-                      <Button
-                        onClick={() => handleToggleExpand(false)}
-                        className="px-2! py-1! border border-transparent"
-                        variant="ghost"
-                        title="Collapse All"
-                      >
-                        <ChevronsDownUp className="h-6! w-6!" />
-                      </Button>
-                    ) : (
-                      <Button
-                        onClick={() => handleToggleExpand(true)}
-                        className="px-2! py-1! border border-transparent"
-                        variant="ghost"
-                        title="Expand All"
-                      >
-                        <ChevronsUpDown className="h-6! w-6!" />
-                      </Button>
-                    )}
-                  </>
-                ) : (
-                  <div className="relative px-1 w-full gap-x-2 animate-in slide-in-from-left-1 duration-800">
-                    <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                    <Input
-                      autoFocus
-                      placeholder="Filter..."
-                      value={searchQueryInOutline}
-                      onChange={e => onSearchChange(e.target.value)}
-                      className="w-full bg-background/50 border border-white/10 rounded-md py-1.5 pl-9 pr-8 text-sm focus:outline-none focus:ring-1 focus:ring-primary/50 transition-all"
-                    />
-                    <button
-                      onClick={() => {
-                        setIsSearchingInOutline(false);
-                        setSearchQueryInOutline('');
-                      }}
-                      className="absolute right-3 top-1/2 -translate-y-1/2 hover:text-foreground"
-                    >
-                      <X className="h-4 w-4 cursor-pointer" />
-                    </button>
-                  </div>
-                )}
-              </div>
-            </TabsContent>
+            {/* Properties Header Content */}
+            <PropertyTabHeader
+              isSearchingInProperty={isSearchingInProperty}
+              setIsSearchingInProperty={setIsSearchingInProperty}
+              searchQueryInProperty={searchQueryInProperty}
+              setSearchQueryInProperty={setSearchQueryInProperty}
+              propertySortMode={propertySortMode}
+              setPropertySortMode={setPropertySortMode}
+            />
+
+            {/* Outline Header Content */}
+            <OutlineTabHeader
+              isSearchingInOutline={isSearchingInOutline}
+              setIsSearchingInOutline={setIsSearchingInOutline}
+              searchQueryInOutline={searchQueryInOutline}
+              setSearchQueryInOutline={setSearchQueryInOutline}
+              defaultExpand={defaultExpand}
+              setDefaultExpand={setDefaultExpand} // Pass this
+              setRefreshKey={setRefreshKey} // Pass this
+              handleToggleExpand={handleToggleExpand}
+            />
           </div>
 
           <TabsContent value="properties" className="m-0 flex-1 overflow-y-auto bg-sidebar/80">
-            <PropertiesTabItems />
+            <PropertiesTabItems sortMode={propertySortMode} searchQuery={searchQueryInProperty} />
           </TabsContent>
 
           <TabsContent value="outline" className="m-0 flex-1 overflow-y-auto bg-sidebar/80">
