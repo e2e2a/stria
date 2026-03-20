@@ -1,5 +1,4 @@
 import { INode } from '@/types';
-import { EditorView } from '@uiw/react-codemirror';
 import { create } from 'zustand';
 
 interface OperationMove {
@@ -83,9 +82,6 @@ function getSiblings(nodes: INode[], parentId: string | null): INode[] {
 }
 
 interface NodesState {
-  activeEditorView: EditorView | null;
-  setActiveEditorView: (view: EditorView | null) => void;
-
   pendingScrollHeading: string;
   setPendingScrollHeading(heading: string): void;
 
@@ -128,9 +124,6 @@ interface NodesState {
 }
 
 export const useNodeStore = create<NodesState>(set => ({
-  activeEditorView: null,
-  setActiveEditorView: view => set({ activeEditorView: view }),
-
   // Add to your store definition
   pendingScrollHeading: '',
   setPendingScrollHeading: (heading: string) => set({ pendingScrollHeading: heading }),
