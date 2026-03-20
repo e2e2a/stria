@@ -65,12 +65,15 @@ const RightSidebarTemplate = ({ activeNodeId, activeNodeContent }: { activeNodeI
 
   const activeUsers = useProjectPresence(state => state.activeUsers);
 
-  const [isSearching, setIsSearching] = useState(false);
-  const [searchQuery, setSearchQuery] = useState('');
+  const [isSearchingInOutline, setIsSearchingInOutline] = useState(false);
+
+  const [searchQueryInOutline, setSearchQueryInOutline] = useState('');
+
   const [defaultExpand, setDefaultExpand] = useState(true);
   const [refreshKey, setRefreshKey] = useState(0);
   const linkedMentions = bData?.linked || [];
   const unlinkedMentions = bData?.unlinked || [];
+
   const tree = useMemo(() => {
     if (!activeNodeContent) return [];
     const headingRegex = /^#{1,6}\s+(.*)/gm;
@@ -80,11 +83,11 @@ const RightSidebarTemplate = ({ activeNodeId, activeNodeContent }: { activeNodeI
     }));
 
     const fullTree = buildOutlineTree(matches);
-    if (!searchQuery.trim()) return fullTree;
+    if (!searchQueryInOutline.trim()) return fullTree;
 
     const filterNodes = (nodes: OutlineNode[]): OutlineNode[] => {
       return nodes.reduce((acc: OutlineNode[], node) => {
-        const matchesSearch = node.text.toLowerCase().includes(searchQuery.toLowerCase());
+        const matchesSearch = node.text.toLowerCase().includes(searchQueryInOutline.toLowerCase());
         const filteredChildren = filterNodes(node.children);
         if (matchesSearch || filteredChildren.length > 0) {
           acc.push({ ...node, children: filteredChildren });
@@ -93,7 +96,7 @@ const RightSidebarTemplate = ({ activeNodeId, activeNodeContent }: { activeNodeI
       }, []);
     };
     return filterNodes(fullTree);
-  }, [activeNodeContent, searchQuery]);
+  }, [activeNodeContent, searchQueryInOutline]);
 
   const handleToggleExpand = (val: boolean) => {
     setDefaultExpand(val);
@@ -101,7 +104,7 @@ const RightSidebarTemplate = ({ activeNodeId, activeNodeContent }: { activeNodeI
   };
 
   const onSearchChange = (val: string) => {
-    setSearchQuery(val);
+    setSearchQueryInOutline(val);
     if (val.trim().length > 0) {
       setDefaultExpand(true);
       setRefreshKey(k => k + 1);
@@ -198,6 +201,7 @@ const RightSidebarTemplate = ({ activeNodeId, activeNodeContent }: { activeNodeI
               </Collapsible>
             </div>
           </TabsContent>
+
           <TabsContent value="outgoing" className="m-0 flex-1 overflow-y-auto bg-sidebar/80">
             outgoing links
           </TabsContent>
@@ -205,9 +209,9 @@ const RightSidebarTemplate = ({ activeNodeId, activeNodeContent }: { activeNodeI
           <div className="h-14 flex items-center border-b text-muted-foreground border-white/5 w-full">
             <TabsContent className="h-full min-h-0 w-full px-3" value="outline">
               <div className="bg-transparent w-full h-full flex items-center gap-x-1 justify-start">
-                {!isSearching ? (
+                {!isSearchingInOutline ? (
                   <>
-                    <Button onClick={() => setIsSearching(true)} className="px-2! py-1! border border-transparent" variant="ghost">
+                    <Button onClick={() => setIsSearchingInOutline(true)} className="px-2! py-1! border border-transparent" variant="ghost">
                       <Search className="h-6! w-6!" />
                     </Button>
                     {defaultExpand ? (
@@ -231,22 +235,24 @@ const RightSidebarTemplate = ({ activeNodeId, activeNodeContent }: { activeNodeI
                     )}
                   </>
                 ) : (
-                  <div className="flex items-center w-full gap-x-2 animate-in slide-in-from-left-1 duration-200">
-                    <Search className="h-4 w-4 text-zinc-500" />
+                  <div className="relative px-1 w-full gap-x-2 animate-in slide-in-from-left-1 duration-800">
+                    <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                     <Input
                       autoFocus
                       placeholder="Filter..."
-                      value={searchQuery}
+                      value={searchQueryInOutline}
                       onChange={e => onSearchChange(e.target.value)}
-                      className="h-8 bg-transparent border-none focus-visible:ring-0 px-0 text-sm"
+                      className="w-full bg-background/50 border border-white/10 rounded-md py-1.5 pl-9 pr-8 text-sm focus:outline-none focus:ring-1 focus:ring-primary/50 transition-all"
                     />
-                    <X
-                      className="h-4 w-4 cursor-pointer"
+                    <button
                       onClick={() => {
-                        setIsSearching(false);
-                        setSearchQuery('');
+                        setIsSearchingInOutline(false);
+                        setSearchQueryInOutline('');
                       }}
-                    />
+                      className="absolute right-3 top-1/2 -translate-y-1/2 hover:text-foreground"
+                    >
+                      <X className="h-4 w-4 cursor-pointer" />
+                    </button>
                   </div>
                 )}
               </div>
@@ -262,10 +268,10 @@ const RightSidebarTemplate = ({ activeNodeId, activeNodeContent }: { activeNodeI
               <div className="space-y-0.5">
                 {tree.length > 0 ? (
                   tree.map((node, idx) => (
-                    <OutlineTabItem key={`${idx}-${refreshKey}`} node={node} defaultOpen={defaultExpand} searchQuery={searchQuery} />
+                    <OutlineTabItem key={`${idx}-${refreshKey}`} node={node} defaultOpen={defaultExpand} searchQuery={searchQueryInOutline} />
                   ))
                 ) : (
-                  <p className="text-xs text-zinc-500 italic mt-2 px-2">{searchQuery ? 'No matches' : 'No headings'}</p>
+                  <p className="text-xs text-zinc-500 italic mt-2 px-2">{searchQueryInOutline ? 'No matches' : 'No headings'}</p>
                 )}
               </div>
             </div>
