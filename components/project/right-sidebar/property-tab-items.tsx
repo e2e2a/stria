@@ -12,12 +12,12 @@ const ICON_MAP: Record<string, string> = {
   asd: '☑',
 };
 
-interface PropertiesTabItemsProps {
+interface IProps {
   sortMode: 'name-asc' | 'name-desc' | 'freq-high' | 'freq-low';
   searchQuery: string;
 }
 
-export const PropertiesTabItems = ({ sortMode, searchQuery }: PropertiesTabItemsProps) => {
+export const PropertyTabItems = ({ sortMode, searchQuery }: IProps) => {
   const nodes = useNodeStore(state => state.nodes);
   const { setSearchQuery, setLeftSidebarTab } = useProjectUIStore();
   const deferredNodes = useDeferredValue(nodes);

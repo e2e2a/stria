@@ -13,7 +13,7 @@ import { OutlineTabItem } from './outline-tab-item';
 import LinkTabItems from './link-tab-items';
 import { useNodeBacklinksQuery } from '@/hooks/node/useNodeQuery';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
-import { PropertiesTabItems } from './properties-tab-items';
+import { PropertyTabItems } from './property-tab-items';
 import { PropertyTabHeader } from './property-tab-header';
 import { OutlineTabHeader } from './outline-tab-header';
 
@@ -228,7 +228,7 @@ const RightSidebarTemplate = ({ activeNodeId, activeNodeContent }: { activeNodeI
           </div>
 
           <TabsContent value="properties" className="m-0 flex-1 overflow-y-auto bg-sidebar/80">
-            <PropertiesTabItems sortMode={propertySortMode} searchQuery={searchQueryInProperty} />
+            <PropertyTabItems sortMode={propertySortMode} searchQuery={searchQueryInProperty} />
           </TabsContent>
 
           <TabsContent value="outline" className="m-0 flex-1 overflow-y-auto bg-sidebar/80">
