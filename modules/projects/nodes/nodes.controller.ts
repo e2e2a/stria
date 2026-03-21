@@ -61,12 +61,6 @@ export const nodeController = {
   delete: async (nid: string) => {
     const session = await ensureAuthenticated();
     if (!nid) throw new HttpError('BAD_INPUT');
-    // const validatedBody = NodeDTO.delete.safeParse();
-
-    // if (!validatedBody.success) {
-    //   const errorMessage = validatedBody.error.issues[0].message;
-    //   throw new HttpError('BAD_INPUT', errorMessage);
-    // }
 
     const updatedNode = await nodeService.delete(nid, session.user.email);
     return updatedNode;
