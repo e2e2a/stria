@@ -78,7 +78,7 @@ async function seed() {
     await WorkspaceMember.deleteMany();
     await WorkspaceMember.create({ ...workspaceMemberData, workspaceId: workspace._id, email: user.email });
 
-    await Project.deleteOne({ title: projectData.title }, { new: true });
+    await Project.deleteOne();
     const project = await Project.create({ ...projectData, workspaceId: workspace._id, createdBy: user._id });
 
     await ProjectMember.deleteMany();
@@ -89,53 +89,59 @@ async function seed() {
       projectId: project._id,
     };
 
-    await Node.deleteMany({ projectId: BASE.projectId });
+    await Node.deleteMany();
     console.log('🧹 Cleaned existing project nodes');
 
     // 2. Create 5 Main Parent Trees
     for (let i = 1; i <= 5; i++) {
       console.log(`Building Tree #${i}...`);
 
+      const rootTitle = `Root-Parent-${i}`;
+
       // Create Top Level Parent
       let currentParent = await Node.create({
         ...BASE,
         parentId: null,
-        title: `Root-Parent-${i}`,
+        title: rootTitle,
+        path: rootTitle, // 1st level path is just the title
         type: 'folder',
       });
 
-      // 3. Create 4 levels of nested sub-parents (Total depth: 5 folders)
+      // 3. Create 4 levels of nested sub-parents
       for (let depth = 1; depth <= 4; depth++) {
+        const subTitle = `Sub-Level-${depth}-of-Tree-${i}`;
+
         const subParent = await Node.create({
           ...BASE,
           parentId: currentParent._id,
-          title: `Sub-Level-${depth}-of-Tree-${i}`,
+          title: subTitle,
+          path: `${currentParent.path}/${subTitle}`, // Concatenate parent path
           type: 'folder',
         });
 
-        // Update the currentParent's children array to include this new sub-folder
         await Node.findByIdAndUpdate(currentParent._id, {
           $push: { children: subParent._id },
         });
 
-        // Move the pointer deeper: the new subParent becomes the parent for the next loop
         currentParent = subParent;
       }
 
-      // 4. Create 5 terminal "Child" files at the very bottom of this deep chain
+      // 4. Create 5 terminal "Child" files
       const leafFiles = [];
       for (let f = 1; f <= 5; f++) {
+        const fileTitle = `leaf-file-${f}.ts`;
+
         const file = await Node.create({
           ...BASE,
           parentId: currentParent._id,
-          title: `leaf-file-${f}.ts`,
+          title: fileTitle,
+          path: `${currentParent.path}/${fileTitle}`, // Concatenate parent path
           type: 'file',
           content: `// This is file ${f} inside the deep nested structure of tree ${i}`,
         });
         leafFiles.push(file._id);
       }
 
-      // Final update to the deepest folder to include its files
       await Node.findByIdAndUpdate(currentParent._id, {
         $push: { children: { $each: leafFiles } },
       });
