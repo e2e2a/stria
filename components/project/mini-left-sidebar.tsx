@@ -105,7 +105,7 @@ const MiniSidebarTemplate = ({ LeftSidebarRef, isLeftCollapsed, RightSidebarRef 
                         className="flex w-full items-center justify-center hover:brightness-120 dark:hover:text-white"
                         prefetch
                       >
-                        <item.icon className="h-6! w-6! stroke-[1px]" />
+                        <item.icon className="h-6! w-6! stroke-[1px] stroke-[1px]" />
                       </Link>
                     </SidebarMenuItem>
                   );
