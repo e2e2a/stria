@@ -57,8 +57,6 @@ export const nodeRepository = {
   updateOne: (dataToFind: { _id: string }, dataToUpdate: Partial<INode>): Promise<INode | null> =>
     Node.findOneAndUpdate(dataToFind, dataToUpdate, updateOptions).lean<INode>().exec(),
 
-  deleteOne: (dataToFind: { _id: string }): Promise<INode | null> => Node.findOneAndDelete(dataToFind).lean<INode>().exec(),
-
   findMany: (data: { projectId: string }, exclude: ExcludeField[] = []) => {
     let query = Node.find(data);
 
@@ -68,5 +66,10 @@ export const nodeRepository = {
     }
 
     return query.lean<FlatNode[]>().exec();
+  },
+
+  deleteMany: (filter: FilterQuery<INode>) => {
+    const session = UnitOfWork.getSession();
+    return Node.deleteMany(filter, { session }).exec();
   },
 };

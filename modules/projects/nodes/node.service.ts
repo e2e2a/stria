@@ -364,12 +364,18 @@ export const nodeService = {
     const node = await nodeRepository.findOne({ _id: id });
     if (!node) throw new HttpError('NOT_FOUND', 'Node not found');
 
-    await Promise.all([
+    const [, pCtx] = await Promise.all([
       ensureWorkspaceMember(node.workspaceId, email), // wCtx
       ensureProjectMember(node.projectId, email), // pCtx
     ]);
 
-    return await nodeRepository.deleteOne({ _id: id });
+    if (!pCtx.permissions.canDeleteNode) throw new HttpError('FORBIDDEN');
+
+    return await nodeRepository.deleteMany({
+      workspaceId: node.workspaceId,
+      projectId: node.projectId,
+      path: { $regex: `^${node.path}` },
+    });
   },
 
   bulkCreate: async (
