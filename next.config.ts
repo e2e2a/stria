@@ -1,15 +1,6 @@
 import type { NextConfig } from 'next';
 
 const nextConfig: NextConfig = {
-  webpack: (config, { isServer }) => {
-    if (!isServer) {
-      // Ignore log files so they don't trigger HMR loops
-      config.watchOptions = {
-        ignored: ['**/nextjs_mongo.log'],
-      };
-    }
-    return config;
-  },
   /* config options here */
   reactStrictMode: false,
   devIndicators: false,

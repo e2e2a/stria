@@ -44,11 +44,6 @@ async function connectDb(): Promise<Mongoose> {
       .connect(MONGO_URI!, opts)
       .then(mongoose => {
         console.log('✅ MongoDB: Connected successfully');
-        if (process.env.NODE_ENV === 'production') {
-          mongoose.set('debug', false);
-        } else {
-          mongoose.set('debug', true);
-        }
         return mongoose;
       })
       .catch(err => {
