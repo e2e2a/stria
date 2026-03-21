@@ -10,7 +10,7 @@ services:
       - .:/app
       - /app/node_modules
       # - /app/.next
-      - /dev/null:/app/nextjs_mongo.log # Added to prevent cache thrashing
+      # - /dev/null:/app/nextjs_mongo.log # Added to prevent cache thrashing
     environment:
       - MONGO_URI=${MONGO_URI}
       - WATCHPACK_POLLING=true
@@ -54,7 +54,7 @@ services:
       - app-network
     command: >
       bash -c "
-      mongod --replSet rs0 --bind_ip_all --logpath /dev/null & 
+      mongod --replSet rs0 --bind_ip_all & 
       until mongosh --eval 'db.adminCommand(\"ping\")' &>/dev/null; do sleep 2; done;
       mongosh --eval 'try { rs.initiate({_id:\"rs0\", members:[{_id:0, host:\"mongodb:27017\"}]}); } catch (e) { if (e.codeName !== \"AlreadyInitialized\") throw e; }';
       wait

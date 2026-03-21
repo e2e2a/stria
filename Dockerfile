@@ -13,4 +13,4 @@ COPY . .
 EXPOSE 3000
 
 # Change to npm run dev if you want to enable nextjs development logs
-CMD ["npm", "run", "dev"]
+CMD ["npm", "run", "start"]
