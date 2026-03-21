@@ -176,7 +176,7 @@ export default function AppSidebarLayout({ children }: { children: React.ReactNo
             }
           }}
         >
-          <MiniSidebarTemplate LeftSidebarRef={LeftSidebarRef} isLeftCollapsed={isLeftCollapsed} />
+          <MiniSidebarTemplate LeftSidebarRef={LeftSidebarRef} isLeftCollapsed={isLeftCollapsed} RightSidebarRef={RightSidebarRef} />
 
           <ResizablePanel
             ref={LeftSidebarRef}

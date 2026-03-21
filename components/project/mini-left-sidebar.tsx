@@ -13,6 +13,8 @@ import Link from 'next/link';
 import { ImperativePanelHandle } from 'react-resizable-panels';
 import { PanelLeftCloseIcon, PanelLeftOpenIcon } from 'lucide-react';
 import { Button } from '../ui/button';
+import { IconTrident } from '@tabler/icons-react';
+import { useProjectUIStore } from '@/features/editor/stores/project-ui';
 
 const MiniSidebarIconItems = [
   {
@@ -54,8 +56,11 @@ const MiniSidebarIconItems = [
 interface IProps {
   LeftSidebarRef: React.RefObject<ImperativePanelHandle | null>;
   isLeftCollapsed: boolean;
+  RightSidebarRef: React.RefObject<ImperativePanelHandle | null>;
 }
-const MiniSidebarTemplate = ({ LeftSidebarRef, isLeftCollapsed }: IProps) => {
+const MiniSidebarTemplate = ({ LeftSidebarRef, isLeftCollapsed, RightSidebarRef }: IProps) => {
+  const setRightSidebarTab = useProjectUIStore(state => state.setRightSidebarTab);
+
   const toggleRightSidebar = () => {
     const panel = LeftSidebarRef.current;
     if (!panel) return;
@@ -105,6 +110,21 @@ const MiniSidebarTemplate = ({ LeftSidebarRef, isLeftCollapsed }: IProps) => {
                     </SidebarMenuItem>
                   );
                 })}
+              <SidebarMenuItem
+                className=""
+                onClick={() => {
+                  const panel = RightSidebarRef?.current;
+                  if (!panel) return;
+                  if (panel.isCollapsed()) panel.expand();
+                  requestAnimationFrame(() => {
+                    setRightSidebarTab('mermaid');
+                  });
+                }}
+              >
+                <Button type="button" tabIndex={-1} variant={'ghost'} className="cursor-pointer py-1 hover:bg-transparent!">
+                  <IconTrident className="w-6! h-6! rotate-45 -ml-1 mt-[4px]" />
+                </Button>
+              </SidebarMenuItem>
             </SidebarMenu>
           </SidebarGroup>
         </SidebarContent>
