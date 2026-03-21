@@ -13,8 +13,8 @@ import { useNodeMutations } from '@/hooks/node/useNodeMutations';
 import { makeToastError } from '@/lib/toast';
 import { INode } from '@/types';
 import { useState } from 'react';
-import { ContextMenuItem } from './ui/context-menu';
 import { useNodeStore } from '@/features/editor/stores/nodes';
+
 interface IProps {
   triggerTitle: string;
   title: string;
@@ -46,8 +46,11 @@ export function DangerConfirmDialog({ triggerTitle, title, description, node }: 
 
   return (
     <AlertDialog open={isOpen} onOpenChange={setIsOpen}>
-      <AlertDialogTrigger className="w-full py-1.5 flex items-center pl-8 cursor-pointer" onClick={() => setIsOpen(true)} asChild>
-        <span>{triggerTitle}</span>
+      <AlertDialogTrigger
+        className="w-full py-1.5 flex items-center pl-8 cursor-pointer hover:bg-destructive/10 text-destructive font-semibold!"
+        onClick={() => setIsOpen(true)}
+      >
+        {triggerTitle}
       </AlertDialogTrigger>
       <AlertDialogContent onClick={e => e.preventDefault()} onContextMenu={e => e.preventDefault()}>
         <AlertDialogHeader>
@@ -57,15 +60,13 @@ export function DangerConfirmDialog({ triggerTitle, title, description, node }: 
         <AlertDialogFooter>
           <AlertDialogCancel>Cancel</AlertDialogCancel>
           <AlertDialogAction
-            className="bg-blue-500 hover:bg-blue-500/90"
+            className="bg-blue-600 hover:bg-blue-500/90"
             onClick={e => {
               e.preventDefault();
               onTrash();
-              // setIsOpen(false);
             }}
-            asChild
           >
-            <ContextMenuItem className=" cursor-pointer ">Continue</ContextMenuItem>
+            Continue
           </AlertDialogAction>
         </AlertDialogFooter>
       </AlertDialogContent>
