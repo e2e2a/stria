@@ -8,13 +8,15 @@ import {
   SidebarMenuButton,
   SidebarMenuItem,
 } from '@/components/ui/sidebar';
-import { Blocks, Bot, Calendar, FileBox, Files, GitBranch, Terminal } from 'lucide-react';
+import { Blocks, Bot, Calendar, FileBox, Files, GitBranch, Network, Terminal } from 'lucide-react';
 import Link from 'next/link';
 import { ImperativePanelHandle } from 'react-resizable-panels';
 import { PanelLeftCloseIcon, PanelLeftOpenIcon } from 'lucide-react';
 import { Button } from '../ui/button';
 import { IconTrident } from '@tabler/icons-react';
 import { useProjectUIStore } from '@/features/editor/stores/project-ui';
+import { useTabStore } from '@/features/editor/stores/tabs';
+import { useParams } from 'next/navigation';
 
 const MiniSidebarIconItems = [
   {
@@ -59,6 +61,9 @@ interface IProps {
   RightSidebarRef: React.RefObject<ImperativePanelHandle | null>;
 }
 const MiniSidebarTemplate = ({ LeftSidebarRef, isLeftCollapsed, RightSidebarRef }: IProps) => {
+  const params = useParams();
+  const pid = params.pid as string;
+  const openTab = useTabStore(state => state.openTab);
   const setRightSidebarTab = useProjectUIStore(state => state.setRightSidebarTab);
 
   const toggleRightSidebar = () => {
@@ -90,6 +95,11 @@ const MiniSidebarTemplate = ({ LeftSidebarRef, isLeftCollapsed, RightSidebarRef 
                   {isLeftCollapsed ? <PanelLeftOpenIcon className="w-7! h-7!" /> : <PanelLeftCloseIcon className="w-7! h-7!" />}
                 </Button>
               </div>
+              <SidebarMenuItem className="" onClick={() => openTab(pid, 'Graph View', false, 0)}>
+                <Button type="button" tabIndex={-1} variant={'ghost'} className="cursor-pointer py-1 hover:bg-transparent!">
+                  <Network className="w-6! h-6! stroke-[1px]" />
+                </Button>
+              </SidebarMenuItem>
               {MiniSidebarIconItems &&
                 MiniSidebarIconItems.map((item, index) => {
                   /**

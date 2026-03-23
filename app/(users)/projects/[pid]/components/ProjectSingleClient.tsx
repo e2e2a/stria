@@ -5,6 +5,7 @@ import MarkdownSection from './MarkdownSection';
 import { INode } from '@/types';
 import { useTabStore } from '@/features/editor/stores/tabs';
 import { ProjectPresence } from './project-presence';
+import GraphViewSection from './graph-view-section';
 
 export function ProjectSingleClient() {
   const params = useParams();
@@ -29,7 +30,7 @@ export function ProjectSingleClient() {
           {tabs.map(tab => {
             return (
               <div key={tab.nodeId} className={tab.nodeId === activeTabId ? 'h-full w-full block' : 'hidden'}>
-                <MarkdownSection node={tab.node as INode} isDirty={tab.isDirty} />
+                {tab.nodeId === 'graph-view' ? <GraphViewSection projectId={pid} /> : <MarkdownSection node={tab.node as INode} isDirty={tab.isDirty} />}
               </div>
             );
           })}

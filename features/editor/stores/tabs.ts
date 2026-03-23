@@ -18,7 +18,7 @@ interface TabsState {
   activeTabs: Record<string, string | null>;
 
   // Actions
-  openTab: (projectId: string, node: INode, isPreview?: boolean, insertIndex?: number) => void;
+  openTab: (projectId: string, node: INode | string, isPreview?: boolean, insertIndex?: number) => void;
   closeTab: (projectId: string, nodeId: string) => void;
   setActiveTab: (projectId: string, nodeId: string) => void;
   pinTab: (projectId: string, nodeId: string) => void;
@@ -33,13 +33,20 @@ export const useTabStore = create<TabsState>()(
       projectTabs: {},
       activeTabs: {},
 
-      openTab(projectId: string, node: INode, isPreview = false, insertIndex?: number) {
-        if (node.type !== 'file') return;
+      openTab(projectId: string, node: INode | string, isPreview = false, insertIndex?: number) {
+        // if (node.type !== 'file') return;
+        const isGraph = typeof node === 'string' && node === 'Graph View';
+        if (!isGraph && (node as INode).type !== 'file') return;
 
         set(state => {
           const currentTabs = state.projectTabs[projectId] || [];
           const activeTabId = state.activeTabs[projectId];
-          const existingTabIndex = currentTabs.findIndex(t => t.nodeId === node._id);
+
+          // Use targetId/targetNode to keep the existing logic below untouched
+          const targetId = isGraph ? 'graph-view' : (node as INode)._id;
+          const targetNode = isGraph ? ({} as INode) : (node as INode);
+
+          const existingTabIndex = currentTabs.findIndex(t => t.nodeId === targetId);
 
           // 1️⃣ If the tab exists, just focus it
           if (existingTabIndex !== -1) {
@@ -49,17 +56,17 @@ export const useTabStore = create<TabsState>()(
             }
             return {
               projectTabs: { ...state.projectTabs, [projectId]: updatedTabs },
-              activeTabs: { ...state.activeTabs, [projectId]: node._id },
+              activeTabs: { ...state.activeTabs, [projectId]: targetId },
             };
           }
 
           // 2️⃣ New tab object
           const newTab: Tab = {
-            nodeId: node._id,
-            title: node.title ?? 'Untitled',
+            nodeId: targetId,
+            title: isGraph ? 'Graph View' : ((node as INode).title ?? 'Untitled'),
             isDirty: false,
             isPreview,
-            node: node,
+            node: targetNode,
           };
 
           // 3️⃣ Preview replacement (VS Code style)
@@ -69,7 +76,7 @@ export const useTabStore = create<TabsState>()(
             replacedTabs[previewIndex] = newTab;
             return {
               projectTabs: { ...state.projectTabs, [projectId]: replacedTabs },
-              activeTabs: { ...state.activeTabs, [projectId]: node._id },
+              activeTabs: { ...state.activeTabs, [projectId]: targetId },
             };
           }
 
@@ -85,7 +92,7 @@ export const useTabStore = create<TabsState>()(
 
           return {
             projectTabs: { ...state.projectTabs, [projectId]: updatedTabs },
-            activeTabs: { ...state.activeTabs, [projectId]: node._id },
+            activeTabs: { ...state.activeTabs, [projectId]: targetId },
           };
         });
       },
