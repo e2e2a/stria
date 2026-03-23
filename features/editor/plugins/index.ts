@@ -127,3 +127,20 @@ export const tableSelectionHighlighter = ViewPlugin.fromClass(
     }
   }
 );
+
+export const createEditorStatsPlugin = (nodeId: string) => {
+  return ViewPlugin.fromClass(
+    class {
+      update(update: ViewUpdate) {
+        if (update.docChanged) {
+          const text = update.state.doc.toString();
+          const wordEl = document.getElementById(`cm-word-count-${nodeId}`);
+          const charEl = document.getElementById(`cm-char-count-${nodeId}`);
+
+          if (wordEl) wordEl.textContent = (text.trim() ? text.trim().split(/\s+/).length : 0).toString();
+          if (charEl) charEl.textContent = text.length.toString();
+        }
+      }
+    }
+  );
+};

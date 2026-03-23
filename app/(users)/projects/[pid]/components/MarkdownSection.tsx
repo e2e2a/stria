@@ -9,6 +9,7 @@ import { EditorJumpDetail, INode } from '@/types';
 import { tags as t } from '@lezer/highlight';
 import {
   columnSelectionField,
+  createEditorStatsPlugin,
   dragStatusField,
   markdownLivePreviewField,
   setupDragTracking,
@@ -34,6 +35,7 @@ import { useProjectUIStore } from '@/features/editor/stores/project-ui';
 import ContextMenuClient from './context-menu/context-menu-client';
 import { useSession } from 'next-auth/react';
 import FooterLinks from './footer-links';
+import { EditorStatusBar } from './editor-status-bar';
 
 const myOwnDarkTheme = createTheme({
   theme: 'dark',
@@ -257,6 +259,7 @@ function MarkdownSection({ node, isDirty }: { node: INode; isDirty: boolean }) {
       dragStatusField,
       columnSelectionField,
       markdownLivePreviewField,
+      createEditorStatsPlugin(node._id),
     ];
   }, [instance, ytext, onDocChange, setActiveNode, node._id, undoManager]);
 
@@ -402,6 +405,12 @@ function MarkdownSection({ node, isDirty }: { node: INode; isDirty: boolean }) {
                 // value={instance?.ydoc.getText('codemirror').toString() ?? ''}
                 onCreateEditor={view => {
                   editorViewRef.current = view;
+
+                  // Initial stats push without triggering React
+                  const txt = view.state.doc.toString();
+                  const wordEl = document.getElementById('cm-word-count');
+                  if (wordEl) wordEl.textContent = (txt.trim() ? txt.trim().split(/\s+/).length : 0).toString();
+
                   setTimeout(() => {
                     setupDragTracking(view);
                   }, 0);
@@ -437,6 +446,7 @@ function MarkdownSection({ node, isDirty }: { node: INode; isDirty: boolean }) {
         </ContextMenuClient>
         <FooterLinks activeNodeId={node._id} />
       </div>
+      <EditorStatusBar nodeId={node._id} />
     </>
   );
 }
