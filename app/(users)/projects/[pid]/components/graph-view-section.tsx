@@ -140,11 +140,15 @@ function GraphViewSection({ projectId }: { projectId: string; activeTabId: strin
     resize();
 
     const simulation = forceSimulation<GraphNode>(d3Nodes)
-      .force('link', forceLink<GraphNode, GraphLink>(d3Links).distance(120).strength(0.1))
+      .alphaDecay(0.05)
+      .alphaMin(0.001)
+      .force('link', forceLink<GraphNode, GraphLink>(d3Links).distance(180).strength(0.1))
       .force('charge', forceManyBody<GraphNode>().strength(-400).distanceMax(1000))
       .force(
         'collision',
-        forceCollide<GraphNode>().radius(d => d.radius * 1.8)
+        forceCollide<GraphNode>()
+          .radius(d => d.radius * 1.5)
+          .iterations(1)
       )
       .force('center', forceCenter(canvas.width / 2, canvas.height / 2))
       .velocityDecay(0.4);
