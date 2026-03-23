@@ -1,5 +1,5 @@
-import { EditorView, Decoration, ViewPlugin, ViewUpdate } from '@codemirror/view';
-import { StateField, RangeSet, EditorState, StateEffect } from '@codemirror/state';
+import { EditorView, Decoration, ViewPlugin, ViewUpdate, DecorationSet } from '@codemirror/view';
+import { StateField, RangeSet, EditorState, StateEffect, RangeSetBuilder, Facet } from '@codemirror/state';
 import { buildDecorations } from '../decorations';
 import { TablePreviewWidget } from '../widgets';
 
@@ -144,3 +144,44 @@ export const createEditorStatsPlugin = (nodeId: string) => {
     }
   );
 };
+
+// Plugin turns on/off here
+export const chunkModeFacet = Facet.define<boolean, boolean>({
+  combine: values => values.some(v => v === true),
+});
+
+export const chunkHighlightField = StateField.define<DecorationSet>({
+  create() {
+    return Decoration.none;
+  },
+  update(value, tr) {
+    if (!tr.docChanged && value !== Decoration.none) return value;
+
+    const builder = new RangeSetBuilder<Decoration>();
+    const docLength = tr.state.doc.length;
+    const chunkSize = 512;
+    const paletteSize = 7;
+
+    for (let i = 0; i < docLength; i += chunkSize) {
+      const from = i;
+      const to = Math.min(i + chunkSize, docLength);
+      const chunkIndex = Math.floor(i / chunkSize);
+      const colorIndex = chunkIndex % paletteSize;
+
+      builder.add(
+        from,
+        to,
+        Decoration.mark({
+          class: `cm-chunk-${colorIndex}`,
+          attributes: { 'data-chunk': chunkIndex.toString() },
+        })
+      );
+    }
+    return builder.finish();
+  },
+  provide: f =>
+    EditorView.decorations.compute([f, chunkModeFacet], state => {
+      const active = state.facet(chunkModeFacet);
+      return active ? state.field(f) : Decoration.none;
+    }),
+});

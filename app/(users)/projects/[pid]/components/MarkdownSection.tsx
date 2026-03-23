@@ -8,6 +8,7 @@ import { createTheme } from '@uiw/codemirror-themes';
 import { EditorJumpDetail, INode } from '@/types';
 import { tags as t } from '@lezer/highlight';
 import {
+  chunkHighlightField,
   columnSelectionField,
   createEditorStatsPlugin,
   dragStatusField,
@@ -36,6 +37,7 @@ import ContextMenuClient from './context-menu/context-menu-client';
 import { useSession } from 'next-auth/react';
 import FooterLinks from './footer-links';
 import { EditorStatusBar } from './editor-status-bar';
+import { chunkTheme } from './editor-theme';
 
 const myOwnDarkTheme = createTheme({
   theme: 'dark',
@@ -62,7 +64,9 @@ const myOwnDarkTheme = createTheme({
     { tag: [t.atom, t.bool, t.number], color: '#b5cea8' },
   ],
 });
+
 export const editableCompartment = new Compartment();
+export const chunkModeCompartment = new Compartment();
 function MarkdownSection({ node, isDirty }: { node: INode; isDirty: boolean }) {
   const { data } = useSession();
   const [synced, setSynced] = useState(false);
@@ -240,6 +244,7 @@ function MarkdownSection({ node, isDirty }: { node: INode; isDirty: boolean }) {
       internalLinkClickHandler,
       linkClickHandler,
       editableCompartment.of(EditorState.readOnly.of(false)),
+      chunkModeCompartment.of([]),
       onDocChange,
       tableBackspace,
       sourceModeField,
@@ -259,6 +264,8 @@ function MarkdownSection({ node, isDirty }: { node: INode; isDirty: boolean }) {
       dragStatusField,
       columnSelectionField,
       markdownLivePreviewField,
+      chunkHighlightField,
+      chunkTheme,
       createEditorStatsPlugin(node._id),
     ];
   }, [instance, ytext, onDocChange, setActiveNode, node._id, undoManager]);
@@ -407,9 +414,9 @@ function MarkdownSection({ node, isDirty }: { node: INode; isDirty: boolean }) {
                   editorViewRef.current = view;
 
                   // Initial stats push without triggering React
-                  const txt = view.state.doc.toString();
-                  const wordEl = document.getElementById('cm-word-count');
-                  if (wordEl) wordEl.textContent = (txt.trim() ? txt.trim().split(/\s+/).length : 0).toString();
+                  // const txt = view.state.doc.toString();
+                  // const wordEl = document.getElementById('cm-word-count');
+                  // if (wordEl) wordEl.textContent = (txt.trim() ? txt.trim().split(/\s+/).length : 0).toString();
 
                   setTimeout(() => {
                     setupDragTracking(view);

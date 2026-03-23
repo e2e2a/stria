@@ -1,40 +1,37 @@
 'use client';
 
 import * as React from 'react';
-import { BookOpen, Check, CodeXml, EllipsisVertical, PencilLine } from 'lucide-react';
+import { BookOpen, Check, CodeXml, EllipsisVertical, Layers, PencilLine } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 import { Command, CommandGroup, CommandItem } from '@/components/ui/command';
 import { EditorState, EditorView } from '@uiw/react-codemirror';
-import { sourceModeField, toggleSourceMode } from '@/features/editor/plugins';
-import { editableCompartment } from './MarkdownSection';
+import { chunkModeFacet, sourceModeField, toggleSourceMode } from '@/features/editor/plugins';
+import { chunkModeCompartment, editableCompartment } from './MarkdownSection';
 import { Separator } from '@/components/ui/separator';
 
 export function EditorOptions({ editorViewRef }: { editorViewRef: React.RefObject<EditorView | null> }) {
   const [open, setOpen] = React.useState(false);
 
-  // 1. Snapshot: Convert state to a primitive string to avoid infinite loops
   const getSnapshot = React.useCallback(() => {
     const view = editorViewRef.current;
     if (!view) return 'false-false';
 
     const isReadOnly = view.state.facet(EditorState.readOnly);
     const isSourceMode = view.state.field(sourceModeField, false);
-    return `${isReadOnly}-${isSourceMode}`;
+    const isChunkActive = view.dom.classList.contains('cm-chunk-mode-active');
+    return `${isReadOnly}-${isSourceMode}-${isChunkActive}`;
   }, [editorViewRef]);
 
-  // 2. Subscribe: Force React to check the snapshot when we toggle modes
   const subscribe = React.useCallback((callback: () => void) => {
-    // We use a simple event listener to bridge the gap between CodeMirror and this React component
     window.addEventListener('cm-state-refresh', callback);
     return () => window.removeEventListener('cm-state-refresh', callback);
   }, []);
 
   const snapshot = React.useSyncExternalStore(subscribe, getSnapshot, () => 'false-false');
 
-  // 3. Derived State: Parse the string back into booleans
-  const [isReadOnly, isSourceMode] = snapshot.split('-').map(v => v === 'true');
+  const [isReadOnly, isSourceMode, isChunkActive] = snapshot.split('-').map(v => v === 'true');
 
   const notifyStateChange = () => {
     window.dispatchEvent(new CustomEvent('cm-state-refresh'));
@@ -60,6 +57,20 @@ export function EditorOptions({ editorViewRef }: { editorViewRef: React.RefObjec
       view.scrollDOM.classList.remove('cm-readonly');
       view.focus();
     }
+    notifyStateChange();
+  };
+
+  const toggleChunk = (view: EditorView) => {
+    const isCurrentlyActive = view.dom.classList.contains('cm-chunk-mode-active');
+    const nextState = !isCurrentlyActive;
+
+    view.dispatch({
+      effects: chunkModeCompartment.reconfigure(
+        nextState ? chunkModeFacet.of(true) : [] // Plugin turns on/off here
+      ),
+    });
+
+    view.dom.classList.toggle('cm-chunk-mode-active', nextState);
     notifyStateChange();
   };
 
@@ -114,6 +125,19 @@ export function EditorOptions({ editorViewRef }: { editorViewRef: React.RefObjec
                   <Check className={cn('h-5 w-5', isSourceMode ? 'opacity-100' : 'opacity-0')} />
                 </CommandItem>
               )}
+              <CommandItem
+                onSelect={() => {
+                  if (editorViewRef.current) toggleChunk(editorViewRef.current);
+                  setOpen(false);
+                }}
+                className="flex justify-between items-center cursor-pointer py-2"
+              >
+                <div className="flex items-center">
+                  <Layers className="mr-2 h-4 w-4" />
+                  <span className="text-xs font-medium">Chunk Mode (512 chars)</span>
+                </div>
+                <Check className={cn('h-4 w-4 text-blue-400', isChunkActive ? 'opacity-100' : 'opacity-0')} />
+              </CommandItem>
               <Separator />
             </CommandGroup>
           </Command>
