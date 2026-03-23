@@ -5,7 +5,7 @@ import CodeMirror, { Compartment, EditorState } from '@uiw/react-codemirror';
 import { yCollab, yUndoManagerKeymap } from 'y-codemirror.next';
 import { markdown, markdownLanguage } from '@codemirror/lang-markdown';
 import { createTheme } from '@uiw/codemirror-themes';
-import { EditorJumpDetail, INode } from '@/types';
+import { INode } from '@/types';
 import { tags as t } from '@lezer/highlight';
 import {
   chunkHighlightField,
@@ -38,6 +38,7 @@ import { useSession } from 'next-auth/react';
 import FooterLinks from './footer-links';
 import { EditorStatusBar } from './editor-status-bar';
 import { chunkTheme } from './editor-theme';
+import { useEditorEvents } from './use-editor-events';
 
 const myOwnDarkTheme = createTheme({
   theme: 'dark',
@@ -78,79 +79,7 @@ function MarkdownSection({ node, isDirty }: { node: INode; isDirty: boolean }) {
   const [editorReady, setEditorReady] = useState(false);
   // for context menu
   const [contextType, setContextType] = useState<'general' | 'callout' | 'blockquote' | 'mermaid'>('general');
-
-  useEffect(() => {
-    let timer: ReturnType<typeof setTimeout>;
-
-    const performJump = () => {
-      const view = editorViewRef.current;
-      const pending = window.__PENDING_JUMP__ as EditorJumpDetail | undefined;
-
-      if (!pending || pending.nodeId !== node._id) return;
-
-      if (!view || view.state.doc.length === 0) {
-        timer = setTimeout(performJump, 50);
-        return;
-      }
-
-      const docLength = view.state.doc.length;
-      const offset = Math.min(pending.offset, docLength);
-
-      requestAnimationFrame(() => {
-        view.dispatch({
-          selection: { anchor: offset, head: Math.min(offset + pending.length, docLength) },
-          effects: [EditorView.scrollIntoView(offset, { y: 'center' })],
-          userEvent: 'select',
-        });
-        view.focus();
-
-        window.__PENDING_JUMP__ = null;
-      });
-    };
-
-    if (synced) performJump();
-
-    const handleJumpEvent = () => performJump();
-    window.addEventListener('editor-jump-to', handleJumpEvent);
-
-    return () => {
-      window.removeEventListener('editor-jump-to', handleJumpEvent);
-      clearTimeout(timer);
-    };
-  }, [node._id, synced]);
-
-  useEffect(() => {
-    let timer: ReturnType<typeof setTimeout>;
-
-    const handleActionEvent = (e: Event) => {
-      const { nodeId, text } = (e as CustomEvent).detail;
-      if (!nodeId) return;
-      if (nodeId._id !== node._id) return;
-
-      const view = editorViewRef.current;
-      if (!view || !synced || view.state.doc.length === 0) return (timer = setTimeout(() => handleActionEvent(e), 50));
-
-      const { from, to, head } = view.state.selection.main;
-      const activeLine = view.state.doc.lineAt(head);
-
-      const isAtStartOfDoc = head === 0;
-      if (activeLine.length > 0 && isAtStartOfDoc) return;
-      view.dispatch({
-        changes: { from, to, insert: text },
-        selection: { anchor: from + text.length },
-        userEvent: 'input.sidebar',
-      });
-
-      view.focus();
-    };
-
-    window.addEventListener('editor-action', handleActionEvent as EventListener);
-
-    return () => {
-      window.removeEventListener('editor-action', handleActionEvent as EventListener);
-      clearTimeout(timer);
-    };
-  }, [node._id, synced]);
+  useEditorEvents(node._id, synced, editorViewRef);
 
   const providerRef = useRef<HocuspocusProvider | null>(null);
 
@@ -299,38 +228,6 @@ function MarkdownSection({ node, isDirty }: { node: INode; isDirty: boolean }) {
     }
   }, [instance, ytext]);
 
-  useEffect(() => {
-    const onScrollRequest = (e: Event) => {
-      const { text, level } = (e as CustomEvent).detail;
-      const view = editorViewRef.current;
-
-      if (!view) return;
-
-      const docString = view.state.doc.toString();
-
-      const escapedText = text.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
-      const headingRegex = new RegExp(`^#{${level}}\\s+${escapedText}`, 'm');
-
-      const match = headingRegex.exec(docString);
-
-      if (match) {
-        const offset = match.index;
-        const line = view.state.doc.lineAt(offset);
-
-        requestAnimationFrame(() => {
-          view.focus();
-          view.dispatch({
-            selection: { anchor: line.from, head: line.to },
-            effects: [EditorView.scrollIntoView(line.from, { y: 'center' })],
-            userEvent: 'select',
-          });
-        });
-      }
-    };
-
-    window.addEventListener('editor:scroll-to-heading', onScrollRequest);
-    return () => window.removeEventListener('editor:scroll-to-heading', onScrollRequest);
-  }, [node._id]);
   const pendingScrollHeading = useNodeStore(state => state.pendingScrollHeading);
 
   useEffect(() => {
