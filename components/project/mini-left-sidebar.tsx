@@ -87,7 +87,7 @@ const MiniSidebarTemplate = ({ LeftSidebarRef, isLeftCollapsed, RightSidebarRef 
           </SidebarMenu>
         </SidebarHeader>
 
-        <SidebarContent className="ml-0 p-0">
+        <SidebarContent className="ml-0 p-0 overflow-x-hidden">
           <SidebarGroup className="gap-0 p-0">
             <SidebarMenu className="gap-y-3">
               <div className="h-12 flex items-center justify-center w-full">

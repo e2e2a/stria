@@ -81,7 +81,7 @@ const FooterLinks = ({ activeNodeId }: FooterLinksProps) => {
           if (parent) setScrollParent(parent);
         }
       }}
-      className="pb-20 mt-10 w-full max-w-5xl mx-auto"
+      className="pb-20 mt-10 w-full"
     >
       <Separator className="w-full bg-white/5 mb-4" />
 
