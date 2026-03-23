@@ -30,7 +30,11 @@ export function ProjectSingleClient() {
           {tabs.map(tab => {
             return (
               <div key={tab.nodeId} className={tab.nodeId === activeTabId ? 'h-full w-full block' : 'hidden'}>
-                {tab.nodeId === 'graph-view' ? <GraphViewSection projectId={pid} /> : <MarkdownSection node={tab.node as INode} isDirty={tab.isDirty} />}
+                {tab.nodeId === 'graph-view' ? (
+                  <GraphViewSection projectId={pid} activeTabId={activeTabId} />
+                ) : (
+                  <MarkdownSection node={tab.node as INode} isDirty={tab.isDirty} />
+                )}
               </div>
             );
           })}

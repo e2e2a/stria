@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useMemo, useRef, useDeferredValue } from 'react';
+import React, { useEffect, useMemo, useRef, useDeferredValue } from 'react';
 import { forceSimulation, forceLink, forceManyBody, forceCenter, forceCollide, Simulation } from 'd3-force';
 import * as d3Zoom from 'd3-zoom';
 import * as d3Drag from 'd3-drag';
@@ -34,7 +34,7 @@ type GraphLink = {
   target: GraphNode;
 };
 
-export default function GraphViewSection({ projectId }: { projectId: string }) {
+function GraphViewSection({ projectId }: { projectId: string; activeTabId: string | null }) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const transformRef = useRef(d3Zoom.zoomIdentity);
   const simRef = useRef<Simulation<GraphNode, GraphLink> | null>(null);
@@ -357,3 +357,7 @@ export default function GraphViewSection({ projectId }: { projectId: string }) {
     </div>
   );
 }
+
+export default React.memo(GraphViewSection, (prevProps, nextProps) => {
+  return prevProps.activeTabId === nextProps.activeTabId;
+});
