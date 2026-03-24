@@ -1,13 +1,14 @@
 import { useEffect, MutableRefObject } from 'react';
 import { EditorView } from '@codemirror/view';
 import { chunkModeFacet, sourceModeField, toggleSourceMode } from '@/features/editor/plugins';
-import { EditorState } from '@uiw/react-codemirror';
+import { EditorSelection, EditorState } from '@uiw/react-codemirror';
 import { chunkModeCompartment, editableCompartment } from './MarkdownSection';
 
 interface EditorJumpDetail {
   nodeId: string;
   offset: number;
   length: number;
+  matchIndices: number[];
 }
 
 export const useEditorEvents = (nodeId: string, synced: boolean, editorViewRef: MutableRefObject<EditorView | null>) => {
@@ -30,20 +31,27 @@ export const useEditorEvents = (nodeId: string, synced: boolean, editorViewRef: 
     const performJump = () => {
       const pending = window.__PENDING_JUMP__ as EditorJumpDetail | undefined;
       if (!pending || pending.nodeId !== nodeId) return;
-
       if (!runWhenReady(performJump)) return;
 
       const view = editorViewRef.current!;
-      const docLength = view.state.doc.length;
-      const offset = Math.min(pending.offset, docLength);
+      const doc = view.state.doc;
 
       requestAnimationFrame(() => {
-        view.dispatch({
-          selection: { anchor: offset, head: Math.min(offset + pending.length, docLength) },
-          effects: [EditorView.scrollIntoView(offset, { y: 'center' })],
-          userEvent: 'select',
+        const ranges = pending.matchIndices.map((relIdx: number) => {
+          // Logic: Search Index + Offset inside that line
+          const anchor = Math.min(pending.offset + relIdx, doc.length);
+          const head = Math.min(anchor + pending.length, doc.length);
+          return EditorSelection.range(anchor, head);
         });
-        view.focus();
+
+        if (ranges.length > 0) {
+          view.dispatch({
+            selection: EditorSelection.create(ranges),
+            effects: [EditorView.scrollIntoView(ranges[0].from, { y: 'center' })],
+            userEvent: 'select',
+          });
+          view.focus();
+        }
         window.__PENDING_JUMP__ = null;
       });
     };

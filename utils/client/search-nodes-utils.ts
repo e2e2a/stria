@@ -47,106 +47,96 @@ export function performSearch(query: string, nodes: INode[] | null): SearchResul
  * Preserves your original state-machine for frontmatter tags.
  */
 function handleOperatorSearch(operator: string, searchTerm: string, nodes: INode[]): SearchResult[] {
+  const lowerSearchTerm = searchTerm.toLowerCase();
+
   return nodes.reduce((results: SearchResult[], node) => {
-    const content = node.content || '';
+    const content = (node.content || '').replace(/\r/g, '');
     const matches: SearchMatch[] = [];
 
     if (operator === 'file') {
-      if (node.title.toLowerCase().includes(searchTerm.toLowerCase())) {
+      if (node.title.toLowerCase().includes(lowerSearchTerm)) {
         results.push({ nodeId: node._id, title: node.title, matches: [] });
       }
       return results;
     }
 
-    let regex: RegExp | null = null;
-
     if (operator === 'tag') {
       const cleanTerm = searchTerm.replace(/^#/, '').toLowerCase();
+      const tagRegex = new RegExp(`(^|\\s)#${cleanTerm}\\b`, 'gi');
+
       const lines = content.split('\n');
       let absoluteIndex = 0;
+      let inTagsBlock = false;
 
       lines.forEach((line, i) => {
+        const trimmed = line.trim();
         const lowerLine = line.toLowerCase();
-        const matchIndices: number[] = [];
+        const lineMatchIndices: number[] = [];
 
-        if (lowerLine.trim().startsWith('tags:')) {
-          const valuePart = line.split('tags:')[1];
-          if (!valuePart || !cleanTerm) return;
+        const isHeader = trimmed.startsWith('tags:');
+        if (isHeader) {
+          inTagsBlock = true;
+        } else if (inTagsBlock && (trimmed.includes(':') || (trimmed === '' && line.length === 0))) {
+          inTagsBlock = false;
+        }
 
-          const valueStartIdx = line.indexOf(valuePart);
-          let pos = valuePart.toLowerCase().indexOf(cleanTerm);
+        if (inTagsBlock) {
+          const searchStartIndex = isHeader ? lowerLine.indexOf('tags:') + 5 : 0;
+
+          let pos = lowerLine.indexOf(cleanTerm, searchStartIndex);
           while (pos !== -1) {
-            matchIndices.push(valueStartIdx + pos);
-            pos = valuePart.toLowerCase().indexOf(cleanTerm, pos + cleanTerm.length);
+            lineMatchIndices.push(pos);
+            pos = lowerLine.indexOf(cleanTerm, pos + cleanTerm.length);
           }
         } else {
-          const tagWithHash = `#${cleanTerm}`;
-          if (cleanTerm.length === 0) return;
-
-          let pos = lowerLine.indexOf(tagWithHash);
-          while (pos !== -1) {
-            matchIndices.push(pos);
-            pos = lowerLine.indexOf(tagWithHash, pos + tagWithHash.length);
+          let m;
+          while ((m = tagRegex.exec(line)) !== null) {
+            const idx = m.index + m[1].length;
+            const charBefore = line[idx - 1];
+            const charAfter = line[idx + cleanTerm.length + 1];
+            if (!['(', '[', '{', '`'].includes(charBefore) && ![')', ']', '}', '`'].includes(charAfter)) {
+              lineMatchIndices.push(idx);
+            }
           }
         }
 
-        if (matchIndices.length > 0) {
+        if (lineMatchIndices.length > 0) {
           matches.push({
-            text: searchTerm,
-            before: line.substring(0, matchIndices[0]),
-            after: line.substring(matchIndices[0] + searchTerm.length),
-            index: absoluteIndex + matchIndices[0],
+            text: searchTerm.startsWith('#') ? searchTerm : `#${searchTerm}`,
+            before: line.substring(0, lineMatchIndices[0]),
+            after: line.substring(lineMatchIndices[0] + (searchTerm.startsWith('#') ? searchTerm.length : searchTerm.length + 1)),
+            index: absoluteIndex,
             lineNumber: i + 1,
             lineContent: line,
-            matchIndices: matchIndices,
+            matchIndices: lineMatchIndices,
           });
         }
+
         absoluteIndex += line.length + 1;
       });
-    } else if (operator === 'line') {
-      const keywords = searchTerm.split(/\s+/).filter(k => k.length > 0);
-      const lookaheads = keywords.map(k => `(?=.*${k})`).join('');
-      regex = new RegExp(`^${lookaheads}.*$`, 'gim');
     }
 
-    if (regex) {
-      let m;
-      while ((m = regex.exec(content)) !== null) {
-        const lineData = getLineContext(content, m.index);
-        const matchedText = operator === 'line' ? lineData.content : m[1];
-        const matchLen = operator === 'line' ? matchedText.length : m[1].length;
-        const offset = operator === 'tag' ? 1 : 0;
-
-        matches.push({
-          text: operator === 'tag' ? `#${m[1]}` : matchedText,
-          before: operator === 'line' ? '' : content.substring(lineData.start, m.index),
-          after: operator === 'line' ? '' : content.substring(m.index + matchLen + offset, lineData.end),
-          index: m.index,
-          lineNumber: lineData.number,
-          lineContent: lineData.content,
-          matchIndices: [m.index - lineData.start],
-        });
-      }
+    if (matches.length > 0) {
+      results.push({ nodeId: node._id, title: node.title, matches });
     }
-
-    if (matches.length > 0) results.push({ nodeId: node._id, title: node.title, matches });
     return results;
   }, []);
 }
-
 /**
  * PATH B: Plain Text Search
  * Splits by line to provide "Children per line" search results.
  */
-function handlePlainTextSearch(searchTerm: string, nodes: INode[]): SearchResult[] {
+export function handlePlainTextSearch(searchTerm: string, nodes: INode[]): SearchResult[] {
   const lowerSearchTerm = searchTerm.toLowerCase();
   const searchLen = searchTerm.length;
 
   return nodes.reduce((results: SearchResult[], node) => {
-    const content = node.content || '';
+    // NORMALIZE: Force Unix-style line endings so we match CodeMirror exactly
+    const content = (node.content || '').replace(/\r/g, '');
     const nodeMatches: SearchMatch[] = [];
     const lines = content.split('\n');
-    let currentPos = 0;
+
+    let runningOffset = 0;
 
     lines.forEach((line, i) => {
       const lowerLine = line.toLowerCase();
@@ -154,7 +144,6 @@ function handlePlainTextSearch(searchTerm: string, nodes: INode[]): SearchResult
 
       if (searchLen === 0) return;
 
-      // 2. Efficiently find all occurrences in the line
       let pos = lowerLine.indexOf(lowerSearchTerm);
       while (pos !== -1) {
         lineMatchIndices.push(pos);
@@ -166,37 +155,22 @@ function handlePlainTextSearch(searchTerm: string, nodes: INode[]): SearchResult
           text: searchTerm,
           before: line.substring(0, lineMatchIndices[0]),
           after: line.substring(lineMatchIndices[0] + searchLen),
-          index: currentPos + lineMatchIndices[0],
+          index: runningOffset,
           lineNumber: i + 1,
           lineContent: line,
           matchIndices: lineMatchIndices,
         });
       }
-      currentPos += line.length + 1;
+
+      runningOffset += line.length + 1;
     });
 
     const isTitleMatch = node.title.toLowerCase().includes(lowerSearchTerm);
-
     if (nodeMatches.length > 0 || isTitleMatch) {
-      results.push({
-        nodeId: node._id,
-        title: node.title,
-        matches: nodeMatches,
-      });
+      results.push({ nodeId: node._id, title: node.title, matches: nodeMatches });
     }
     return results;
   }, []);
-}
-function getLineContext(content: string, index: number) {
-  const lineStart = content.lastIndexOf('\n', index) + 1;
-  const lineEnd = content.indexOf('\n', index);
-  const end = lineEnd === -1 ? content.length : lineEnd;
-  return {
-    start: lineStart,
-    end: end,
-    content: content.substring(lineStart, end),
-    number: content.substring(0, index).split('\n').length,
-  };
 }
 
 export function searchSingleNode(query: string, node: INode): SearchMatch[] {
