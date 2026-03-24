@@ -29,7 +29,8 @@ export const TabItem = ({ tab, isActive, draggedTabId, isDropBefore, pid, onDrag
         data-tab-id={tab.nodeId}
         draggable
         onDragStart={e => onDragStart(e, tab.nodeId)}
-        onMouseDown={() => {
+        onMouseDown={e => {
+          if (e.button !== 0) return;
           const targetId = tab.nodeId;
           setActiveTab(pid, targetId);
 
