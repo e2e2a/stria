@@ -1,5 +1,5 @@
 'use client';
-import React, { useEffect, useState, DragEvent, useRef } from 'react';
+import React, { useEffect, useState, DragEvent, useRef, useMemo } from 'react';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '../../ui/collapsible';
 import { SidebarGroupContent, SidebarMenu } from '../../ui/sidebar';
 import { SidebarContextMenu } from '../left-sidebar/sidebar-context-menu';
@@ -198,7 +198,7 @@ export default function SidebarItem({ item, depth, nodesById, activeDrag, target
     },
   };
 
-  const { folders, files } = groupNodes(item.children);
+  const { folders, files } = useMemo(() => groupNodes(item.children), [item.children]);
   if (item.type === 'file') {
     return (
       <SidebarContextMenu node={item}>

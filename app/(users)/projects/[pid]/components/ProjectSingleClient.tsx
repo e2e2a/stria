@@ -6,6 +6,7 @@ import { INode } from '@/types';
 import { useTabStore } from '@/features/editor/stores/tabs';
 import { ProjectPresence } from './project-presence';
 import GraphViewSection from './graph-view-section';
+import { useEffect, useState } from 'react';
 
 export function ProjectSingleClient() {
   const params = useParams();
@@ -14,6 +15,16 @@ export function ProjectSingleClient() {
   const activeTabs = useTabStore(state => state.activeTabs);
   const tabs = projectTabs[pid] || [];
   const activeTabId = activeTabs[pid];
+
+  const [visitedTabs, setVisitedTabs] = useState<Set<string>>(new Set());
+
+  useEffect(() => {
+    if (activeTabId) {
+      // eslint-disable-next-line react-hooks/set-state-in-effect
+      setVisitedTabs(prev => new Set(prev).add(activeTabId));
+    }
+  }, [activeTabId]);
+
   return (
     <AppSidebarLayout>
       <ProjectPresence projectId={pid}>
@@ -28,6 +39,12 @@ export function ProjectSingleClient() {
           )}
 
           {tabs.map(tab => {
+            const isActive = tab.nodeId === activeTabId;
+            const hasBeenVisited = visitedTabs.has(tab.nodeId);
+
+            // KISS: If it's not active and we haven't visited it yet, don't even put the div in the DOM.
+            // This stops the initial refresh lag when history has 10 tabs.
+            if (!isActive && !hasBeenVisited) return null;
             return (
               <div key={tab.nodeId} className={tab.nodeId === activeTabId ? 'h-full w-full block' : 'hidden'}>
                 {tab.nodeId === 'graph-view' ? (
