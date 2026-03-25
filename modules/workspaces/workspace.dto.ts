@@ -1,15 +1,9 @@
 import { z } from 'zod';
-import { ObjectId } from 'mongodb';
 
 /**
- * InvitationDTO Namespace
+ * WorkspaceDTO Namespace
  * Encapsulates all validation schemas (Input DTOs) for the Workspace entity.
  */
-const objectIdSchema = (fieldName: string) =>
-  z.string().refine(val => ObjectId.isValid(val), {
-    message: `Invalid ${fieldName}`,
-  });
-
 const WorkspaceMemberCreateSchema = z.object({
   role: z.enum(['owner', 'editor', 'viewer']),
   email: z.string().email(),

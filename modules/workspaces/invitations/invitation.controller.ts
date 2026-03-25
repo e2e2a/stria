@@ -1,11 +1,20 @@
 import { invitationServices } from './invitation.service';
 import { ensureAuthenticated } from '@/lib/server/auth-utils';
 import { IWorkspaceMemberCreateDTO } from '@/types';
+import { HttpError } from '@/utils/server/errors';
+import { InvitationDTO } from './invitation.dto';
 
 export const invitationController = {
   create: async (data: { workspaceId: string; projectId: string; members: IWorkspaceMemberCreateDTO[] }) => {
     const session = await ensureAuthenticated();
-    await invitationServices.create(session.user, data);
+
+    const validatedBody = InvitationDTO.create.safeParse({ ...data });
+    if (!validatedBody.success) {
+      const errorMessage = validatedBody.error.issues[0].message;
+      throw new HttpError('BAD_INPUT', errorMessage);
+    }
+
+    await invitationServices.create(session.user, validatedBody.data);
     return null;
   },
 
