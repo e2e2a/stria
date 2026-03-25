@@ -28,4 +28,17 @@ export const workspaceClient = {
     if (!res.ok) throw new Error('Failed to fetch workspace');
     return res.json();
   },
+
+  async update(data: { wid: string; title: string }) {
+    const res = await fetch(`${BASE_URL}/${data.wid}`, {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ title: data.title }),
+    });
+
+    const json = await res.json();
+    if (!res.ok) throw new Error(json.message || '');
+
+    return json;
+  },
 };

@@ -14,5 +14,14 @@ export function useWorkspaceMutations() {
     },
   });
 
-  return { create };
+  const update = useMutation({
+    mutationFn: (data: { wid: string; title: string }) => workspaceClient.update(data),
+    onSuccess: (_data, variables) => {
+      if (!variables) return;
+      queryClient.invalidateQueries({ queryKey: ['workspace', variables.wid] });
+      return;
+    },
+  });
+
+  return { create, update };
 }

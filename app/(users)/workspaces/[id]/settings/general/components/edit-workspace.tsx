@@ -10,7 +10,8 @@ import { IWorkspace } from '@/types';
 // import { useProjectMutations } from '@/hooks/project/useProjectMutations';
 import { useState } from 'react';
 import { Pencil } from 'lucide-react';
-import { makeToastError } from '@/lib/toast';
+import { makeToastError, makeToastSucess } from '@/lib/toast';
+import { useWorkspaceMutations } from '@/hooks/workspace/useMutation';
 
 interface IProps {
   item: IWorkspace | undefined;
@@ -23,7 +24,7 @@ const workspaceValidator = z.object({
 export function EditWorkspace({ item }: IProps) {
   const [loading, setLoading] = useState(false);
   const [open, setOpen] = useState(false);
-  // const mutation = useProjectMutations();
+  const mutation = useWorkspaceMutations();
   const form = useForm<z.infer<typeof workspaceValidator>>({
     resolver: zodResolver(workspaceValidator),
     defaultValues: {
@@ -46,23 +47,23 @@ export function EditWorkspace({ item }: IProps) {
       setLoading(false);
       return;
     }
-    // mutation.update.mutate(
-    //   { wid: item.workspaceId, title, pid: item._id },
-    //   {
-    //     onSuccess: () => {
-    //       setOpen(false);
-    //       makeToastSucess('Project Name has been updated.');
-    //       return;
-    //     },
-    //     onError: err => {
-    //       makeToastError(err.message);
-    //       return;
-    //     },
-    //     onSettled: () => {
-    //       setLoading(false);
-    //     },
-    //   }
-    // );
+    mutation.update.mutate(
+      { wid: item._id, title },
+      {
+        onSuccess: () => {
+          setOpen(false);
+          makeToastSucess('Workspace Name has been updated.');
+          return;
+        },
+        onError: err => {
+          makeToastError(err.message);
+          return;
+        },
+        onSettled: () => {
+          setLoading(false);
+        },
+      }
+    );
   };
 
   return (

@@ -20,6 +20,21 @@ export const workspaceController = {
     return res;
   },
 
+  update: async (req: NextRequest, wid: string) => {
+    const session = await ensureAuthenticated();
+    const rawBody = await req.json();
+
+    const validatedBody = WorkspaceDTO.update.safeParse({ ...rawBody });
+    if (!validatedBody.success) {
+      const errorMessage = validatedBody.error.issues[0].message;
+      throw new HttpError('BAD_INPUT', errorMessage);
+    }
+
+    const { title } = validatedBody.data;
+    const res = await workspaceService.update(session.user, wid, title);
+    return res;
+  },
+
   getUserWorkspaces: async () => {
     const session = await ensureAuthenticated();
     const workspaces = await workspaceService.getUserWorkspaces({ email: session.user.email });

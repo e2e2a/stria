@@ -13,3 +13,14 @@ export async function GET(req: NextRequest, context: { params: Promise<{ wid: st
     return handleError(err);
   }
 }
+
+export async function PATCH(req: NextRequest, context: { params: Promise<{ wid: string }> }) {
+  try {
+    await connectDb();
+    const { wid } = await context.params;
+    const res = await workspaceController.update(req, wid);
+    return NextResponse.json(res, { status: 201 });
+  } catch (err) {
+    return handleError(err);
+  }
+}

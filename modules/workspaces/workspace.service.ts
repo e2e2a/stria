@@ -5,6 +5,7 @@ import { User } from 'next-auth';
 import { workspaceMemberRepository } from '@/modules/workspaces/members/member.repository';
 import { UnitOfWork } from '@/common/UnitOfWork';
 import { ensureWorkspaceMember } from './workspace.context';
+import { HttpError } from '@/utils/server/errors';
 
 export const workspaceService = {
   initializeWorkspace: async (user: User, workspaceDTO: { ownerUserId: string; title: string }, members: IWorkspaceMemberCreateDTO[]) => {
@@ -24,6 +25,18 @@ export const workspaceService = {
         }));
         await workspaceMemberService.store(membersDataToCreate);
       }
+
+      return { workspace };
+    });
+  },
+
+  update: async (user: User, workspaceId: string, title: string) => {
+    return await UnitOfWork.run(async () => {
+      const ctx = await ensureWorkspaceMember(workspaceId, user.email);
+      if (!ctx.permissions.canEditWorkspace) throw new HttpError('FORBIDDEN');
+
+      const workspace = await workspaceRepository.updateOne({ _id: workspaceId }, { title });
+      if (!workspace) throw new HttpError('NOT_FOUND', 'The requested workspace was not found');
 
       return { workspace };
     });
