@@ -1,18 +1,22 @@
 import { ensureAuthenticated } from '@/lib/server/auth-utils';
 import { workspaceService } from './workspace.service';
 import { NextRequest } from 'next/server';
-import { MembersSchema } from '@/lib/validators/workspaceMember';
 import { HttpError } from '@/utils/server/errors';
+import { WorkspaceDTO } from './workspace.dto';
 
 export const workspaceController = {
   create: async (req: NextRequest) => {
     const session = await ensureAuthenticated();
-    const body = await req.json();
+    const rawBody = await req.json();
 
-    const resParse = MembersSchema.safeParse(body.members);
-    if (!resParse.success) throw new HttpError('BAD_INPUT', 'Invalid member fields.');
+    const validatedBody = WorkspaceDTO.initialize.safeParse({ ...rawBody });
+    if (!validatedBody.success) {
+      const errorMessage = validatedBody.error.issues[0].message;
+      throw new HttpError('BAD_INPUT', errorMessage);
+    }
 
-    const res = await workspaceService.initializeWorkspace(session.user, { ownerUserId: session.user._id, title: body.title }, resParse.data);
+    const { title, members } = validatedBody.data;
+    const res = await workspaceService.initializeWorkspace(session.user, { ownerUserId: session.user._id, title }, members);
     return res;
   },
 

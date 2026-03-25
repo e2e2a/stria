@@ -1,5 +1,5 @@
 import { workspaceRepository } from '@/modules/workspaces/workspace.repository';
-import { IWorkspaceMemberCreateDTO } from '@/types';
+import { IWorkspaceMemberCreateDTO } from './members/member.dto';
 import { workspaceMemberService } from './members/member.service';
 import { User } from 'next-auth';
 import { workspaceMemberRepository } from '@/modules/workspaces/members/member.repository';
