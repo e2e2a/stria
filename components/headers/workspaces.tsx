@@ -21,6 +21,13 @@ function findActiveSidebarItem(sidebarData: INavItem[], path: string, wid: strin
         url: item.url,
       };
     }
+    if (section.url && (path === url + section.url || path.startsWith(url + section.url + '/'))) {
+      return {
+        sectionTitle: section.title,
+        itemTitle: section.title, // Use parent title as item title
+        url: section.url,
+      };
+    }
   }
 
   return null;

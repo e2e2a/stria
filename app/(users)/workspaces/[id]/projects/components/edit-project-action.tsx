@@ -1,14 +1,5 @@
 import { Button } from '@/components/ui/button';
-import {
-  Dialog,
-  DialogClose,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-  DialogTrigger,
-} from '@/components/ui/dialog';
+import { Dialog, DialogClose, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useForm, useWatch } from 'react-hook-form';
@@ -39,6 +30,13 @@ export function EditProjectAction({ item }: IProps) {
   const onSubmit = async (values: z.infer<typeof projectSchema>) => {
     setLoading(true);
     const { title } = values;
+
+    if (title.toLowerCase() === item.title.toLowerCase()) {
+      makeToastError('New title must be different from the current one');
+      setLoading(false);
+      return;
+    }
+
     mutation.update.mutate(
       { wid: item.workspaceId, title, pid: item._id },
       {

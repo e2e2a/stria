@@ -41,4 +41,9 @@ export const sidebarData = [
       },
     ],
   },
+  {
+    title: 'Settings',
+    icon: 'Settings',
+    url: '/settings/general',
+  },
 ];
