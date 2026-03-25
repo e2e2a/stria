@@ -102,4 +102,9 @@ export const projectMemberService = {
     const members = await projectMemberRepository.findMembers({ ...data, workspaceId: project.workspaceId });
     return members;
   },
+
+  // local
+  deleteManyByWorkspaceId: async (workspaceId: string) => {
+    return await projectMemberRepository.deleteMany({ workspaceId });
+  },
 };

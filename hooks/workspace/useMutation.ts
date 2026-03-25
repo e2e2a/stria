@@ -23,5 +23,15 @@ export function useWorkspaceMutations() {
     },
   });
 
-  return { create, update };
+  const trash = useMutation({
+    mutationFn: (data: { wid: string }) => workspaceClient.trash(data),
+    onSuccess: (_data, variables) => {
+      if (!variables) return;
+      queryClient.removeQueries({ queryKey: ['workspace', variables.wid] });
+      queryClient.invalidateQueries({ queryKey: ['userWorkspaces'] });
+      return;
+    },
+  });
+
+  return { create, update, trash };
 }

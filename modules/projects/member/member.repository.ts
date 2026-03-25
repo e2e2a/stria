@@ -145,4 +145,9 @@ export const projectMemberRepository = {
     const result = await ProjectMember.aggregate(pipeline);
     return result ?? [];
   },
+
+  deleteMany: async (data: { workspaceId: string }) => {
+    const session = UnitOfWork.getSession();
+    return await ProjectMember.deleteMany(data, { session });
+  },
 };

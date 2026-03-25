@@ -6,6 +6,9 @@ import { workspaceMemberRepository } from '@/modules/workspaces/members/member.r
 import { UnitOfWork } from '@/common/UnitOfWork';
 import { ensureWorkspaceMember } from './workspace.context';
 import { HttpError } from '@/utils/server/errors';
+import { projectService } from '../projects/project.service';
+import { nodeService } from '../projects/nodes/node.service';
+import { projectMemberService } from '../projects/member/member.service';
 
 export const workspaceService = {
   initializeWorkspace: async (user: User, workspaceDTO: { ownerUserId: string; title: string }, members: IWorkspaceMemberCreateDTO[]) => {
@@ -39,6 +42,25 @@ export const workspaceService = {
       if (!workspace) throw new HttpError('NOT_FOUND', 'The requested workspace was not found');
 
       return { workspace };
+    });
+  },
+
+  delete: async (user: User, workspaceId: string) => {
+    return await UnitOfWork.run(async () => {
+      console.log('running');
+      console.log('workspaceId', workspaceId);
+      const ctx = await ensureWorkspaceMember(workspaceId, user.email);
+      console.log('ctx', ctx);
+      const workspace = await workspaceRepository.findOne({ _id: workspaceId });
+      if (!workspace) throw new HttpError('NOT_FOUND', 'The requested workspace was not found');
+      if (user._id?.toString() !== workspace.ownerUserId.toString()) throw new HttpError('FORBIDDEN');
+
+      await workspaceMemberService.deleteManyByWorkspaceId(workspaceId);
+      await projectService.deleteManyByWorkspaceId(workspaceId);
+      await nodeService.deleteManyByWorkspaceId(workspaceId);
+      await projectMemberService.deleteManyByWorkspaceId(workspaceId);
+
+      return;
     });
   },
 

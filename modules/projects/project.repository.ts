@@ -36,6 +36,11 @@ export const projectRepository = {
     return res;
   },
 
+  deleteMany: async (data: { workspaceId: string }) => {
+    const session = UnitOfWork.getSession();
+    return await Project.deleteMany(data, { session });
+  },
+
   findOne: (data: { _id: string }) => Project.findOne(data),
 
   findProjectByIdAndUserId: (data: { _id: string; userId: string }) => Project.findOne(data).populate('nodes').lean<IProject>(),

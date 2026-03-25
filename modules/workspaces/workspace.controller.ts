@@ -35,6 +35,13 @@ export const workspaceController = {
     return res;
   },
 
+  delete: async (wid: string) => {
+    const session = await ensureAuthenticated();
+
+    await workspaceService.delete(session.user, wid);
+    return null;
+  },
+
   getUserWorkspaces: async () => {
     const session = await ensureAuthenticated();
     const workspaces = await workspaceService.getUserWorkspaces({ email: session.user.email });

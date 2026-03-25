@@ -24,3 +24,14 @@ export async function PATCH(req: NextRequest, context: { params: Promise<{ wid: 
     return handleError(err);
   }
 }
+
+export async function DELETE(_req: NextRequest, context: { params: Promise<{ wid: string }> }) {
+  try {
+    await connectDb();
+    const { wid } = await context.params;
+    const res = await workspaceController.delete(wid);
+    return NextResponse.json(res, { status: 201 });
+  } catch (err) {
+    return handleError(err);
+  }
+}

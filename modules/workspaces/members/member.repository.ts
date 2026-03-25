@@ -31,6 +31,11 @@ export const workspaceMemberRepository = {
     return newMember;
   },
 
+  deleteMany: async (data: { workspaceId: string }) => {
+    const session = UnitOfWork.getSession();
+    return await WorkspaceMember.deleteMany(data, { session });
+  },
+
   findById: (_id: string) => WorkspaceMember.findOne({ _id }),
 
   getMembershipForWorkspace: async (data: { workspaceId: string; email: string }) => {

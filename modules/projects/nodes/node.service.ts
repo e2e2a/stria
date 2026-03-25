@@ -452,4 +452,9 @@ export const nodeService = {
       };
     });
   },
+
+  // local
+  deleteManyByWorkspaceId: async (workspaceId: string) => {
+    return await nodeRepository.deleteMany({ workspaceId });
+  },
 };

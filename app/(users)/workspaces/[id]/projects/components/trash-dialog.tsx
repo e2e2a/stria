@@ -16,14 +16,7 @@ import { projectSchema } from '@/lib/validators/project';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useForm } from 'react-hook-form';
 import z from 'zod';
-import {
-  FormField,
-  FormItem,
-  FormLabel,
-  FormControl,
-  FormMessage,
-  Form,
-} from '@/components/ui/form';
+import { FormField, FormItem, FormLabel, FormControl, FormMessage, Form } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { makeToastError, makeToastSucess } from '@/lib/toast';
@@ -66,7 +59,7 @@ export default function TrashDialog({ item, workspaceId }: IProps) {
       { pid: item._id },
       {
         onSuccess: () => {
-          makeToastSucess('Project Name has been updated.');
+          makeToastSucess('Project has been deleted.');
           setIsOpen(false);
           return;
         },
@@ -83,18 +76,10 @@ export default function TrashDialog({ item, workspaceId }: IProps) {
   return (
     <AlertDialog open={isOpen} onOpenChange={setIsOpen}>
       <Tooltip>
-        <AlertDialogTrigger
-          className={'w-auto'}
-          disabled={!canTrash}
-          onClick={() => setIsOpen(true)}
-        >
+        <AlertDialogTrigger className={'w-auto'} disabled={!canTrash} onClick={() => setIsOpen(true)}>
           <TooltipTrigger asChild className="cursor-not-allowed h-auto w-auto">
             <span tabIndex={0} className="h-auto w-auto">
-              <div
-                className={`${
-                  !canTrash && 'opacity-50 cursor-not-allowed'
-                } action-button w-full items-center flex size-4 px-2 gap-1.5 h-8`}
-              >
+              <div className={`${!canTrash && 'opacity-50 cursor-not-allowed'} action-button w-full items-center flex size-4 px-2 gap-1.5 h-8`}>
                 <Trash className="h-4 w-4" />
               </div>
             </span>
@@ -107,13 +92,10 @@ export default function TrashDialog({ item, workspaceId }: IProps) {
       <AlertDialogContent className="h-auto max-h-[85vh]">
         <div className="flex flex-col overflow-y-auto max-h-[75vh]">
           <AlertDialogHeader className="gap-y-3">
-            <AlertDialogTitle className="text-xl sm:text-2xl font-bold text-start">
-              Delete Project
-            </AlertDialogTitle>
+            <AlertDialogTitle className="text-xl sm:text-2xl font-bold text-start">Delete Project</AlertDialogTitle>
             <AlertDialogDescription className="text-accent-foreground text-start">
-              This action cannot be undone. This will permanently delete the project{' '}
-              <span className="font-bold">{item.title}</span>, including all associated tasks,
-              files, and data. All team members will immediately lose access.
+              This action cannot be undone. This will permanently delete the project <span className="font-bold">{item.title}</span>, including all
+              associated tasks, files, and data. All team members will immediately lose access.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <Form {...form}>
@@ -126,9 +108,7 @@ export default function TrashDialog({ item, workspaceId }: IProps) {
                     name="title"
                     render={({ field }) => (
                       <FormItem className="gap-y-4">
-                        <FormLabel className="font-bold">
-                          Type &quot;{item.title}&quot; to confirm your action
-                        </FormLabel>
+                        <FormLabel className="font-bold">Type &quot;{item.title}&quot; to confirm your action</FormLabel>
                         <FormControl>
                           <Input type="title" {...field} autoFocus />
                         </FormControl>
@@ -142,11 +122,7 @@ export default function TrashDialog({ item, workspaceId }: IProps) {
                 <AlertDialogCancel type="button" className="cursor-pointer">
                   Cancel
                 </AlertDialogCancel>
-                <Button
-                  className="bg-red-500 hover:bg-red-500/90 cursor-pointer"
-                  disabled={loading}
-                  type="submit"
-                >
+                <Button className="bg-destructive/85 hover:bg-destructive! cursor-pointer" disabled={loading} type="submit">
                   Continue
                 </Button>
               </AlertDialogFooter>

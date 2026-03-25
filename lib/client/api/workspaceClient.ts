@@ -41,4 +41,15 @@ export const workspaceClient = {
 
     return json;
   },
+
+  async trash(data: { wid: string }) {
+    const res = await fetch(`${BASE_URL}/${data.wid}`, {
+      method: 'DELETE',
+    });
+
+    const json = await res.json();
+    if (!res.ok) throw new Error(json.message || '');
+
+    return json;
+  },
 };

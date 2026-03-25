@@ -187,4 +187,9 @@ export const projectService = {
   pullNode: async (dataToFind: { _id: string; userId: string }, data: { nodes: string[] }) => {
     return projectRepository.pullNode(dataToFind, data);
   },
+
+  // local
+  deleteManyByWorkspaceId: async (workspaceId: string) => {
+    return await projectRepository.deleteMany({ workspaceId });
+  },
 };

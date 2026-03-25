@@ -111,4 +111,9 @@ export const workspaceMemberService = {
       return res;
     });
   },
+
+  // local
+  deleteManyByWorkspaceId: async (workspaceId: string) => {
+    return await workspaceMemberRepository.deleteMany({ workspaceId });
+  },
 };

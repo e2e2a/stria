@@ -6,19 +6,19 @@ import { useGetMyWorkspaceMembership } from '@/hooks/workspasceMember/useQueries
 import { Copy, ExternalLink } from 'lucide-react';
 import { SettingCard } from './setting-card';
 import { Switch } from '@/components/ui/switch';
-import { Button } from '@/components/ui/button';
 import { makeToastSucess } from '@/lib/toast';
 import { EditWorkspace } from './edit-workspace';
 import { useGetWorkspace } from '@/hooks/workspace/useQuery';
 import { dateFormatted } from '@/hooks/use-date-format';
+import TrashWorkspace from './trash-workspace';
+import { useSession } from 'next-auth/react';
 
 export function GeneralClient() {
+  const { data: session } = useSession();
   const params = useParams();
   const workspaceId = params.id as string;
   const { data: wData, isLoading: wLoading, isError: wError } = useGetWorkspace(workspaceId);
   const { data: mData, isLoading: mLoading } = useGetMyWorkspaceMembership(workspaceId);
-  console.log('wData', wData);
-  console.log('mData', mData);
 
   const handleCopy = async () => {
     try {
@@ -115,17 +115,7 @@ export function GeneralClient() {
             </div>
           </SettingCard>
 
-          <div className="bg-transparent border border-border rounded-2xl flex flex-col gap-y-6 px-6 py-12 relative group drop-shadow-xs shadow-sm hover:bg-secondary/10 transition-all duration-200">
-            <div className="flex">
-              <h3 className="text-foreground font-medium text-sm sm:text-lg md:text-xl tracking-tight flex-1">Delete Workspace</h3>
-              <Button size={'sm'} className="bg-destructive/85 hover:bg-destructive! border border-border h-fit! py-0.5 cursor-pointer">
-                Delete Workspace
-              </Button>
-            </div>
-            <p className="text-muted-foreground text-xs sm:text-sm">
-              Deleting this workspace, it will delete all inside of workspace. This action cannot be undone.
-            </p>
-          </div>
+          {wData && <TrashWorkspace item={wData} canTrash={!!(session?.user?._id?.toString() === wData?.ownerUserId?.toString()) || false} />}
         </div>
       </main>
     </SidebarInset>
