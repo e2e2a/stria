@@ -13,7 +13,7 @@ import { Pencil } from 'lucide-react';
 import { makeToastError } from '@/lib/toast';
 
 interface IProps {
-  item: IWorkspace;
+  item: IWorkspace | undefined;
 }
 
 const workspaceValidator = z.object({
@@ -30,6 +30,13 @@ export function EditWorkspace({ item }: IProps) {
       title: '',
     },
   });
+
+  const title = useWatch({
+    control: form.control,
+    name: 'title',
+  });
+
+  if (!item) return;
 
   const onSubmit = async (values: z.infer<typeof workspaceValidator>) => {
     setLoading(true);
@@ -57,11 +64,6 @@ export function EditWorkspace({ item }: IProps) {
     //   }
     // );
   };
-
-  const title = useWatch({
-    control: form.control,
-    name: 'title',
-  });
 
   return (
     <>

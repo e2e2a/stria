@@ -1,22 +1,24 @@
 'use client';
 import { SidebarInset } from '@/components/ui/sidebar';
-import { useParams } from 'next/navigation';
+import { notFound, useParams } from 'next/navigation';
 import Link from 'next/link';
 import { useGetMyWorkspaceMembership } from '@/hooks/workspasceMember/useQueries';
-import { Copy, ExternalLink, Pencil } from 'lucide-react';
+import { Copy, ExternalLink } from 'lucide-react';
 import { SettingCard } from './setting-card';
 import { Switch } from '@/components/ui/switch';
 import { Button } from '@/components/ui/button';
 import { makeToastSucess } from '@/lib/toast';
 import { EditWorkspace } from './edit-workspace';
+import { useGetWorkspace } from '@/hooks/workspace/useQuery';
+import { dateFormatted } from '@/hooks/use-date-format';
 
 export function GeneralClient() {
   const params = useParams();
   const workspaceId = params.id as string;
+  const { data: wData, isLoading: wLoading, isError: wError } = useGetWorkspace(workspaceId);
   const { data: mData, isLoading: mLoading } = useGetMyWorkspaceMembership(workspaceId);
+  console.log('wData', wData);
   console.log('mData', mData);
-  const workspaceName = 'qwe';
-  const createdOn = '12/05/25 - 03:04:11 AM';
 
   const handleCopy = async () => {
     try {
@@ -28,7 +30,9 @@ export function GeneralClient() {
     }
   };
 
-  if (mLoading)
+  if (wError) return notFound();
+
+  if (mLoading || wLoading)
     return (
       <div className="fixed inset-0 z-200 bg-background flex items-center justify-center">
         <div className="flex flex-col items-center gap-2">
@@ -52,7 +56,7 @@ export function GeneralClient() {
         </div>
 
         <div className="space-y-6">
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-12">
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-x-12 gap-y-6">
             <div className="bg-transparent border-2 border-border rounded-2xl px-6 py-12 relative group drop-shadow-2xl shadow-sm hover:bg-secondary/10 transition-all duration-200">
               <div className="flex justify-between items-start mb-4">
                 <div className="flex items-center gap-2">
@@ -69,28 +73,12 @@ export function GeneralClient() {
               </div>
             </div>
 
-            {/* <div className="bg-transparent border-2 border-border rounded-2xl px-6 py-12 relative group drop-shadow-2xl shadow-sm hover:bg-secondary/10 transition-all duration-200">
-              <div className="flex justify-between items-start mb-4">
-                <div className="flex items-center gap-2">
-                  <h3 className="text-foreground font-medium text-sm sm:text-lg md:text-xl tracking-tight">Workspace Name</h3>
-                </div>
-
-                <button className="p-1.5 bg-accent/20 rounded-sm hover:bg-accent transition-all cursor-pointer" type="button">
-                  <Pencil size={14} className="text-muted-foreground hover:text-foreground" />
-                </button>
-              </div>
-
-              <div className="text-muted-foreground text-xs sm:text-sm">
-                <p className="text-slate-300">{workspaceName}</p>
-              </div>
-            </div> */}
-            <EditWorkspace item={{ _id: workspaceId, title: workspaceName, ownerUserId: '1' }} />
+            <EditWorkspace item={wData} />
             <SettingCard title="Created On">
-              <p className="text-sm text-slate-300">{createdOn}</p>
+              <p className="text-sm text-slate-300">{wData?.createdAt ? dateFormatted(new Date(wData.createdAt)) : '—'}</p>
             </SettingCard>
           </div>
 
-          {/* MFA Row */}
           <div className="bg-transparent border border-border rounded-2xl flex flex-col gap-y-6 px-6 py-12 relative group drop-shadow-xs shadow-sm hover:bg-secondary/10 transition-all duration-200">
             <div className="flex">
               <h3 className="text-foreground font-medium text-sm sm:text-lg md:text-xl tracking-tight flex-1">
@@ -106,7 +94,6 @@ export function GeneralClient() {
             </p>
           </div>
 
-          {/* Session Timeout */}
           <SettingCard
             title="Configure Session Timeout"
             onEdit={() => {}}

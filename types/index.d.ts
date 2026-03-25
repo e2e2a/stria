@@ -130,6 +130,7 @@ export type IWorkspace = {
   // projects?: IProject[];
   title: string;
   archived?: IArchived;
+  createdAt: Date;
 };
 
 export interface IWorkspaceMemberCreateDTO {

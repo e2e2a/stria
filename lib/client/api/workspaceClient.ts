@@ -1,4 +1,4 @@
-import { IUserWorkspaces, IWorkspaceMemberCreateDTO } from '@/types';
+import { IUserWorkspaces, IWorkspace, IWorkspaceMemberCreateDTO } from '@/types';
 const BASE_URL = `${process.env.NEXT_PUBLIC_BASE_URL}/api/workspaces`;
 
 type IResponse = {
@@ -19,6 +19,12 @@ export const workspaceClient = {
 
   async getUserWorkspaces(): Promise<IResponse> {
     const res = await fetch(`${BASE_URL}`);
+    if (!res.ok) throw new Error('Failed to fetch workspace');
+    return res.json();
+  },
+
+  async getWorkspace(wid: string): Promise<IWorkspace> {
+    const res = await fetch(`${BASE_URL}/${wid}`);
     if (!res.ok) throw new Error('Failed to fetch workspace');
     return res.json();
   },

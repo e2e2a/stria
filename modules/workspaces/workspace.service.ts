@@ -4,6 +4,7 @@ import { workspaceMemberService } from './members/member.service';
 import { User } from 'next-auth';
 import { workspaceMemberRepository } from '@/modules/workspaces/members/member.repository';
 import { UnitOfWork } from '@/common/UnitOfWork';
+import { ensureWorkspaceMember } from './workspace.context';
 
 export const workspaceService = {
   initializeWorkspace: async (user: User, workspaceDTO: { ownerUserId: string; title: string }, members: IWorkspaceMemberCreateDTO[]) => {
@@ -51,5 +52,12 @@ export const workspaceService = {
       };
     });
     return { workspaces };
+  },
+
+  getWorkspace: async (data: { _id: string; email: string }) => {
+    const { _id, email } = data;
+    await ensureWorkspaceMember(_id, email);
+    const workspace = await workspaceRepository.findOne({ _id });
+    return workspace;
   },
 };

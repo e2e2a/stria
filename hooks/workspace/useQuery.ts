@@ -8,3 +8,11 @@ export function useGetUserWorkspaces(userId: string) {
     enabled: !!userId,
   });
 }
+
+export function useGetWorkspace(wid: string) {
+  return useQuery({
+    queryKey: ['workspace', wid],
+    queryFn: () => workspaceClient.getWorkspace(wid),
+    enabled: !!wid,
+  });
+}
