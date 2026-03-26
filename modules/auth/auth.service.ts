@@ -36,7 +36,7 @@ export const authServices = {
 
     const verify = await compareText(data.password, user.password);
     if (!verify) throw new HttpError('BAD_INPUT', 'Invalid Credentials');
-
+    await rateLimitService.resetLimit('login', data.email);
     return user;
   },
 

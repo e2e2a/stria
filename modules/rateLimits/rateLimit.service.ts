@@ -41,6 +41,27 @@ export const rateLimitService = {
     return accessRecord;
   },
 
+  resetLimit: async (type: IRateLimitType, email: string) => {
+    const { ip, deviceType } = await getHeaders();
+    const payload = {
+      email,
+      type,
+      ip,
+      deviceType,
+    };
+
+    // 1. Use your existing find method
+    const accessRecord = await rateLimitService.findAccessRecord(payload as Partial<IRateLimit>);
+
+    if (accessRecord) {
+      accessRecord.retryCount = 0;
+      accessRecord.retryResetAt = new Date();
+      await accessRecord.save();
+    }
+
+    return accessRecord;
+  },
+
   create: async (data: { type: string; email: string; retryCount: number; retryResetAt: Date | null; userId?: string }) => {
     const getHead = await getHeaders();
     const payload = {
