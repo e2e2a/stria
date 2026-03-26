@@ -133,122 +133,117 @@ export function LeftSidebarTemplate({ projectData }: { projectData: IProject }) 
       variant="inset"
     >
       <div className="h-screen flex flex-col">
-        <SidebarContextMenu node={null}>
-          <div className="h-full overflow-hidden flex flex-col">
-            <Tabs
-              defaultValue="nodes"
-              value={leftSidebarTab}
-              onValueChange={e => setLeftSidebarTab(e as 'search' | 'nodes' | 'bookmarks')}
-              className="w-full flex flex-col flex-1 min-h-0 gap-y-0"
-            >
-              <SidebarHeader className="h-12 p-0">
-                <SidebarMenu className="h-12 flex w-full flex-row items-center justify-center px-2 relative">
-                  <TabsList className="bg-transparent w-full flex items-start gap-x-3 justify-start">
-                    <IconTooltip label={'Files'}>
-                      <TabsTrigger
-                        className="grow-0 hover:bg-accent/50 data-[state=active]:bg-accent/50! data-[state=active]:border-accent!"
-                        value="nodes"
-                      >
-                        <FolderOpen className="w-6! h-6!" />
-                      </TabsTrigger>
-                    </IconTooltip>
-                    <IconTooltip label={'Search'}>
-                      <TabsTrigger
-                        className="grow-0 hover:bg-accent/50 data-[state=active]:bg-accent/50! data-[state=active]:border-accent!"
-                        value="search"
-                      >
-                        <Search className="w-6! h-6!" />
-                      </TabsTrigger>
-                    </IconTooltip>
-                    <IconTooltip label={'Bookmarks'}>
-                      <TabsTrigger
-                        className="grow-0 hover:bg-accent/50 data-[state=active]:bg-accent/50! data-[state=active]:border-accent!"
-                        value="bookmarks"
-                      >
-                        <Bookmark className="w-6! h-6!" />
-                      </TabsTrigger>
-                    </IconTooltip>
-                  </TabsList>
+        <div className="h-full overflow-hidden flex flex-col">
+          <Tabs
+            defaultValue="nodes"
+            value={leftSidebarTab}
+            onValueChange={e => setLeftSidebarTab(e as 'search' | 'nodes' | 'bookmarks')}
+            className="w-full flex flex-col flex-1 min-h-0 gap-y-0"
+          >
+            <SidebarHeader className="h-12 p-0">
+              <SidebarMenu className="h-12 flex w-full flex-row items-center justify-center px-2 relative">
+                <TabsList className="bg-transparent w-full flex items-start gap-x-3 justify-start">
+                  <IconTooltip label={'Files'}>
+                    <TabsTrigger className="grow-0 hover:bg-accent/50 data-[state=active]:bg-accent/50! data-[state=active]:border-accent!" value="nodes">
+                      <FolderOpen className="w-6! h-6!" />
+                    </TabsTrigger>
+                  </IconTooltip>
+                  <IconTooltip label={'Search'}>
+                    <TabsTrigger className="grow-0 hover:bg-accent/50 data-[state=active]:bg-accent/50! data-[state=active]:border-accent!" value="search">
+                      <Search className="w-6! h-6!" />
+                    </TabsTrigger>
+                  </IconTooltip>
+                  <IconTooltip label={'Bookmarks'}>
+                    <TabsTrigger
+                      className="grow-0 hover:bg-accent/50 data-[state=active]:bg-accent/50! data-[state=active]:border-accent!"
+                      value="bookmarks"
+                    >
+                      <Bookmark className="w-6! h-6!" />
+                    </TabsTrigger>
+                  </IconTooltip>
+                </TabsList>
 
-                  <div className="absolute top-12 left-0 right-0 h-1 z-51 w-full bg-background" />
-                  <div className="absolute top-13 left-0 right-0 h-14 z-50 flex px-3 items-center border-b border-white/5 bg-sidebar/80 backdrop-blur-lg pointer-events-auto cursor-default">
-                    <div className="flex w-full">
-                      {/* Nodes Header Content */}
-                      <NodeTabHeader projectData={projectData} />
+                <div className="absolute top-12 left-0 right-0 h-1 z-51 w-full bg-background" />
+                <div className="absolute top-13 left-0 right-0 h-14 z-50 flex px-3 items-center border-b border-white/5 bg-sidebar/80 backdrop-blur-lg pointer-events-auto cursor-default">
+                  <div className="flex w-full">
+                    {/* Nodes Header Content */}
+                    <NodeTabHeader projectData={projectData} />
 
-                      <TabsContent className="h-full min-h-0 w-full flex items-center" value="search">
-                        <div className="relative w-full px-1">
-                          <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                          <input
-                            value={searchQuery}
-                            onChange={e => {
-                              setSearchQuery(e.target.value);
-                              if (!e.target.value) setIsDropdownOpen(true);
-                              else setIsDropdownOpen(false);
-                            }}
-                            onFocus={() => {
-                              if (!searchQuery) setIsDropdownOpen(true);
-                            }}
-                            onKeyDown={e => {
-                              if (e.key === 'Enter' && searchQuery.trim().length >= 2) {
-                                const updatedHistory = [searchQuery.trim(), ...history.filter(item => item !== searchQuery.trim())].slice(0, 10);
-                                setHistory(updatedHistory);
-                                localStorage.setItem(STORAGE_KEY, JSON.stringify(updatedHistory));
-                                setIsDropdownOpen(false);
-                              }
-                            }}
-                            onBlur={() => {
+                    <TabsContent className="h-full min-h-0 w-full flex items-center" value="search">
+                      <div className="relative w-full px-1">
+                        <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                        <input
+                          value={searchQuery}
+                          onChange={e => {
+                            setSearchQuery(e.target.value);
+                            if (!e.target.value) setIsDropdownOpen(true);
+                            else setIsDropdownOpen(false);
+                          }}
+                          onFocus={() => {
+                            if (!searchQuery) setIsDropdownOpen(true);
+                          }}
+                          onKeyDown={e => {
+                            if (e.key === 'Enter' && searchQuery.trim().length >= 2) {
+                              const updatedHistory = [searchQuery.trim(), ...history.filter(item => item !== searchQuery.trim())].slice(0, 10);
+                              setHistory(updatedHistory);
+                              localStorage.setItem(STORAGE_KEY, JSON.stringify(updatedHistory));
                               setIsDropdownOpen(false);
-                            }}
-                            placeholder="Search content..."
-                            className="w-full bg-background/50 border border-white/10 rounded-md py-1.5 pl-9 pr-8 text-sm focus:outline-none focus:ring-1 focus:ring-primary/50 transition-all"
-                          />
-                          {searchQuery && (
-                            <button onClick={() => setSearchQuery('')} className="absolute right-3 top-1/2 -translate-y-1/2 hover:text-foreground">
-                              <X className="h-4 w-4" />
-                            </button>
-                          )}
-                        </div>
-                        {isDropdownOpen && (
-                          <SearchOverlay
-                            query={searchQuery}
-                            history={history}
-                            setHistory={setHistory}
-                            STORAGE_KEY={STORAGE_KEY}
-                            onSelect={val => {
-                              setSearchQuery(val);
-                              setIsDropdownOpen(false);
-                            }}
-                          />
+                            }
+                          }}
+                          onBlur={() => {
+                            setIsDropdownOpen(false);
+                          }}
+                          placeholder="Search content..."
+                          className="w-full bg-background/50 border border-white/10 rounded-md py-1.5 pl-9 pr-8 text-sm focus:outline-none focus:ring-1 focus:ring-primary/50 transition-all"
+                        />
+                        {searchQuery && (
+                          <button onClick={() => setSearchQuery('')} className="absolute right-3 top-1/2 -translate-y-1/2 hover:text-foreground">
+                            <X className="h-4 w-4" />
+                          </button>
                         )}
-                      </TabsContent>
-                    </div>
+                      </div>
+                      {isDropdownOpen && (
+                        <SearchOverlay
+                          query={searchQuery}
+                          history={history}
+                          setHistory={setHistory}
+                          STORAGE_KEY={STORAGE_KEY}
+                          onSelect={val => {
+                            setSearchQuery(val);
+                            setIsDropdownOpen(false);
+                          }}
+                        />
+                      )}
+                    </TabsContent>
                   </div>
-                </SidebarMenu>
-              </SidebarHeader>
-              <div className="min-h-0 flex-1 overflow-hidden!">
-                <SidebarContent className="ml-0 p-0! space-y-0! h-full flex">
+                </div>
+              </SidebarMenu>
+            </SidebarHeader>
+            <div className="min-h-0 flex-1 overflow-hidden!">
+              <SidebarContent className="ml-0 p-0! space-y-0! h-full flex">
+                <SidebarContextMenu node={null}>
                   <TabsContent className="h-full min-h-0 p-0! gap-0! space-x-0 space-y-0! m-0! font-(family-name:--font-IBM)" value="nodes">
                     <NavMain />
                   </TabsContent>
+                </SidebarContextMenu>
 
-                  {/* SEARCH RESULTS CONTENT */}
-                  <TabsContent
-                    forceMount // i force it to not hide so it wont rerender everytime tabs change.
-                    value="search"
-                    className={cn('h-full min-h-0 p-0! gap-0! space-x-0 space-y-0! flex', leftSidebarTab !== 'search' && 'hidden')}
-                  >
-                    <SearchTabContent query={searchQuery} flatNodes={flatNodes} onResultClick={handleSearchResultClick} />
-                  </TabsContent>
+                {/* SEARCH RESULTS CONTENT */}
+                <TabsContent
+                  forceMount // i force it to not hide so it wont rerender everytime tabs change.
+                  value="search"
+                  className={cn('h-full min-h-0 p-0! gap-0! space-x-0 space-y-0! flex', leftSidebarTab !== 'search' && 'hidden')}
+                >
+                  <SearchTabContent query={searchQuery} flatNodes={flatNodes} onResultClick={handleSearchResultClick} />
+                </TabsContent>
 
-                  <TabsContent value="bookmarks" className="text-white pt-16">
-                    Bookmarks
-                  </TabsContent>
-                </SidebarContent>
-              </div>
-            </Tabs>
-          </div>
-        </SidebarContextMenu>
+                <TabsContent value="bookmarks" className="text-white pt-16">
+                  Bookmarks
+                </TabsContent>
+              </SidebarContent>
+            </div>
+          </Tabs>
+        </div>
+
         <SidebarFooter className="h-auto mt-1 bg-background/70 py-2">
           <LeftSidebarFooter projectData={projectData} />
         </SidebarFooter>
