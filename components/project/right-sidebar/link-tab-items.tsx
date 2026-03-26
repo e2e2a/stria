@@ -9,6 +9,7 @@ interface LinkMention {
   excerpt: string;
   line: number;
   index: number;
+  length: number;
   alias?: string;
 }
 
@@ -81,7 +82,8 @@ export const LinkTabItems = ({ file, defaultOpen = false, searchQuery }: IProps)
     const jumpData = {
       nodeId: file._id,
       offset: mention.index,
-      length: mention.excerpt.length,
+      length: mention.length,
+      matchIndices: [0],
     };
 
     Object.assign(window, { __PENDING_JUMP__: jumpData });

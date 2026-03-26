@@ -15,6 +15,7 @@ export interface Mention {
   excerpt: string;
   line: number;
   index: number;
+  length: number; // optional
   heading?: string; // optional
   alias?: string; // optional
 }
@@ -146,7 +147,7 @@ export const nodeService = {
     for (const otherNode of allNodes) {
       if (otherNode._id.toString() === targetId || !otherNode.content) continue;
 
-      const content = otherNode.content;
+      const content = otherNode.content.replace(/\r/g, '');
       const linkedInThisFile: Mention[] = [];
       const unlinkedInThisFile: Mention[] = [];
 
@@ -179,6 +180,7 @@ export const nodeService = {
             excerpt: content.substring(lineStart, excerptEnd).trim(),
             line: lineIndex,
             index: match.index,
+            length: match[0].length,
             heading: parsed.heading,
             alias: alias || parsed.alias,
           });
@@ -196,6 +198,7 @@ export const nodeService = {
           unlinkedInThisFile.push({
             excerpt: content.substring(lineStart, excerptEnd).trim(),
             line: lineIndex,
+            length: uMatch[0].length,
             index: uMatch.index,
           });
         }

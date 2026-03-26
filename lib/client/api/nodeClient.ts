@@ -6,6 +6,7 @@ interface BacklinkMention {
   excerpt: string;
   line: number;
   index: number;
+  length: number;
   alias?: string;
 }
 interface IBacklink {
