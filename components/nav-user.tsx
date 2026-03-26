@@ -56,7 +56,12 @@ export function NavUser() {
           </DropdownMenuItem>
         </DropdownMenuGroup>
         <DropdownMenuSeparator />
-        <DropdownMenuItem onClick={() => signOut()} className="cursor-pointer">
+        <DropdownMenuItem
+          onClick={async () => {
+            signOut({ callbackUrl: '/login?logout=true' });
+          }}
+          className="cursor-pointer"
+        >
           <IconLogout />
           Log out
         </DropdownMenuItem>

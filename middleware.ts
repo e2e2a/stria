@@ -33,7 +33,7 @@ export const config = {
     '/projects/:path*',
     '/invite/:path*',
     '/trash/:path*',
-    '/workspace/:path*',
+    '/workspaces/:path*',
     '/preferences/:path',
   ],
 };
