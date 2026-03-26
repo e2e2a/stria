@@ -46,7 +46,7 @@ export async function getWorkspaceContext(workspaceId: string, email: string): P
  */
 export async function ensureWorkspaceMember(wid: string, email: string) {
   const context = await getWorkspaceContext(wid, email);
-  if (!context.membership) throw new HttpError('FORBIDDEN', 'You are not a member of this workspace');
+  if (!context.membership || context.membership.status === 'pending') throw new HttpError('FORBIDDEN', 'You are not a member of this workspace');
 
   return {
     membership: context.membership,
