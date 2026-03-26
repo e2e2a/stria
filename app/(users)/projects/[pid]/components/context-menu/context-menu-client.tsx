@@ -1,5 +1,5 @@
 import React, { useEffect, useRef, useState } from 'react';
-import { ContextMenu, ContextMenuItem, ContextMenuTrigger } from '@/components/ui/context-menu';
+import { ContextMenu, ContextMenuTrigger } from '@/components/ui/context-menu';
 import { EditorView } from '@uiw/react-codemirror';
 import GeneralContextMenu from './general';
 import CalloutContextMenu from './callout';
@@ -7,15 +7,15 @@ interface IProps {
   children: React.ReactNode;
   editorViewRef: React.RefObject<EditorView | null>;
   synced: boolean;
-  contextType: 'general' | 'callout' | 'blockquote' | 'mermaid';
-  setContextType: React.Dispatch<'general' | 'callout' | 'blockquote' | 'mermaid'>;
+  contextType: 'general' | 'callout';
+  setContextType: React.Dispatch<'general' | 'callout'>;
 }
 const ContextMenuClient = ({ editorViewRef, synced, contextType, setContextType, children }: IProps) => {
   const [currentLineText, setCurrentLineText] = useState('');
   const [cursorPos, setCursorPos] = useState(0);
   const eventPosRef = useRef<number | null>(null);
   useEffect(() => {
-    const handleContext = (e: CustomEvent<{ type: 'general' | 'callout' | 'blockquote' | 'mermaid'; pos?: number }>) => {
+    const handleContext = (e: CustomEvent<{ type: 'general' | 'callout'; pos?: number }>) => {
       setContextType(e.detail.type);
       if (e.detail.pos !== undefined) {
         eventPosRef.current = e.detail.pos;
@@ -45,15 +45,7 @@ const ContextMenuClient = ({ editorViewRef, synced, contextType, setContextType,
       <ContextMenuTrigger disabled={!synced} className="block h-full w-full">
         {children}
       </ContextMenuTrigger>
-      {/* {contextType === 'mermaid' && (
-        <>
-          <ContextMenuItem onClick={() => console.log('Export SVG')}>Export Diagram as SVG</ContextMenuItem>
-          <ContextMenuItem onClick={() => console.log('Copy Mermaid Code')}>Copy Mermaid Code</ContextMenuItem>
-          <ContextMenuSeparator />
-        </>
-      )} */}
 
-      {contextType === 'blockquote' && <ContextMenuItem>Convert to Callout</ContextMenuItem>}
       {contextType === 'callout' && <CalloutContextMenu editorViewRef={editorViewRef} cursorPos={cursorPos} />}
       {contextType === 'general' && <GeneralContextMenu editorViewRef={editorViewRef} currentLineText={currentLineText} cursorPos={cursorPos} />}
     </ContextMenu>

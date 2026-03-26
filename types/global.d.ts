@@ -10,7 +10,7 @@ declare global {
   }
 
   interface WindowEventMap {
-    'set-editor-context': CustomEvent<{ type: 'general' | 'callout' | 'blockquote' | 'mermaid'; pos?: number }>;
+    'set-editor-context': CustomEvent<{ type: 'general' | 'callout'; pos?: number }>;
     // THE ONLY NEW THING:
     'editor-action': CustomEvent<{ nodeId: string; text: string }>;
   }

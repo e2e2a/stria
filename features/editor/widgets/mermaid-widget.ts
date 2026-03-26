@@ -31,10 +31,6 @@ export class MermaidWidget extends WidgetType {
     container.className =
       'group border border-transparent hover:border-border transition-colors relative block w-full max-w-full box-border z-10 select-none leading-[0] overflow-x-auto! overflow-y-hidden!';
     container.tabIndex = -1;
-    container.oncontextmenu = () => {
-      // CustomEvent for context-menu to showup
-      window.dispatchEvent(new CustomEvent('set-editor-context', { detail: { type: 'mermaid' } }));
-    };
     container.onclick = e => {
       e.preventDefault();
       e.stopPropagation();
