@@ -12,6 +12,7 @@ import { useGetWorkspace } from '@/hooks/workspace/useQuery';
 import { dateFormatted } from '@/hooks/use-date-format';
 import TrashWorkspace from './trash-workspace';
 import { useSession } from 'next-auth/react';
+import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
 
 export function GeneralClient() {
   const { data: session } = useSession();
@@ -62,10 +63,19 @@ export function GeneralClient() {
                 <div className="flex items-center gap-2">
                   <h3 className="text-foreground font-medium text-sm sm:text-lg md:text-xl tracking-tight">Workspace ID</h3>
                 </div>
-
-                <button onClick={handleCopy} className="p-1.5 bg-accent/20 rounded-sm hover:bg-accent transition-all cursor-pointer" type="button">
-                  <Copy size={14} className="text-muted-foreground hover:text-foreground" />
-                </button>
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <button onClick={handleCopy} className="p-1.5 bg-accent/20 rounded-sm hover:bg-accent transition-all cursor-pointer" type="button">
+                      <Copy size={14} className="text-muted-foreground hover:text-foreground" />
+                    </button>
+                  </TooltipTrigger>
+                  <TooltipContent
+                    className="max-w-[200px] text-foreground bg-sidebar font-sans [&_svg]:bg-sidebar [&_svg]:border-b-2 [&_svg]:border-r-2 border-2 border-border [&_svg]:fill-sidebar"
+                    side="bottom"
+                  >
+                    Copy Workspace ID
+                  </TooltipContent>
+                </Tooltip>
               </div>
 
               <div className="text-muted-foreground text-xs sm:text-sm">
@@ -73,7 +83,8 @@ export function GeneralClient() {
               </div>
             </div>
 
-            <EditWorkspace item={wData} />
+            <EditWorkspace item={wData} canEdit={mData?.permissions?.canEditWorkspace || false} />
+
             <SettingCard title="Created On">
               <p className="text-sm text-slate-300">{wData?.createdAt ? dateFormatted(new Date(wData.createdAt)) : '—'}</p>
             </SettingCard>

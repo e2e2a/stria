@@ -20,6 +20,7 @@ import { Button } from '@/components/ui/button';
 import { makeToastError, makeToastSucess } from '@/lib/toast';
 import { useState } from 'react';
 import { useWorkspaceMutations } from '@/hooks/workspace/useMutation';
+import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
 
 interface IProps {
   item: IWorkspace;
@@ -75,15 +76,29 @@ const TrashWorkspace = ({ item, canTrash }: IProps) => {
       <div className="bg-transparent border border-border rounded-2xl flex flex-col gap-y-6 px-6 py-12 relative group drop-shadow-xs shadow-sm hover:bg-secondary/10 transition-all duration-200">
         <div className="flex">
           <h3 className="text-foreground font-medium text-sm sm:text-lg md:text-xl tracking-tight flex-1">Delete Workspace</h3>
-          <Button
-            type="button"
-            onClick={() => setIsOpen(true)}
-            size={'sm'}
-            className="bg-destructive/85 hover:bg-destructive! border border-border h-fit! py-0.5 cursor-pointer"
-            disabled={!canTrash}
-          >
-            Delete Workspace
-          </Button>
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <div className="w-fit h-fit">
+                <Button
+                  type="button"
+                  onClick={() => setIsOpen(true)}
+                  size={'sm'}
+                  className="bg-destructive/85 hover:bg-destructive! border border-border h-fit! py-0.5 cursor-pointer"
+                  disabled={!canTrash}
+                >
+                  Delete Workspace
+                </Button>
+              </div>
+            </TooltipTrigger>
+            {!canTrash && (
+              <TooltipContent
+                className="max-w-[200px] text-foreground bg-sidebar font-sans [&_svg]:bg-sidebar [&_svg]:border-b-2 [&_svg]:border-r-2 border-2 border-border [&_svg]:fill-sidebar"
+                side="bottom"
+              >
+                You do not have permission to delete workspace.
+              </TooltipContent>
+            )}
+          </Tooltip>
         </div>
         <p className="text-muted-foreground text-xs sm:text-sm">
           Deleting this workspace, it will delete all inside of workspace. This action cannot be undone.
@@ -98,7 +113,6 @@ const TrashWorkspace = ({ item, canTrash }: IProps) => {
                 This action is permanent and cannot be undone. Deleting the workspace
                 <span className="font-bold text-foreground"> {item.title}</span> will result in the immediate removal of the following:
               </AlertDialogDescription>
-              {/* Bullet List of Deletions */}
               <ul className="grid grid-cols-1 gap-2 py-3 px-4 bg-destructive/5 border border-destructive/20 rounded-lg text-sm">
                 <li className="flex items-center gap-2">
                   <span className="w-1.5 h-1.5 rounded-full bg-destructive" />

@@ -7,7 +7,7 @@ import z from 'zod';
 import { FormField, FormItem, FormControl, FormMessage, Form } from '@/components/ui/form';
 import { Field, FieldGroup } from '@/components/ui/field';
 import { IWorkspace } from '@/types';
-// import { useProjectMutations } from '@/hooks/project/useProjectMutations';
+import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
 import { useState } from 'react';
 import { Pencil } from 'lucide-react';
 import { makeToastError, makeToastSucess } from '@/lib/toast';
@@ -15,13 +15,14 @@ import { useWorkspaceMutations } from '@/hooks/workspace/useMutation';
 
 interface IProps {
   item: IWorkspace | undefined;
+  canEdit: boolean;
 }
 
 const workspaceValidator = z.object({
   title: z.string().min(1, 'Project name is required').max(50, 'Project name is too long'),
 });
 
-export function EditWorkspace({ item }: IProps) {
+export function EditWorkspace({ item, canEdit }: IProps) {
   const [loading, setLoading] = useState(false);
   const [open, setOpen] = useState(false);
   const mutation = useWorkspaceMutations();
@@ -73,10 +74,26 @@ export function EditWorkspace({ item }: IProps) {
           <div className="flex items-center gap-2">
             <h3 className="text-foreground font-medium text-sm sm:text-lg md:text-xl tracking-tight">Workspace Name</h3>
           </div>
-
-          <button onClick={() => setOpen(true)} className="p-1.5 bg-accent/20 rounded-sm hover:bg-accent transition-all cursor-pointer" type="button">
-            <Pencil size={14} className="text-muted-foreground hover:text-foreground" />
-          </button>
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <div className="w-fit h-fit">
+                <button
+                  onClick={() => setOpen(true)}
+                  className="p-1.5 bg-accent/20 rounded-sm hover:bg-accent transition-all cursor-pointer text-muted-foreground hover:text-foreground"
+                  type="button"
+                  disabled={!canEdit}
+                >
+                  <Pencil size={14} />
+                </button>
+              </div>
+            </TooltipTrigger>
+            <TooltipContent
+              className="max-w-[200px] text-foreground bg-sidebar font-sans [&_svg]:bg-sidebar [&_svg]:border-b-2 [&_svg]:border-r-2 border-2 border-border [&_svg]:fill-sidebar"
+              side="bottom"
+            >
+              {canEdit ? 'Edit Workspace Name' : 'You do not have permission to edit workspace.'}
+            </TooltipContent>
+          </Tooltip>
         </div>
 
         <div className="text-muted-foreground text-xs sm:text-sm">

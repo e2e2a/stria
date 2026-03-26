@@ -47,10 +47,7 @@ export const workspaceService = {
 
   delete: async (user: User, workspaceId: string) => {
     return await UnitOfWork.run(async () => {
-      console.log('running');
-      console.log('workspaceId', workspaceId);
-      const ctx = await ensureWorkspaceMember(workspaceId, user.email);
-      console.log('ctx', ctx);
+      await ensureWorkspaceMember(workspaceId, user.email);
       const workspace = await workspaceRepository.findOne({ _id: workspaceId });
       if (!workspace) throw new HttpError('NOT_FOUND', 'The requested workspace was not found');
       if (user._id?.toString() !== workspace.ownerUserId.toString()) throw new HttpError('FORBIDDEN');
