@@ -4,6 +4,7 @@ import { TabsContent } from '@/components/ui/tabs';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
+import { IconTooltip } from '../icon-tooltip';
 
 export type LinkSortMode = 'name-asc' | 'name-desc' | 'freq-high' | 'freq-low';
 
@@ -46,11 +47,13 @@ export const LinkTabHeader = ({
         {!isSearching ? (
           <>
             <DropdownMenu>
-              <DropdownMenuTrigger asChild>
-                <Button className="px-2! py-1! border border-transparent" variant="ghost" title="Sort Links">
-                  <ArrowUpNarrowWide className="h-6! w-6!" />
-                </Button>
-              </DropdownMenuTrigger>
+              <IconTooltip label={'Change sort order'}>
+                <DropdownMenuTrigger asChild>
+                  <Button className="px-2! py-1! border border-transparent" variant="ghost">
+                    <ArrowUpNarrowWide className="h-6! w-6!" />
+                  </Button>
+                </DropdownMenuTrigger>
+              </IconTooltip>
               <DropdownMenuContent align="start" className="w-56 bg-[#1e1e20] border-white/10 text-white">
                 <DropdownMenuItem onClick={() => setSortMode('name-asc')} className="text-xs flex justify-between">
                   File name (A to Z) {sortMode === 'name-asc' && <span className="text-primary">✓</span>}
@@ -69,18 +72,24 @@ export const LinkTabHeader = ({
             </DropdownMenu>
 
             {defaultExpand ? (
-              <Button onClick={() => handleToggleExpand(false)} className="px-2! py-1! border border-transparent" variant="ghost" title="Collapse All">
-                <ChevronsDownUp className="h-6! w-6!" />
-              </Button>
+              <IconTooltip label={'Collapse All'}>
+                <Button onClick={() => handleToggleExpand(false)} className="px-2! py-1! border border-transparent" variant="ghost">
+                  <ChevronsDownUp className="h-6! w-6!" />
+                </Button>
+              </IconTooltip>
             ) : (
-              <Button onClick={() => handleToggleExpand(true)} className="px-2! py-1! border border-transparent" variant="ghost" title="Expand All">
-                <ChevronsUpDown className="h-6! w-6!" />
-              </Button>
+              <IconTooltip label={'Expand All'}>
+                <Button onClick={() => handleToggleExpand(true)} className="px-2! py-1! border border-transparent" variant="ghost">
+                  <ChevronsUpDown className="h-6! w-6!" />
+                </Button>
+              </IconTooltip>
             )}
 
-            <Button onClick={() => setIsSearching(true)} className="px-2! py-1! border border-transparent" variant="ghost">
-              <Search className="h-6! w-6!" />
-            </Button>
+            <IconTooltip label={'Search'}>
+              <Button onClick={() => setIsSearching(true)} className="px-2! py-1! border border-transparent" variant="ghost">
+                <Search className="h-6! w-6!" />
+              </Button>
+            </IconTooltip>
           </>
         ) : (
           <div className="relative px-1 w-full gap-x-2 animate-in slide-in-from-left-1 duration-800">

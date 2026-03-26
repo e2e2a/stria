@@ -3,6 +3,7 @@ import { TabsContent } from '@/components/ui/tabs';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
+import { IconTooltip } from '../icon-tooltip';
 
 interface IProps {
   isSearchingInProperty: boolean;
@@ -26,11 +27,13 @@ export const PropertyTabHeader = ({
         {!isSearchingInProperty ? (
           <>
             <DropdownMenu>
-              <DropdownMenuTrigger asChild>
-                <Button className="px-2! py-1! border border-transparent" variant="ghost" title="Change sort order">
-                  <ArrowUpNarrowWide className="h-6! w-6!" />
-                </Button>
-              </DropdownMenuTrigger>
+              <IconTooltip label={'Change sort order'}>
+                <DropdownMenuTrigger asChild>
+                  <Button className="px-2! py-1! border border-transparent" variant="ghost" title="Change sort order">
+                    <ArrowUpNarrowWide className="h-6! w-6!" />
+                  </Button>
+                </DropdownMenuTrigger>
+              </IconTooltip>
               <DropdownMenuContent align="start" className="w-56 bg-[#1e1e20] border-white/10 text-white">
                 <DropdownMenuItem onClick={() => setPropertySortMode('name-asc')} className="text-xs flex justify-between">
                   Property name (A to Z) {propertySortMode === 'name-asc' && <span className="text-primary">✓</span>}
@@ -47,9 +50,12 @@ export const PropertyTabHeader = ({
                 </DropdownMenuItem>
               </DropdownMenuContent>
             </DropdownMenu>
-            <Button onClick={() => setIsSearchingInProperty(true)} className="px-2! py-1! border border-transparent" variant="ghost">
-              <Search className="h-6! w-6!" />
-            </Button>
+
+            <IconTooltip label={'Search'}>
+              <Button onClick={() => setIsSearchingInProperty(true)} className="px-2! py-1! border border-transparent" variant="ghost">
+                <Search className="h-6! w-6!" />
+              </Button>
+            </IconTooltip>
           </>
         ) : (
           <div className="relative px-1 w-full gap-x-2 animate-in slide-in-from-left-1 duration-800">

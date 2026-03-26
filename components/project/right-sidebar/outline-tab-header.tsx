@@ -3,6 +3,7 @@ import { Search, ChevronsDownUp, ChevronsUpDown, X } from 'lucide-react';
 import { TabsContent } from '@/components/ui/tabs';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
+import { IconTooltip } from '../icon-tooltip';
 
 interface OutlineTabHeaderProps {
   isSearchingInOutline: boolean;
@@ -39,17 +40,23 @@ export const OutlineTabHeader = ({
       <div className="bg-transparent w-full h-full flex items-center gap-x-1 justify-start">
         {!isSearchingInOutline ? (
           <>
-            <Button onClick={() => setIsSearchingInOutline(true)} className="px-2! py-1! border border-transparent" variant="ghost">
-              <Search className="h-6! w-6!" />
-            </Button>
+            <IconTooltip label={'Search'}>
+              <Button onClick={() => setIsSearchingInOutline(true)} className="px-2! py-1! border border-transparent" variant="ghost">
+                <Search className="h-6! w-6!" />
+              </Button>
+            </IconTooltip>
             {defaultExpand ? (
-              <Button onClick={() => handleToggleExpand(false)} className="px-2! py-1! border border-transparent" variant="ghost" title="Collapse All">
-                <ChevronsDownUp className="h-6! w-6!" />
-              </Button>
+              <IconTooltip label={'Collapse All'}>
+                <Button onClick={() => handleToggleExpand(false)} className="px-2! py-1! border border-transparent" variant="ghost">
+                  <ChevronsDownUp className="h-6! w-6!" />
+                </Button>
+              </IconTooltip>
             ) : (
-              <Button onClick={() => handleToggleExpand(true)} className="px-2! py-1! border border-transparent" variant="ghost" title="Expand All">
-                <ChevronsUpDown className="h-6! w-6!" />
-              </Button>
+              <IconTooltip label={'Expand All'}>
+                <Button onClick={() => handleToggleExpand(true)} className="px-2! py-1! border border-transparent" variant="ghost">
+                  <ChevronsUpDown className="h-6! w-6!" />
+                </Button>
+              </IconTooltip>
             )}
           </>
         ) : (

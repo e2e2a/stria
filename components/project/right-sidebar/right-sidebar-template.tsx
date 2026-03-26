@@ -16,6 +16,7 @@ import { OutlineTabHeader } from './outline-tab-header';
 import { LinkTabHeader } from './link-tab-header';
 import LinkTabContent from './link-tab-content';
 import MermaidTabContent from './mermaid/mermaid-tab-content';
+import { IconTooltip } from '../icon-tooltip';
 
 interface OutlineNode {
   text: string;
@@ -26,7 +27,7 @@ interface OutlineNode {
 const InboundLinkIcon = ({ className }: { className?: string }) => (
   <div className="relative inline-flex items-center justify-center">
     <Link className={className} />
-    <ArrowDownLeft className="absolute -bottom-1 -right-1 h-3 w-3 bg-background rounded-full stroke-[3px]" />
+    <ArrowDownLeft className="absolute -bottom-1 -right-1 h-3 w-3 rounded-full stroke-[3px]" />
   </div>
 );
 
@@ -134,33 +135,55 @@ const RightSidebarTemplate = ({ activeNodeId, activeNodeContent }: { activeNodeI
           onValueChange={e => setRightSidebarTab(e as 'pressence' | 'properties' | 'outline' | 'link' | 'outgoing' | 'mermaid')}
           className="flex flex-col h-screen min-h-0 gap-y-0 w-full"
         >
-          <SidebarHeader className="h-12 bg-sidebar flex text-xs text-muted-foreground border-b border-white/5">
-            <div className="flex items-center justify-between w-full overflow-hidden">
-              <div className="flex-1 min-w-0 overflow-x-auto overflow-y-hidden [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden">
+          <SidebarHeader className="h-12 bg-sidebar flex text-xs text-muted-foreground border-b border-white/5 p-0!">
+            <div className="flex items-center h-full justify-between w-full overflow-hidden">
+              <div className="flex-1 min-w-0 h-full flex items-center overflow-x-auto overflow-y-hidden [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden">
                 <TabsList className="bg-transparent flex items-center gap-x-1 w-max">
-                  <TabsTrigger className="grow-0" value="link">
-                    <InboundLinkIcon className="w-6! h-6!" />
-                  </TabsTrigger>
+                  <IconTooltip label={'Backlinks for Tools and Libraries'}>
+                    <TabsTrigger className="grow-0 hover:bg-accent/50 data-[state=active]:bg-accent/50! data-[state=active]:border-accent!" value="link">
+                      <InboundLinkIcon className="w-6! h-6!" />
+                    </TabsTrigger>
+                  </IconTooltip>
                   {/* <TabsTrigger className="grow-0" value="outgoing">
                     <OutboundLinkIcon className="w-6! h-6!" />
                   </TabsTrigger> */}
-                  <TabsTrigger className="grow-0" value="properties">
-                    <Archive className="w-6! h-6!" />
-                  </TabsTrigger>
-                  <TabsTrigger className="grow-0" value="outline">
-                    <List className="w-6! h-6!" />
-                  </TabsTrigger>
-                  <TabsTrigger className="grow-0 relative" value="pressence">
-                    <Users className="w-6! h-6!" />
-                    {filteredUsers.length > 0 && (
-                      <span className="absolute -top-1 -right-1 flex h-3 min-w-[12px] items-center justify-center rounded-full bg-primary text-[8px] font-bold text-white">
-                        {filteredUsers.length}
-                      </span>
-                    )}
-                  </TabsTrigger>
-                  <TabsTrigger className="grow-0" value="mermaid">
-                    <IconTrident className="w-6! h-6! rotate-45 -ml-1 mt-[4px]" />
-                  </TabsTrigger>
+                  <IconTooltip label={'All Properties'}>
+                    <TabsTrigger
+                      className="grow-0 hover:bg-accent/50 data-[state=active]:bg-accent/50! data-[state=active]:border-accent!"
+                      value="properties"
+                    >
+                      <Archive className="w-6! h-6!" />
+                    </TabsTrigger>
+                  </IconTooltip>
+                  <IconTooltip label={'Outline of backpressure Handling Pattern'}>
+                    <TabsTrigger
+                      className="grow-0 hover:bg-accent/50 data-[state=active]:bg-accent/50! data-[state=active]:border-accent!"
+                      value="outline"
+                    >
+                      <List className="w-6! h-6!" />
+                    </TabsTrigger>
+                  </IconTooltip>
+                  <IconTooltip label={'Active Users'}>
+                    <TabsTrigger
+                      className="grow-0 relative hover:bg-accent/50 data-[state=active]:bg-accent/50! data-[state=active]:border-accent!"
+                      value="pressence"
+                    >
+                      <Users className="w-6! h-6!" />
+                      {filteredUsers.length > 0 && (
+                        <span className="absolute -top-1 -right-1 flex h-3 min-w-[12px] items-center justify-center rounded-full bg-primary text-[8px] font-bold text-white">
+                          {filteredUsers.length}
+                        </span>
+                      )}
+                    </TabsTrigger>
+                  </IconTooltip>
+                  <IconTooltip label={'Mermaid'}>
+                    <TabsTrigger
+                      className="grow-0 hover:bg-accent/50 data-[state=active]:bg-accent/50! data-[state=active]:border-accent!"
+                      value="mermaid"
+                    >
+                      <IconTrident className="w-6! h-6! rotate-45 -ml-1 mt-[4px]" />
+                    </TabsTrigger>
+                  </IconTooltip>
                 </TabsList>
               </div>
 

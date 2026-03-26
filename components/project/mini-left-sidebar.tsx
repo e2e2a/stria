@@ -17,6 +17,7 @@ import { IconTrident } from '@tabler/icons-react';
 import { useProjectUIStore } from '@/features/editor/stores/project-ui';
 import { useTabStore } from '@/features/editor/stores/tabs';
 import { useParams } from 'next/navigation';
+import { IconTooltip } from './icon-tooltip';
 
 const MiniSidebarIconItems = [
   {
@@ -91,14 +92,18 @@ const MiniSidebarTemplate = ({ LeftSidebarRef, isLeftCollapsed, RightSidebarRef 
           <SidebarGroup className="gap-0 p-0">
             <SidebarMenu className="gap-y-3">
               <div className="h-12 flex items-center justify-center w-full">
-                <Button type="button" tabIndex={-1} variant={'ghost'} onClick={toggleRightSidebar} className="w-8 h-8 cursor-pointer ">
-                  {isLeftCollapsed ? <PanelLeftOpenIcon className="w-7! h-7!" /> : <PanelLeftCloseIcon className="w-7! h-7!" />}
-                </Button>
+                <IconTooltip label={'Collapse'} side="right">
+                  <Button type="button" tabIndex={-1} variant={'ghost'} onClick={toggleRightSidebar} className="w-8 h-8 cursor-pointer ">
+                    {isLeftCollapsed ? <PanelLeftOpenIcon className="w-7! h-7!" /> : <PanelLeftCloseIcon className="w-7! h-7!" />}
+                  </Button>
+                </IconTooltip>
               </div>
               <SidebarMenuItem className="" onClick={() => openTab(pid, 'Graph View', false, 0)}>
-                <Button type="button" tabIndex={-1} variant={'ghost'} className="cursor-pointer py-1 hover:bg-transparent!">
-                  <Network className="w-6! h-6! stroke-[1px]" />
-                </Button>
+                <IconTooltip label={'Open graph view'} side="right">
+                  <Button type="button" tabIndex={-1} variant={'ghost'} className="cursor-pointer py-1 hover:bg-transparent!">
+                    <Network className="w-6! h-6! stroke-[1px]" />
+                  </Button>
+                </IconTooltip>
               </SidebarMenuItem>
               {MiniSidebarIconItems &&
                 MiniSidebarIconItems.map((item, index) => {
@@ -131,9 +136,11 @@ const MiniSidebarTemplate = ({ LeftSidebarRef, isLeftCollapsed, RightSidebarRef 
                   });
                 }}
               >
-                <Button type="button" tabIndex={-1} variant={'ghost'} className="cursor-pointer py-1 hover:bg-transparent!">
-                  <IconTrident className="w-6! h-6! rotate-45 -ml-1 mt-[4px] stroke-[1px]" />
-                </Button>
+                <IconTooltip label={'Mermaid'} side="right">
+                  <Button type="button" tabIndex={-1} variant={'ghost'} className="cursor-pointer py-1 hover:bg-transparent!">
+                    <IconTrident className="w-6! h-6! rotate-45 -ml-1 mt-[4px] stroke-[1px]" />
+                  </Button>
+                </IconTooltip>
               </SidebarMenuItem>
             </SidebarMenu>
           </SidebarGroup>

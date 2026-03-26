@@ -17,6 +17,7 @@ import { SearchOverlay } from './search-button-overlay';
 import { SearchTabContent } from './search-tab-content';
 import { cn } from '@/lib/utils';
 import NodeTabHeader from './node-tab-header';
+import { IconTooltip } from '../icon-tooltip';
 
 export function LeftSidebarTemplate({ projectData }: { projectData: IProject }) {
   const nodes = useNodeStore(state => state.nodes);
@@ -143,15 +144,30 @@ export function LeftSidebarTemplate({ projectData }: { projectData: IProject }) 
               <SidebarHeader className="h-12 p-0">
                 <SidebarMenu className="h-12 flex w-full flex-row items-center justify-center px-2 relative">
                   <TabsList className="bg-transparent w-full flex items-start gap-x-3 justify-start">
-                    <TabsTrigger className="grow-0" value="nodes">
-                      <FolderOpen className="w-6! h-6!" />
-                    </TabsTrigger>
-                    <TabsTrigger className="grow-0" value="search">
-                      <Search className="w-6! h-6!" />
-                    </TabsTrigger>
-                    <TabsTrigger className="grow-0" value="bookmarks">
-                      <Bookmark className="w-6! h-6!" />
-                    </TabsTrigger>
+                    <IconTooltip label={'Files'}>
+                      <TabsTrigger
+                        className="grow-0 hover:bg-accent/50 data-[state=active]:bg-accent/50! data-[state=active]:border-accent!"
+                        value="nodes"
+                      >
+                        <FolderOpen className="w-6! h-6!" />
+                      </TabsTrigger>
+                    </IconTooltip>
+                    <IconTooltip label={'Search'}>
+                      <TabsTrigger
+                        className="grow-0 hover:bg-accent/50 data-[state=active]:bg-accent/50! data-[state=active]:border-accent!"
+                        value="search"
+                      >
+                        <Search className="w-6! h-6!" />
+                      </TabsTrigger>
+                    </IconTooltip>
+                    <IconTooltip label={'Bookmarks'}>
+                      <TabsTrigger
+                        className="grow-0 hover:bg-accent/50 data-[state=active]:bg-accent/50! data-[state=active]:border-accent!"
+                        value="bookmarks"
+                      >
+                        <Bookmark className="w-6! h-6!" />
+                      </TabsTrigger>
+                    </IconTooltip>
                   </TabsList>
 
                   <div className="absolute top-12 left-0 right-0 h-1 z-51 w-full bg-background" />
@@ -220,7 +236,7 @@ export function LeftSidebarTemplate({ projectData }: { projectData: IProject }) 
                   <TabsContent
                     forceMount // i force it to not hide so it wont rerender everytime tabs change.
                     value="search"
-                    className={cn('h-full min-h-0 p-0! gap-0! space-x-0 space-y-0! flex font-', leftSidebarTab !== 'search' && 'hidden')}
+                    className={cn('h-full min-h-0 p-0! gap-0! space-x-0 space-y-0! flex', leftSidebarTab !== 'search' && 'hidden')}
                   >
                     <SearchTabContent query={searchQuery} flatNodes={flatNodes} onResultClick={handleSearchResultClick} />
                   </TabsContent>

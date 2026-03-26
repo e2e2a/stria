@@ -224,7 +224,7 @@ function SearchTabContentComponent({
   }, [items, collapsedFiles]);
 
   return (
-    <div className="flex-1 flex flex-col overflow-hidden select-none bg-background">
+    <div className="flex-1 flex flex-col overflow-hidden select-none bg-sidebar">
       <div className="pt-16 px-4 pb-2 text-[10px] uppercase tracking-wider opacity-50 font-bold">{totalFound} results</div>
       <div className="flex-1">
         <Virtuoso
