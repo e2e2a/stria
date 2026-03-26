@@ -27,9 +27,9 @@ export function AccessUsersClient() {
 
   return (
     <SidebarInset className="flex flex-col h-full w-full">
-      <main className="px-3 py-4 w-full flex-1 overflow-y-auto">
+      <main className="p-6 lg:p-8 w-full flex-1 overflow-y-auto">
         <div className={cn('flex items-center', mData?.permissions.canInvite ? 'justify-between' : '')}>
-          <h1 className="text-2xl md:text-3xl font-bold drop-shadow-xs mb-2">Users</h1>
+          <h1 className="text-2xl md:text-4xl font-bold drop-shadow-xs mb-2">Users</h1>
           {mData?.permissions.canInvite && (
             <Link href={`/workspaces/${workspaceId}/access/users/invite`}>
               <Button className="cursor-pointer">Invite Users</Button>

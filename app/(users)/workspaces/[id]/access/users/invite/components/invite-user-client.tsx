@@ -26,9 +26,7 @@ export const InviteUserClient = () => {
   const workspaceId = params.id as string;
   const { data: mData, isLoading, error: mError } = useGetMyWorkspaceMembership(workspaceId);
   const [loading, setLoading] = useState(false);
-  const [members, setMembers] = useState<{ email: string; role: 'owner' | 'editor' | 'viewer' }[]>(
-    []
-  );
+  const [members, setMembers] = useState<{ email: string; role: 'owner' | 'editor' | 'viewer' }[]>([]);
   const mutation = useInvitationMutations();
   const router = useRouter();
 
@@ -42,8 +40,7 @@ export const InviteUserClient = () => {
   const onSubmit = async () => {
     const valid = await form.trigger();
     if (!valid) return;
-    if (session?.user.email === form.getValues('email'))
-      return form.setError('email', { message: `Can't invite yourself.` });
+    if (session?.user.email === form.getValues('email')) return form.setError('email', { message: `Can't invite yourself.` });
     const existMember = await members.find(mem => mem.email === form.getValues('email'));
     if (existMember) return form.setError('email', { message: 'This email is already a exist.' });
     const email = form.getValues('email');
@@ -89,9 +86,7 @@ export const InviteUserClient = () => {
               Go back to Users
             </Button>
           </Link>
-          <h1 className="text-2xl md:text-3xl font-bold drop-shadow-xs mb-2">
-            Invite to Workspace
-          </h1>
+          <h1 className="text-2xl md:text-4xl font-bold drop-shadow-xs mb-2">Invite to Workspace</h1>
         </div>
         <div className="flex flex-col gap-y-2 max-w-2xl mt-5">
           <div className="">
@@ -106,16 +101,11 @@ export const InviteUserClient = () => {
               exit={{ opacity: 0, x: -20 }}
               className="space-y-4"
             >
-              <div className="flex flex-col text-sm space-y-4">
+              <div className="flex flex-col text-sm space-y-4 text-muted-foreground">
                 <div className="flex flex-col gap-y-4">
-                  <Label className="text-lg font-semibold">
-                    Add new users to your organization below.
-                  </Label>
+                  <Label className="text-sm lg:text-[15px] text-muted-foreground">Add new users to your organization below.</Label>
                   <div className="flex gap-x-1">
-                    <Input
-                      {...form.register('email')}
-                      placeholder="Invite new or existing user via email address..."
-                    />
+                    <Input {...form.register('email')} placeholder="Invite new or existing user via email address..." />
                     <Button
                       type="button"
                       variant={'outline'}
@@ -157,9 +147,7 @@ export const InviteUserClient = () => {
                         ))
                       ) : (
                         <TableRow>
-                          <TableCell className="col-span-3 text-center w-full text-muted-foreground">
-                            No members added yet.
-                          </TableCell>
+                          <TableCell className="col-span-3 text-center w-full text-muted-foreground">No members added yet.</TableCell>
                         </TableRow>
                       )}
                     </TableBody>
@@ -179,11 +167,7 @@ export const InviteUserClient = () => {
                   >
                     Cancel
                   </Button>
-                  <Button
-                    type="submit"
-                    disabled={loading || members.length <= 0}
-                    className="text-end cursor-pointer"
-                  >
+                  <Button type="submit" disabled={loading || members.length <= 0} className="text-end cursor-pointer">
                     Invite Members
                   </Button>
                 </div>

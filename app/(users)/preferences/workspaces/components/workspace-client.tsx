@@ -22,9 +22,9 @@ export const WorkspaceClient = () => {
 
   return (
     <SidebarInset className="flex flex-col h-full w-full">
-      <main className="px-3 py-4 w-full flex-1 overflow-y-auto">
-        <div className="flex justify-between items-center">
-          <h1 className="text-2xl md:text-3xl font-bold drop-shadow-xs mb-2">Workspaces</h1>
+      <main className="p-6 lg:p-8 w-full flex-1 overflow-y-auto">
+        <div className="flex justify-between items-center mb-6">
+          <h1 className="text-2xl md:text-4xl font-bold drop-shadow-xs ">Workspaces</h1>
           <Button className="cursor-pointer" asChild>
             <Link href={'/preferences/workspaces/create'}>Create New Workspace</Link>
           </Button>

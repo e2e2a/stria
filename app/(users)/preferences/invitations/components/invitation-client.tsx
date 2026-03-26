@@ -21,9 +21,8 @@ export const InvitationClient = () => {
 
   return (
     <SidebarInset className="flex flex-col h-screen w-full overflow-hidden">
-      {/* <SiteHeader title={'Invitations'} /> */}
-      <div className="px-3 py-4 w-full flex-1 overflow-y-auto">
-        <h1 className="text-2xl md:text-3xl font-bold drop-shadow-xs mb-2">Invitations</h1>
+      <div className="p-6 lg:p-8 w-full flex-1 overflow-y-auto">
+        <h1 className="text-2xl md:text-4xl font-bold drop-shadow-xs mb-2">Invitations</h1>
         <div className={cn('overflow-x-auto')}>
           <DataTable columns={columns} data={(iData?.invitations || []) as IUserInvitations[]} isLoading={isLoading} />
         </div>

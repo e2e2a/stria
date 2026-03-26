@@ -44,7 +44,7 @@ export function GeneralClient() {
 
   return (
     <SidebarInset className="flex flex-col h-full w-full">
-      <main className="p-6 lg:p-12  w-full flex-1 h-ful overflow-y-auto">
+      <main className="p-6 lg:p-8 w-full flex-1 h-ful overflow-y-auto">
         <h1 className="text-2xl md:text-4xl font-bold drop-shadow-xs mb-6">Workspace Settings</h1>
 
         <div className="flex gap-8 border-b border-slate-800 mb-8">

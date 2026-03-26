@@ -89,7 +89,7 @@ export const InviteUserClient = () => {
               Go back to Users
             </Button>
           </Link>
-          <h1 className="text-2xl md:text-3xl font-bold drop-shadow-xs mb-2">Invite to Project</h1>
+          <h1 className="text-2xl md:text-4xl font-bold drop-shadow-xs mb-2">Invite to Project</h1>
         </div>
         <div className="flex flex-col gap-y-2 max-w-2xl mt-5">
           <div className="">

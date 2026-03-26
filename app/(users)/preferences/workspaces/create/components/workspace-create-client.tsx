@@ -82,9 +82,9 @@ export const WorkspaceCreateClient = () => {
 
   return (
     <SidebarInset className="flex flex-col items-center h-full w-full overflow-y-auto">
-      <div className="px-3 py-4 w-full flex-1 max-w-2xl">
+      <div className="px-3 py-6 w-full flex-1 max-w-2xl">
         <div className="">
-          <h1 className="text-2xl md:text-3xl font-bold drop-shadow-xs mb-2">Create Workspace</h1>
+          <h1 className="text-2xl md:text-4xl font-bold drop-shadow-xs mb-2">Create Workspace</h1>
         </div>
         <div className="flex flex-col gap-y-2 max-w-2xl mt-5">
           <div className="flex">
