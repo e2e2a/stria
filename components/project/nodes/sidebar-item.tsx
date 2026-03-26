@@ -258,7 +258,7 @@ export default function SidebarItem({ item, depth, nodesById, activeDrag, target
 
             <SidebarGroupContent>
               <SidebarMenu className="gap-0! space-y-0! p-0!">
-                {isCreatingHere && isCreating.type === 'folder' && <SidebarCreateFolderItem depth={depth + 2} />}
+                {isCreatingHere && isCreating.type === 'folder' && <SidebarCreateFolderItem depth={depth + 1} />}
                 {folders.map(child => (
                   <SidebarItem
                     key={child._id}
