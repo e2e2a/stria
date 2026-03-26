@@ -114,7 +114,10 @@ export default function TrashDialog({ item, workspaceId }: IProps) {
             </span>
           </TooltipTrigger>
         </AlertDialogTrigger>
-        <TooltipContent side="top">
+        <TooltipContent
+          className="max-w-[200px] text-foreground bg-sidebar font-sans [&_svg]:bg-sidebar [&_svg]:border-b-2 [&_svg]:border-r-2 border-2 border-border [&_svg]:fill-sidebar"
+          side="top"
+        >
           {!canTrash && 'You do not have permission'}
           {canTrash && item.status === 'accepted' && 'You are about to remove the user.'}
           {canTrash && item.status !== 'accepted' && 'You are about to remove the user invitation.'}

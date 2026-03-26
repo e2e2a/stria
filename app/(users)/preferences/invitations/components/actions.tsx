@@ -71,50 +71,32 @@ export function Actions({ item }: IProps) {
   return (
     <div className="inline-flex flex-row gap-x-2 items-center justify-center">
       <div className="text-center">
-        <Button
-          size={'sm'}
-          type="button"
-          variant={'secondary'}
-          disabled={loading}
-          onClick={handleAccept}
-          className="action-button"
-        >
+        <Button size={'sm'} type="button" variant={'secondary'} disabled={loading} onClick={handleAccept} className="action-button">
           ACCEPT
         </Button>
       </div>
       <AlertDialog open={isOpen} onOpenChange={setIsOpen}>
         <Tooltip>
-          <AlertDialogTrigger
-            className={'w-auto'}
-            disabled={loading}
-            onClick={() => setIsOpen(true)}
-          >
+          <AlertDialogTrigger className={'w-auto'} disabled={loading} onClick={() => setIsOpen(true)}>
             <TooltipTrigger asChild>
               <span tabIndex={0}>
-                <div className="w-full items-center flex size-4 px-3 gap-1.5 h-8 action-button">
-                  DECLINE
-                </div>
+                <div className="w-full items-center flex size-4 px-3 gap-1.5 h-8 action-button">DECLINE</div>
               </span>
             </TooltipTrigger>
           </AlertDialogTrigger>
-          <TooltipContent className="max-w-[200px]" side="left">
-            You are about to decline the invitation. You will not be able to join this workspace
-            unless you are invited again.
+          <TooltipContent
+            className="max-w-[200px] text-foreground bg-sidebar font-sans [&_svg]:bg-sidebar [&_svg]:border-b-2 [&_svg]:border-r-2 border-2 border-border [&_svg]:fill-sidebar"
+            side="left"
+          >
+            You are about to decline the invitation. You will not be able to join this workspace unless you are invited again.
           </TooltipContent>
         </Tooltip>
 
-        <AlertDialogContent
-          className="top-[5%] translate-y-0"
-          onClick={e => e.preventDefault()}
-          onContextMenu={e => e.preventDefault()}
-        >
+        <AlertDialogContent className="top-[5%] translate-y-0" onClick={e => e.preventDefault()} onContextMenu={e => e.preventDefault()}>
           <AlertDialogHeader>
-            <AlertDialogTitle className="text-xl sm:text-2xl font-bold text-start">
-              Decline Invitation
-            </AlertDialogTitle>
+            <AlertDialogTitle className="text-xl sm:text-2xl font-bold text-start">Decline Invitation</AlertDialogTitle>
             <AlertDialogDescription>
-              You are about to decline the invitation to{' '}
-              <span className="font-bold">{item.workspace.title}</span>
+              You are about to decline the invitation to <span className="font-bold">{item.workspace.title}</span>
               . You will not be able to join this workspace unless you are invited again.
               <br />
               <br />

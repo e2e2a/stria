@@ -51,40 +51,26 @@ export function Leave({ item }: IProps) {
   return (
     <AlertDialog open={isOpen} onOpenChange={setIsOpen}>
       <div className="w-full text-center">
-        <AlertDialogTrigger
-          className={'w-auto'}
-          disabled={disabled || loading}
-          onClick={() => setIsOpen(true)}
-          asChild
-        >
+        <AlertDialogTrigger className={'w-auto'} disabled={disabled || loading} onClick={() => setIsOpen(true)} asChild>
           {disabled ? (
             <Tooltip>
               <TooltipTrigger asChild className="cursor-not-allowed h-auto w-auto">
                 <span tabIndex={0} className="h-auto w-auto">
-                  <Button
-                    size={'sm'}
-                    variant={'outline'}
-                    type="button"
-                    disabled={true}
-                    className="bg-accent hover:text-none"
-                  >
+                  <Button size={'sm'} variant={'outline'} type="button" disabled={true} className="bg-accent hover:text-none">
                     LEAVE
                   </Button>
                 </span>
               </TooltipTrigger>
-              <TooltipContent className="max-w-[200px]" side="left">
+              <TooltipContent
+                className="max-w-[200px] text-foreground bg-sidebar font-sans [&_svg]:bg-sidebar [&_svg]:border-b-2 [&_svg]:border-r-2 border-2 border-border [&_svg]:fill-sidebar"
+                side="left"
+              >
                 You can&apos;t leave a workspace when you are the only workspace owner.
               </TooltipContent>
             </Tooltip>
           ) : (
             <div className="text-center">
-              <Button
-                size={'sm'}
-                type="button"
-                variant={'outline'}
-                disabled={loading}
-                className="action-button hover:text-none"
-              >
+              <Button size={'sm'} type="button" variant={'outline'} disabled={loading} className="action-button hover:text-none">
                 LEAVE
               </Button>
             </div>
@@ -92,15 +78,9 @@ export function Leave({ item }: IProps) {
         </AlertDialogTrigger>
       </div>
 
-      <AlertDialogContent
-        className="top-[5%] translate-y-0"
-        onClick={e => e.preventDefault()}
-        onContextMenu={e => e.preventDefault()}
-      >
+      <AlertDialogContent className="top-[5%] translate-y-0" onClick={e => e.preventDefault()} onContextMenu={e => e.preventDefault()}>
         <AlertDialogHeader>
-          <AlertDialogTitle className="text-xl sm:text-2xl font-bold text-start">
-            Leave Workspace
-          </AlertDialogTitle>
+          <AlertDialogTitle className="text-xl sm:text-2xl font-bold text-start">Leave Workspace</AlertDialogTitle>
           <AlertDialogDescription>
             By leaving <span className="font-bold text-accent-foreground">{item.title}</span>
             , you will lose access to all projects in that workspace.
@@ -113,11 +93,7 @@ export function Leave({ item }: IProps) {
           <AlertDialogCancel type="button" className="cursor-pointer">
             Cancel
           </AlertDialogCancel>
-          <AlertDialogAction
-            className="bg-destructive text-destructive-foreground cursor-pointer"
-            disabled={disabled || loading}
-            onClick={leaveWorkspace}
-          >
+          <AlertDialogAction className="bg-destructive text-destructive-foreground cursor-pointer" disabled={disabled || loading} onClick={leaveWorkspace}>
             Continue
           </AlertDialogAction>
         </AlertDialogFooter>

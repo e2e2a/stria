@@ -85,7 +85,10 @@ export default function TrashDialog({ item, workspaceId }: IProps) {
             </span>
           </TooltipTrigger>
         </AlertDialogTrigger>
-        <TooltipContent className="max-w-[200px] rounded-md" side="top">
+        <TooltipContent
+          className="max-w-[200px] text-foreground bg-sidebar font-sans [&_svg]:bg-sidebar [&_svg]:border-b-2 [&_svg]:border-r-2 border-2 border-border [&_svg]:fill-sidebar"
+          side="top"
+        >
           You are about to delete the project. All the data inside of the project will be lost.
         </TooltipContent>
       </Tooltip>
