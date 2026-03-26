@@ -78,7 +78,7 @@ function MarkdownSection({ node, isDirty }: { node: INode; isDirty: boolean }) {
   const pid = useParams().pid as string;
   const [editorReady, setEditorReady] = useState(false);
   // for context menu
-  const [contextType, setContextType] = useState<'general' | 'callout' | 'blockquote' | 'mermaid'>('general');
+  const [contextType, setContextType] = useState<'general' | 'callout'>('general');
   useEditorEvents(node._id, synced, editorViewRef);
 
   const providerRef = useRef<HocuspocusProvider | null>(null);
