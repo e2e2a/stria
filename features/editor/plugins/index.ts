@@ -73,9 +73,9 @@ export function setupDragTracking(view: EditorView) {
 // ------------------------------
 export const markdownLivePreviewField = StateField.define<RangeSet<Decoration>>({
   create(state: EditorState) {
-    if (state.field(sourceModeField, false)) {
-      return RangeSet.empty;
-    }
+    // if (state.field(sourceModeField, false)) {
+    //   return RangeSet.empty;
+    // }
     return buildDecorations(state);
   },
   update(decos, tr) {

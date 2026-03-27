@@ -4,7 +4,7 @@ import { ImperativePanelHandle } from 'react-resizable-panels';
 import { ResizableHandle, ResizablePanel, ResizablePanelGroup } from '@/components/ui/resizable';
 import { AppContent } from './app-content';
 import { AppShell } from './app-shell';
-import { LeftSidebarTemplate } from './left-sidebar/left-sidebar-template';
+import LeftSidebarTemplate from './left-sidebar/left-sidebar-template';
 import RightSidebarTemplate from './right-sidebar/right-sidebar-template';
 import MiniSidebarTemplate from './mini-left-sidebar';
 import { useNodeStore } from '@/features/editor/stores/nodes';

@@ -37,6 +37,7 @@ interface IProps {
   item: INode;
   depth: number;
   nodesById: Record<string, INode>;
+  activeNode: INode | null;
   targetIdRef: React.RefObject<string | null>;
   activeDrag: INode | null;
   isParentDragging?: boolean;
@@ -44,12 +45,10 @@ interface IProps {
   onDragEnd: () => void;
 }
 
-export default function SidebarItem({ item, depth, nodesById, activeDrag, targetIdRef, isParentDragging = false, onDragStart, onDragEnd }: IProps) {
+function SidebarItem({ item, depth, nodesById, activeDrag, activeNode, targetIdRef, isParentDragging = false, onDragStart, onDragEnd }: IProps) {
   const localStorageKey = `sidebar-folder-open-${item._id}`;
   const hoverTimeoutRef = useRef<number | null>(null);
-
   const isCreating = useNodeStore(state => state.isCreating);
-  const activeNode = useNodeStore(state => state.activeNode);
   const collapseVersion = useNodeStore(state => state.collapseVersion);
   const isUpdatingNode = useNodeStore(state => state.isUpdatingNode);
   const userToggledRef = useRef(false);
@@ -62,14 +61,11 @@ export default function SidebarItem({ item, depth, nodesById, activeDrag, target
   });
 
   const [prevVersion, setPrevVersion] = useState(collapseVersion);
-  // if (collapseVersion !== prevVersion) {
-  //   setPrevVersion(collapseVersion);
-  //   setIsOpen(false);
-  // }
 
   useEffect(() => {
     localStorage.setItem(localStorageKey, String(isOpen));
   }, [localStorageKey, isOpen]);
+
   const isCreatingHere = isCreating && isCreating.parentId === item._id;
 
   const isDirectTarget = activeDrag?._id === item._id;
@@ -266,6 +262,7 @@ export default function SidebarItem({ item, depth, nodesById, activeDrag, target
                     nodesById={nodesById}
                     depth={depth + 1}
                     activeDrag={activeDrag}
+                    activeNode={activeNode}
                     targetIdRef={targetIdRef}
                     isParentDragging={isInForbiddenZone}
                     onDragStart={onDragStart}
@@ -278,6 +275,7 @@ export default function SidebarItem({ item, depth, nodesById, activeDrag, target
                     key={child._id}
                     item={child}
                     nodesById={nodesById}
+                    activeNode={activeNode}
                     depth={depth + 3}
                     activeDrag={activeDrag}
                     targetIdRef={targetIdRef}
@@ -294,3 +292,33 @@ export default function SidebarItem({ item, depth, nodesById, activeDrag, target
     </>
   );
 }
+
+export default React.memo(SidebarItem, (prev, next) => {
+  // 1. If the actual item data (title, children array) changed, re-render.
+  if (prev.item !== next.item) return false;
+
+  const prevActiveId = prev.activeNode?._id;
+  const nextActiveId = next.activeNode?._id;
+  const myId = prev.item._id;
+
+  // 2. Selection Guard
+  if (prevActiveId !== nextActiveId) {
+    // A: Is THIS specific item being selected or deselected?
+    if (myId === nextActiveId || myId === prevActiveId) return false;
+
+    // B: If I am a FOLDER, only re-render if a direct child is entering/leaving.
+    if (prev.item.type === 'folder') {
+      const wasChildActive = prevActiveId && prev.nodesById[prevActiveId]?.parentId === myId;
+      const isChildActive = nextActiveId && next.nodesById[nextActiveId]?.parentId === myId;
+
+      if (wasChildActive !== isChildActive) return false;
+    }
+
+    // C: If I am a sibling file and none of the above matched: STAY SILENT.
+    // This is what stops the "10 files" from logging.
+    return true;
+  }
+
+  // 3. Fallback for other props (depth, drag handlers)
+  return prev.depth === next.depth && prev.onDragStart === next.onDragStart && prev.onDragEnd === next.onDragEnd;
+});

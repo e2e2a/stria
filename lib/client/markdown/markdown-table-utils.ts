@@ -22,7 +22,7 @@ function isStrictSeparatorRow(line: string, cols: number): boolean {
   const cells = splitRow(line);
   if (cells.length !== cols) return false;
 
-  return cells.every(cell => /^:?-{3,}:?$/.test(cell.trim()));
+  return cells.every(cell => /^:?-{1,}:?$/.test(cell.trim()));
 }
 
 export function isValidTable(lines: string[]): boolean {
@@ -90,22 +90,6 @@ export function addTableRow(data: string[][]): string[][] {
   return [...data, new Array(data[0].length).fill(' ')];
 }
 
-function isSeparatorRow(row: string[]): boolean {
-  return row.every(cell => /^:?-{3,}:?$/.test(cell.trim()));
-}
-export function serializeTable(data: string[][]): string {
-  return data
-    .map(row => {
-      if (isSeparatorRow(row)) {
-        // ensure every column is a valid separator
-        return `| ${row.map(() => '---').join(' | ')} |`;
-      }
-
-      return `| ${row.map(c => c || ' ').join(' | ')} |`;
-    })
-    .join('\n');
-}
-
 export function handleTableTabNavigation(widget: TablePreviewWidget, view: EditorView, tableData: string[][], editor: HTMLElement, shiftKey: boolean) {
   const pos = getTablePosition(editor);
   if (!pos) return;
@@ -133,7 +117,7 @@ export function handleTableTabNavigation(widget: TablePreviewWidget, view: Edito
     const next = addTableRow(tableData);
     view.focus();
     view.dispatch({
-      changes: { from: widget.from, to: widget.to, insert: serializeTable(next) },
+      changes: { from: widget.from, to: widget.to, insert: serializeTableAligned(next) },
       userEvent: 'input.table',
     });
     focusTableCell(view, widget.from, tableData.length, 0);
@@ -171,7 +155,7 @@ export function handleTableEnterNavigation(widget: TablePreviewWidget, view: Edi
   const next = addTableRow(tableData);
 
   view.dispatch({
-    changes: { from: widget.from, to: widget.to, insert: serializeTable(next) },
+    changes: { from: widget.from, to: widget.to, insert: serializeTableAligned(next) },
   });
 
   const waitAndFocus = () => {
@@ -244,8 +228,40 @@ export function focusTableCell(view: EditorView, widgetFrom: number, rowIndex: n
   }, 10); // 10ms is usually enough to let the DOM settle
 }
 
+export function serializeTableAligned(data: string[][]): string {
+  if (data.length === 0) return '';
+
+  const numCols = Math.max(...data.map(r => r.length));
+  const colWidths = Array(numCols).fill(0);
+
+  data.forEach((row, rowIndex) => {
+    if (rowIndex === 1) return;
+    row.forEach((cell, colIndex) => {
+      const len = (cell || '').trim().length;
+      if (len > colWidths[colIndex]) colWidths[colIndex] = len;
+    });
+  });
+
+  return data
+    .map((row, rowIndex) => {
+      if (rowIndex === 1) {
+        const sep = colWidths.map(w => '-'.repeat(Math.max(w, 3)));
+        return `| ${sep.join(' | ')} |`;
+      }
+
+      // Data Rows
+      const cells = colWidths.map((width, colIndex) => {
+        const content = (row[colIndex] || '').trim();
+        const padding = ' '.repeat(Math.max(0, width - content.length));
+        return `${content}${padding}`;
+      });
+
+      return `| ${cells.join(' | ')} |`;
+    })
+    .join('\n');
+}
 export function updateTable(view: EditorView, from: number, to: number, data: string[][]) {
-  view.dispatch({ changes: { from, to, insert: serializeTable(data) }, userEvent: 'input.table' });
+  view.dispatch({ changes: { from, to, insert: serializeTableAligned(data) }, userEvent: 'input.table' });
 }
 
 export function removeTableColumn(data: string[][], colIndex: number): string[][] {

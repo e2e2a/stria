@@ -23,6 +23,7 @@ export function NavMain() {
   const setActiveDrag = useNodeStore(state => state.setActiveDrag);
   const setNodes = useNodeStore(state => state.setNodes);
   const moveNode = useNodeStore(state => state.moveNode);
+  const activeNode = useNodeStore(state => state.activeNode);
   const undo = useNodeStore(state => state.undo);
   const mutation = useNodeMutations();
 
@@ -139,6 +140,7 @@ export function NavMain() {
             nodesById={nodesById}
             depth={0}
             targetIdRef={targetIdRef}
+            activeNode={activeNode}
             activeDrag={activeDrag}
             onDragStart={setActiveDrag}
             onDragEnd={handleDragFinished}
@@ -153,6 +155,7 @@ export function NavMain() {
             nodesById={nodesById}
             depth={0}
             targetIdRef={targetIdRef}
+            activeNode={activeNode}
             activeDrag={activeDrag}
             onDragStart={setActiveDrag}
             onDragEnd={handleDragFinished}

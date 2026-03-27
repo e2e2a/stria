@@ -4,7 +4,7 @@ import { Sidebar, SidebarContent, SidebarFooter, SidebarHeader, SidebarMenu } fr
 import { Bookmark, FolderOpen, Search, X } from 'lucide-react';
 import { SidebarContextMenu } from './sidebar-context-menu';
 import { useNodeStore } from '@/features/editor/stores/nodes';
-import { useDeferredValue, useEffect, useMemo, useState } from 'react';
+import { memo, useDeferredValue, useEffect, useMemo, useState } from 'react';
 import { makeToastError } from '@/lib/toast';
 import { useNodeMutations } from '@/hooks/node/useNodeMutations';
 import { IProject } from '@/types';
@@ -19,7 +19,7 @@ import { cn } from '@/lib/utils';
 import NodeTabHeader from './node-tab-header';
 import { IconTooltip } from '../icon-tooltip';
 
-export function LeftSidebarTemplate({ projectData }: { projectData: IProject }) {
+function LeftSidebarTemplate({ projectData }: { projectData: IProject }) {
   const nodes = useNodeStore(state => state.nodes);
   const setActiveNode = useNodeStore(state => state.setActiveNode);
   const undo = useNodeStore(state => state.undo);
@@ -251,3 +251,7 @@ export function LeftSidebarTemplate({ projectData }: { projectData: IProject }) 
     </Sidebar>
   );
 }
+
+export default memo(LeftSidebarTemplate, (prevProps, nextProps) => {
+  return prevProps.projectData?._id === nextProps.projectData?._id;
+});

@@ -18,7 +18,7 @@ async function debouncedSave(documentName: string, content: string) {
     documentName,
     setTimeout(async () => {
       try {
-        await Node.findByIdAndUpdate(documentName, { content }, { new: true });
+        // await Node.findByIdAndUpdate(documentName, { content }, { new: true });
         console.log(`✅ Saved ${documentName} to DB`);
       } catch (error) {
         console.error(`[DB Error] Failed to save node ${documentName}:`, error);

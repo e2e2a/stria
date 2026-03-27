@@ -312,10 +312,11 @@ export function getFenceDecos(state: EditorState, activeLineNum: number): StateR
 export function getTableDecos(state: EditorState, startLine: number) {
   const line = state.doc.line(startLine);
   if (!line.text.trim().startsWith('|')) return null;
+
   if (startLine < state.doc.lines) {
     const nextLineText = state.doc.line(startLine + 1).text.trim();
-    const isNextLineSeparator = /^\|?([\s-]*:?---+:?[\s-]*\|?)+$/.test(nextLineText);
 
+    const isNextLineSeparator = nextLineText.includes('-') && /^[\s|:-]+$/.test(nextLineText);
     if (!isNextLineSeparator) return null;
   } else {
     return null;
