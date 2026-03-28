@@ -20,12 +20,21 @@ import katex from 'katex';
 import 'katex/dist/katex.min.css';
 
 export class BulletWidget extends WidgetType {
+  constructor(readonly active: boolean) {
+    super();
+  }
   toDOM() {
+    const content = this.active ? '-' : '•';
     const span = document.createElement('span');
-    span.textContent = '•';
-    span.style.marginRight = '0.25em';
+    span.textContent = content;
+    span.style.marginLeft = '0.8em';
     return span;
   }
+
+  eq(other: BulletWidget) {
+    return this.active === other.active;
+  }
+
   ignoreEvent() {
     return false;
   }
@@ -617,6 +626,7 @@ export class CalloutWidget extends WidgetType {
     container.onclick = e => {
       e.preventDefault();
       e.stopPropagation();
+      if (!view) return;
       const currentPos = view.posAtDOM(container);
       view.dispatch({
         selection: { anchor: currentPos },
@@ -627,6 +637,7 @@ export class CalloutWidget extends WidgetType {
     btn.onclick = e => {
       e.preventDefault();
       e.stopPropagation();
+      if (!view) return;
       const currentPos = view.posAtDOM(container);
       view.dispatch({
         selection: { anchor: currentPos },
@@ -712,7 +723,7 @@ export class CheckboxWidget extends WidgetType {
   }
 
   eq(other: CheckboxWidget) {
-    return other.checked === this.checked && other.from === this.from;
+    return other.checked === this.checked;
   }
 
   toDOM(view: EditorView) {
@@ -769,10 +780,20 @@ export class MathWidget extends WidgetType {
     const renderArea = document.createElement('div');
     renderArea.className = 'relative inline-block pr-[5px] pb-[5px] w-auto! min-w-full text-center';
 
+    const getCurrentPos = () => {
+      try {
+        return view.posAtDOM(mainContainer);
+      } catch {
+        return this.pos;
+      }
+    };
+
     container.onclick = e => {
       e.preventDefault();
       e.stopPropagation();
-      view.dispatch({ selection: { anchor: this.pos }, scrollIntoView: true });
+      view.requestMeasure();
+      const currentPos = getCurrentPos();
+      view.dispatch({ selection: { anchor: currentPos }, scrollIntoView: true, userEvent: 'select' });
       view.focus();
     };
 
@@ -784,9 +805,11 @@ export class MathWidget extends WidgetType {
       e.preventDefault();
       e.stopPropagation();
       view.requestMeasure();
+      const currentPos = getCurrentPos();
       view.dispatch({
-        selection: { anchor: this.pos + 4 },
+        selection: { anchor: currentPos },
         scrollIntoView: true,
+        userEvent: 'select',
       });
       view.focus();
     };
@@ -829,10 +852,20 @@ export class InlineMathWidget extends WidgetType {
     const span = document.createElement('span');
     span.className = 'cm-math-inline cursor-pointer px-1 rounded hover:bg-muted/50 transition-colors';
 
+    const getCurrentPos = () => {
+      try {
+        return view.posAtDOM(span);
+      } catch {
+        return this.pos;
+      }
+    };
+
     span.onclick = e => {
       e.preventDefault();
       e.stopPropagation();
-      view.dispatch({ selection: { anchor: this.pos }, scrollIntoView: true });
+      view.requestMeasure();
+      const currentPos = getCurrentPos();
+      view.dispatch({ selection: { anchor: currentPos }, scrollIntoView: true });
       view.focus();
     };
 

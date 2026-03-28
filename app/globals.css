@@ -326,6 +326,11 @@ body {
     line-height: inherit;
     margin: 0 !important;
     padding: 0 !important;
+
+    /* Add these for 1M+ character performance */
+    content-visibility: auto;
+    contain-intrinsic-size: auto 1.5em; /* Match your inherit line-height roughly */
+    contain: layout style;
   }
 
   .cm-content {

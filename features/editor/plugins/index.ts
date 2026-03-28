@@ -1,8 +1,44 @@
 import { EditorView, Decoration, ViewPlugin, ViewUpdate, DecorationSet } from '@codemirror/view';
-import { StateField, RangeSet, EditorState, StateEffect, RangeSetBuilder, Facet } from '@codemirror/state';
-import { buildDecorations } from '../decorations';
+import {
+  Range as StateRange,
+  StateField,
+  RangeSet,
+  EditorState,
+  StateEffect,
+  RangeSetBuilder,
+  Facet,
+  Transaction,
+  Line,
+  SelectionRange,
+} from '@codemirror/state';
+import {
+  buildDecorations,
+  getBlockquoteDecos,
+  getBoldDecos,
+  getBulletListDecos,
+  getCalloutDecos,
+  getFenceDecos,
+  getFrontmatterDecos,
+  getHeadingDecos,
+  getHighlightDecos,
+  getHRDecos,
+  getImageDecos,
+  getInlineCodeDecos,
+  getInlineMathDecos,
+  getInternalLinkDecos,
+  getItalicDecos,
+  getLinkDecos,
+  getMathBlockDecos,
+  getMermaidDecos,
+  getNumberedListDecos,
+  getStrikethroughDecos,
+  getTableDecos,
+  getTagDecos,
+  getTaskDecos,
+  updateActiveLine,
+  updateChangedLines,
+} from '../decorations';
 import { TablePreviewWidget } from '../widgets';
-
 export const setColumnSelection = StateEffect.define<{ from: number; col: number | null }>();
 export const columnSelectionField = StateField.define<{ from: number; col: number | null } | null>({
   create() {
@@ -68,31 +104,66 @@ export function setupDragTracking(view: EditorView) {
   };
 }
 
-// ------------------------------
-// Main StateField
-// ------------------------------
+// ─── The field ────────────────────────────────────────────────────────────────
 export const markdownLivePreviewField = StateField.define<RangeSet<Decoration>>({
-  create(state: EditorState) {
-    // if (state.field(sourceModeField, false)) {
-    //   return RangeSet.empty;
-    // }
+  create(state) {
+    if (state.field(sourceModeField, false)) return RangeSet.empty;
     return buildDecorations(state);
   },
-  update(decos, tr) {
-    const isDragging = tr.state.field(dragStatusField); // Get local status
-    const rebuildEffect = tr.effects.some(e => e.is(rebuildDecorationsEffect));
-    const docChanged = tr.docChanged || tr.reconfigured || tr.effects.some(e => e.is(toggleSourceMode));
-    const selectionChanged = !tr.startState.selection.eq(tr.state.selection);
 
-    // This is now "Old Style" logic but perfectly isolated to this tab
-    if (docChanged || rebuildEffect || (selectionChanged && !isDragging)) {
+  update(decos, tr) {
+    const isDragging = tr.state.field(dragStatusField);
+    const rebuildEffect = tr.effects.some(e => e.is(rebuildDecorationsEffect));
+    const sourceToggled = tr.effects.some(e => e.is(toggleSourceMode));
+
+    // Always full rebuild
+    if (tr.reconfigured || sourceToggled || rebuildEffect) {
       return buildDecorations(tr.state);
+    }
+
+    // Doc changed — surgical line update
+    if (tr.docChanged) {
+      return updateChangedLines(decos.map(tr.changes), tr);
+    }
+
+    // Cursor/selection moved — swap active line only
+    const selectionChanged = !tr.startState.selection.eq(tr.state.selection);
+    if (selectionChanged && !isDragging) {
+      return updateActiveLine(decos, tr);
     }
 
     return decos.map(tr.changes);
   },
+
   provide: f => EditorView.decorations.from(f),
 });
+// ------------------------------
+// Main StateField
+// ------------------------------
+// export const markdownLivePreviewField = StateField.define<RangeSet<Decoration>>({
+//   create(state: EditorState) {
+//     if (state.field(sourceModeField, false)) {
+//       return RangeSet.empty;
+//     }
+//     return buildDecorations(state);
+//   },
+//   update(decos, tr) {
+//     const isDragging = tr.state.field(dragStatusField); // Get local status
+//     const rebuildEffect = tr.effects.some(e => e.is(rebuildDecorationsEffect));
+//     const docChanged = tr.docChanged || tr.reconfigured || tr.effects.some(e => e.is(toggleSourceMode));
+//     const selectionChanged = !tr.startState.selection.eq(tr.state.selection);
+
+//     // This is now "Old Style" logic but perfectly isolated to this tab
+//     if (docChanged || rebuildEffect || (selectionChanged && !isDragging)) {
+//       return buildDecorations(tr.state);
+//     }
+//     // if (tr.docChanged || tr.selection || tr.reconfigured || tr.effects.some(e => e.is(toggleSourceMode))) {
+//     //   return buildDecorations(tr.state);
+//     // }
+//     return decos.map(tr.changes);
+//   },
+//   provide: f => EditorView.decorations.from(f),
+// });
 
 export const tableSelectionHighlighter = ViewPlugin.fromClass(
   class {

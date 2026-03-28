@@ -15,6 +15,7 @@ mermaid.initialize({
   sequence: { useMaxWidth: false },
   gantt: { useMaxWidth: false },
 });
+
 export class MermaidWidget extends WidgetType {
   constructor(
     readonly code: string,
@@ -31,10 +32,21 @@ export class MermaidWidget extends WidgetType {
     container.className =
       'group border border-transparent hover:border-border transition-colors relative block w-full max-w-full box-border z-10 select-none leading-[0] overflow-x-auto! overflow-y-hidden!';
     container.tabIndex = -1;
+
+    const getCurrentPos = () => {
+      try {
+        return view.posAtDOM(mainContainer);
+      } catch {
+        return this.pos;
+      }
+    };
+
     container.onclick = e => {
       e.preventDefault();
       e.stopPropagation();
-      view.dispatch({ selection: { anchor: this.pos }, scrollIntoView: true });
+      view.requestMeasure();
+      const currentPos = getCurrentPos();
+      view.dispatch({ selection: { anchor: currentPos }, scrollIntoView: true, userEvent: 'select' });
       view.focus();
     };
     const btn = document.createElement('button');
@@ -46,10 +58,17 @@ export class MermaidWidget extends WidgetType {
     btn.onclick = e => {
       e.preventDefault();
       e.stopPropagation();
-      view.requestMeasure();
+
+      const state = view.state;
+      const blockStartLine = state.doc.lineAt(this.pos);
+
+      // Always place cursor on first content line (opening fence + 1)
+      const firstContentLine = state.doc.line(blockStartLine.number + 1);
+
       view.dispatch({
-        selection: { anchor: this.pos + 4 },
+        selection: { anchor: firstContentLine.from },
         scrollIntoView: true,
+        userEvent: 'select',
       });
       view.focus();
     };
