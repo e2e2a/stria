@@ -67,6 +67,7 @@
     "embla-carousel-react": "^8.6.0",
     "framer-motion": "^12.23.24",
     "gsap": "^3.13.0",
+    "idb-keyval": "^6.2.2",
     "input-otp": "^1.4.2",
     "jsonwebtoken": "^9.0.2",
     "lucide": "^0.563.0",

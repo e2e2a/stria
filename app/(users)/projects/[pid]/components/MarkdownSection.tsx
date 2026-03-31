@@ -195,7 +195,7 @@ function MarkdownSection({ node, isDirty }: { node: INode; isDirty: boolean }) {
       markdownLivePreviewField,
       chunkHighlightField,
       chunkTheme,
-      createEditorStatsPlugin(node._id),
+      // createEditorStatsPlugin(node._id),
     ];
   }, [instance, ytext, onDocChange, setActiveNode, node._id, undoManager]);
 

@@ -10,9 +10,11 @@ import {
   Transaction,
   Line,
   SelectionRange,
+  EditorSelection,
 } from '@codemirror/state';
 import {
   buildDecorations,
+  buildLineDecos,
   getBlockquoteDecos,
   getBoldDecos,
   getBulletListDecos,
@@ -35,6 +37,7 @@ import {
   getTableDecos,
   getTagDecos,
   getTaskDecos,
+  makeCtx,
   updateActiveLine,
   updateChangedLines,
 } from '../decorations';
@@ -86,21 +89,31 @@ export function setupDragTracking(view: EditorView) {
     view.dispatch({ effects: setDraggingEffect.of(true) });
   };
 
-  const onMouseUp = () => {
-    // Only dispatch if we were actually dragging
+  // We use a shared "reset" function for all ways a drag can end
+  const onRelease = () => {
     if (view.state.field(dragStatusField)) {
       view.dispatch({
-        effects: [setDraggingEffect.of(false), rebuildDecorationsEffect.of(null)],
+        effects: [setDraggingEffect.of(false)],
       });
     }
   };
 
   view.dom.addEventListener('mousedown', onMouseDown);
-  window.addEventListener('mouseup', onMouseUp);
+
+  // 1. Normal mouse release
+  window.addEventListener('mouseup', onRelease);
+
+  // 2. Browser native drag release (Crucial for bottom-to-top)
+  window.addEventListener('dragend', onRelease);
+
+  // 3. Fallback for when a drop occurs
+  window.addEventListener('drop', onRelease);
 
   return () => {
     view.dom.removeEventListener('mousedown', onMouseDown);
-    window.removeEventListener('mouseup', onMouseUp);
+    window.removeEventListener('mouseup', onRelease);
+    window.removeEventListener('dragend', onRelease);
+    window.removeEventListener('drop', onRelease);
   };
 }
 
@@ -112,27 +125,51 @@ export const markdownLivePreviewField = StateField.define<RangeSet<Decoration>>(
   },
 
   update(decos, tr) {
-    const isDragging = tr.state.field(dragStatusField);
     const rebuildEffect = tr.effects.some(e => e.is(rebuildDecorationsEffect));
     const sourceToggled = tr.effects.some(e => e.is(toggleSourceMode));
+    const isDragging = tr.state.field(dragStatusField);
+    const wasDragging = tr.startState.field(dragStatusField);
+    const dragJustEnded = wasDragging && !isDragging;
 
-    // Always full rebuild
     if (tr.reconfigured || sourceToggled || rebuildEffect) {
+      console.log('a');
       return buildDecorations(tr.state);
     }
 
-    // Doc changed — surgical line update
     if (tr.docChanged) {
+      console.log('b');
       return updateChangedLines(decos.map(tr.changes), tr);
     }
 
-    // Cursor/selection moved — swap active line only
-    const selectionChanged = !tr.startState.selection.eq(tr.state.selection);
-    if (selectionChanged && !isDragging) {
+    if (dragJustEnded) {
+      // Only rebuild the whole doc if the user actually selected a range of text.
+      // This ensures complex markdown blocks (fences/tables) are perfectly drawn.
+      if (!tr.state.selection.main.empty) {
+        console.log('[deco] selection drag ended → full rebuild');
+        return buildDecorations(tr.state);
+      }
+      // If the selection is empty, it's just a click.
+      // We do NOTHING here and let the "selectionChanged" block below
+      // handle it surgically via updateActiveLine.
+    }
+    console.log('isDragging', isDragging);
+    if (isDragging) {
+      if (!tr.state.selection.main.empty) {
+        console.log('qweqweqwe');
+        return decos.map(tr.changes);
+      }
+    }
+
+    const prevSel = tr.startState.selection.main;
+    const nextSel = tr.state.selection.main;
+    const selectionChanged = !prevSel.eq(nextSel);
+
+    if (selectionChanged) {
+      // console.log('running selection', tr.state.selection);
       return updateActiveLine(decos, tr);
     }
 
-    return decos.map(tr.changes);
+    return decos;
   },
 
   provide: f => EditorView.decorations.from(f),
