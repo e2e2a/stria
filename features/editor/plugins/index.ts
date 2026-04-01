@@ -1,47 +1,51 @@
 import { EditorView, Decoration, ViewPlugin, ViewUpdate, DecorationSet } from '@codemirror/view';
-import {
-  Range as StateRange,
-  StateField,
-  RangeSet,
-  EditorState,
-  StateEffect,
-  RangeSetBuilder,
-  Facet,
-  Transaction,
-  Line,
-  SelectionRange,
-  EditorSelection,
-} from '@codemirror/state';
-import {
-  buildDecorations,
-  buildLineDecos,
-  getBlockquoteDecos,
-  getBoldDecos,
-  getBulletListDecos,
-  getCalloutDecos,
-  getFenceDecos,
-  getFrontmatterDecos,
-  getHeadingDecos,
-  getHighlightDecos,
-  getHRDecos,
-  getImageDecos,
-  getInlineCodeDecos,
-  getInlineMathDecos,
-  getInternalLinkDecos,
-  getItalicDecos,
-  getLinkDecos,
-  getMathBlockDecos,
-  getMermaidDecos,
-  getNumberedListDecos,
-  getStrikethroughDecos,
-  getTableDecos,
-  getTagDecos,
-  getTaskDecos,
-  makeCtx,
-  updateActiveLine,
-  updateChangedLines,
-} from '../decorations';
+import { Range as StateRange, StateField, RangeSet, EditorState, StateEffect, RangeSetBuilder, Facet } from '@codemirror/state';
+import { buildDecorations } from '../decorations';
 import { TablePreviewWidget } from '../widgets';
+
+// The Effect: The message sent when scrolling/resizing happens
+export const setViewportLinesEffect = StateEffect.define<{ from: number; to: number }>();
+
+// The Field: The permanent storage in the State for these line numbers
+export const viewportLinesField = StateField.define<{ from: number; to: number }>({
+  create() {
+    return { from: 1, to: 1 };
+  },
+  update(value, tr) {
+    for (const e of tr.effects) {
+      if (e.is(setViewportLinesEffect)) return e.value;
+    }
+    return value;
+  },
+});
+
+export const viewportLinesPlugin = ViewPlugin.fromClass(
+  class {
+    update(update: ViewUpdate) {
+      // Only act if the viewport actually shifted or the doc changed
+      if (update.viewportChanged || update.docChanged) {
+        const state = update.state;
+        const view = update.view;
+
+        // Calculate the lines
+        const fromLine = state.doc.lineAt(view.viewport.from).number;
+        const toLine = state.doc.lineAt(view.viewport.to).number;
+
+        // FIX: Use requestAnimationFrame to defer the dispatch
+        // until the current update cycle is complete.
+        requestAnimationFrame(() => {
+          // Double check the view hasn't been destroyed in the meantime
+          if (view.dom.parentNode) {
+            view.dispatch({
+              effects: setViewportLinesEffect.of({ from: fromLine, to: toLine }),
+            });
+          }
+        });
+      }
+    }
+  }
+);
+
 export const setColumnSelection = StateEffect.define<{ from: number; col: number | null }>();
 export const columnSelectionField = StateField.define<{ from: number; col: number | null } | null>({
   create() {
@@ -117,90 +121,41 @@ export function setupDragTracking(view: EditorView) {
   };
 }
 
-// ─── The field ────────────────────────────────────────────────────────────────
-export const markdownLivePreviewField = StateField.define<RangeSet<Decoration>>({
-  create(state) {
-    if (state.field(sourceModeField, false)) return RangeSet.empty;
-    return buildDecorations(state);
-  },
-
-  update(decos, tr) {
-    const rebuildEffect = tr.effects.some(e => e.is(rebuildDecorationsEffect));
-    const sourceToggled = tr.effects.some(e => e.is(toggleSourceMode));
-    const isDragging = tr.state.field(dragStatusField);
-    const wasDragging = tr.startState.field(dragStatusField);
-    const dragJustEnded = wasDragging && !isDragging;
-
-    if (tr.reconfigured || sourceToggled || rebuildEffect) {
-      console.log('a');
-      return buildDecorations(tr.state);
-    }
-
-    if (tr.docChanged) {
-      console.log('b');
-      return updateChangedLines(decos.map(tr.changes), tr);
-    }
-
-    if (dragJustEnded) {
-      // Only rebuild the whole doc if the user actually selected a range of text.
-      // This ensures complex markdown blocks (fences/tables) are perfectly drawn.
-      if (!tr.state.selection.main.empty) {
-        console.log('[deco] selection drag ended → full rebuild');
-        return buildDecorations(tr.state);
-      }
-      // If the selection is empty, it's just a click.
-      // We do NOTHING here and let the "selectionChanged" block below
-      // handle it surgically via updateActiveLine.
-    }
-    console.log('isDragging', isDragging);
-    if (isDragging) {
-      if (!tr.state.selection.main.empty) {
-        console.log('qweqweqwe');
-        return decos.map(tr.changes);
-      }
-    }
-
-    const prevSel = tr.startState.selection.main;
-    const nextSel = tr.state.selection.main;
-    const selectionChanged = !prevSel.eq(nextSel);
-
-    if (selectionChanged) {
-      // console.log('running selection', tr.state.selection);
-      return updateActiveLine(decos, tr);
-    }
-
-    return decos;
-  },
-
-  provide: f => EditorView.decorations.from(f),
-});
 // ------------------------------
 // Main StateField
 // ------------------------------
-// export const markdownLivePreviewField = StateField.define<RangeSet<Decoration>>({
-//   create(state: EditorState) {
-//     if (state.field(sourceModeField, false)) {
-//       return RangeSet.empty;
-//     }
-//     return buildDecorations(state);
-//   },
-//   update(decos, tr) {
-//     const isDragging = tr.state.field(dragStatusField); // Get local status
-//     const rebuildEffect = tr.effects.some(e => e.is(rebuildDecorationsEffect));
-//     const docChanged = tr.docChanged || tr.reconfigured || tr.effects.some(e => e.is(toggleSourceMode));
-//     const selectionChanged = !tr.startState.selection.eq(tr.state.selection);
+export const markdownLivePreviewField = StateField.define<RangeSet<Decoration>>({
+  create(state: EditorState) {
+    if (state.field(sourceModeField, false)) {
+      return RangeSet.empty;
+    }
+    return state.field(sourceModeField, false) ? RangeSet.empty : buildDecorations(state, 1, 100);
+  },
+  update(decos, tr) {
+    const isDragging = tr.state.field(dragStatusField); // Get local status
+    const rebuildEffect = tr.effects.some(e => e.is(rebuildDecorationsEffect));
+    const docChanged = tr.docChanged || tr.reconfigured || tr.effects.some(e => e.is(toggleSourceMode));
+    const selectionChanged = !tr.startState.selection.eq(tr.state.selection);
+    const viewportChanged = tr.effects.some(e => e.is(setViewportLinesEffect));
+    const wasDragging = tr.startState.field(dragStatusField);
+    const dragJustEnded = wasDragging && !isDragging;
+    const vLines = tr.state.field(viewportLinesField);
 
-//     // This is now "Old Style" logic but perfectly isolated to this tab
-//     if (docChanged || rebuildEffect || (selectionChanged && !isDragging)) {
-//       return buildDecorations(tr.state);
-//     }
-//     // if (tr.docChanged || tr.selection || tr.reconfigured || tr.effects.some(e => e.is(toggleSourceMode))) {
-//     //   return buildDecorations(tr.state);
-//     // }
-//     return decos.map(tr.changes);
-//   },
-//   provide: f => EditorView.decorations.from(f),
-// });
+    if (dragJustEnded) {
+      console.log('[deco] selection drag ended → full rebuild');
+      return buildDecorations(tr.state, vLines.from, vLines.to);
+    }
+
+    if (isDragging) return decos.map(tr.changes);
+
+    if (docChanged || rebuildEffect || viewportChanged || selectionChanged) return buildDecorations(tr.state, vLines.from, vLines.to);
+    // if (tr.docChanged || tr.selection || tr.reconfigured || tr.effects.some(e => e.is(toggleSourceMode))) {
+    //   return buildDecorations(tr.state);
+    // }
+    return decos.map(tr.changes);
+  },
+  provide: f => EditorView.decorations.from(f),
+});
 
 export const tableSelectionHighlighter = ViewPlugin.fromClass(
   class {

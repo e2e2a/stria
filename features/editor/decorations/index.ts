@@ -1,5 +1,5 @@
 import { Decoration } from '@codemirror/view';
-import { Range as StateRange, EditorState, RangeSet, Line, SelectionRange, Transaction } from '@codemirror/state';
+import { Range as StateRange, EditorState, RangeSet } from '@codemirror/state';
 import {
   BulletWidget,
   CalloutWidget,
@@ -14,6 +14,8 @@ import { getTableRange, isValidTable } from '@/lib/client/markdown/markdown-tabl
 import { MermaidWidget } from '../widgets/mermaid-widget';
 import { chunkModeFacet, sourceModeField } from '../plugins';
 import { FrontmatterWidget } from '../widgets/front-matter-widget';
+import { syntaxTree } from '@codemirror/language';
+import { SyntaxNode } from '@lezer/common';
 
 function isRangeSelected(state: EditorState, from: number, to: number): boolean {
   const sel = state.selection.main;
@@ -87,10 +89,8 @@ export function getBoldDecos(state: EditorState, text: string, lineFrom: number,
     // Base bold class
     decos.push(Decoration.mark({ class: 'cm-bold-text' }).range(start, end));
 
-    // Inline "isRangeSelected" logic for maximum speed
     const isSelected = selection.from <= end && selection.to >= start;
 
-    // Obsidian-style logic: Hide if not active line AND not selected
     if (viewMode || (!isLineActive && !isSelected && !sourceMode && !isChunkMode)) {
       decos.push(Decoration.mark({ class: 'cm-syntax-hide' }).range(start, start + 2));
       decos.push(Decoration.mark({ class: 'cm-syntax-hide' }).range(end - 2, end));
@@ -152,19 +152,14 @@ export function getItalicDecos(state: EditorState, text: string, lineFrom: numbe
 }
 
 export function getBulletListDecos(state: EditorState, text: string, lineFrom: number, isLineActive: boolean): StateRange<Decoration>[] {
-  const trimmed = text.trim();
-  if (!trimmed || !['-', '*', '+'].includes(trimmed[0])) return [];
-
   const decos: StateRange<Decoration>[] = [];
   const sourceMode = state.field(sourceModeField, false);
   const viewMode = state.facet(EditorState.readOnly);
   const isChunkMode = state.facet(chunkModeFacet);
-
-  // 2. SPECIFIC TASK CHECK:
-  // We only skip if it's a checkbox: "- [ ]" or "- [x]"
-  if (/^[-*+]\s+\[[ xX]\](\s|$)/.test(trimmed)) return [];
-
   const match = text.match(/^(\s*)([-*+])(\s+)/);
+
+  // if its - [ ] or - [x] return this decoration
+  if (/^\s*- \[( |x|X)\]\s/.test(text)) return decos;
   if (match) {
     const indent = match[1].length;
     const markerStart = lineFrom + indent;
@@ -173,6 +168,7 @@ export function getBulletListDecos(state: EditorState, text: string, lineFrom: n
     const showRaw = isLineActive || isSelected;
     if (viewMode || (!sourceMode && !isChunkMode)) {
       decos.push(Decoration.mark({ class: 'cm-syntax-hide' }).range(markerStart, markerEnd));
+
       decos.push(
         Decoration.widget({
           widget: new BulletWidget(showRaw),
@@ -683,10 +679,71 @@ export function getImageDecos(state: EditorState, text: string, lineFrom: number
   return decos;
 }
 
-export function getMermaidDecos(state: EditorState, activeLineNum: number): StateRange<Decoration>[] {
-  if (!state.doc.toString().includes('```mermaid')) {
-    return [];
+// export function getMermaidDecos(state: EditorState, activeLineNum: number): StateRange<Decoration>[] {
+//   if (!state.doc.toString().includes('```mermaid')) {
+//     return [];
+//   }
+//   const decos: StateRange<Decoration>[] = [];
+//   const doc = state.doc;
+//   const selection = state.selection.main;
+//   const sourceMode = state.field(sourceModeField, false);
+//   const viewMode = state.facet(EditorState.readOnly);
+//   const isChunkMode = state.facet(chunkModeFacet);
+
+//   for (let i = 1; i <= doc.lines; i++) {
+//     const line = doc.line(i);
+//     if (line.text.trim().startsWith('```mermaid')) {
+//       const startLine = i;
+//       let endLine = i;
+//       const content = [];
+
+//       for (let j = i + 1; j <= doc.lines; j++) {
+//         const nextLine = doc.line(j);
+//         if (nextLine.text.trim().startsWith('```')) {
+//           endLine = j;
+//           break;
+//         }
+//         content.push(nextLine.text);
+//       }
+//       const blockFrom = doc.line(startLine).from;
+//       const blockTo = doc.line(endLine).to;
+//       const isBlockActive = activeLineNum >= startLine && activeLineNum <= endLine;
+//       const isSelected = !selection.empty && selection.from < blockTo && selection.to > blockFrom;
+//       if (viewMode || (!isBlockActive && !isSelected && !sourceMode && !isChunkMode)) {
+//         for (let k = startLine; k <= endLine; k++) {
+//           decos.push(
+//             Decoration.line({
+//               attributes: { class: 'cm-syntax-hide' },
+//             }).range(doc.line(k).from)
+//           );
+//         }
+
+//         decos.push(
+//           Decoration.widget({
+//             widget: new MermaidWidget(content.join('\n'), line.from),
+//             side: 1,
+//             block: true,
+//           }).range(doc.line(endLine).to)
+//         );
+//       }
+
+//       i = endLine; // Skip to next section
+//     }
+//   }
+//   return decos;
+// }
+// Changed: Added lineNum as an argument
+export function getMermaidDecos(
+  state: EditorState,
+  lineNum: number,
+  activeLineNum: number
+): { decos: StateRange<Decoration>[]; skipToLine: number } | null {
+  const line = state.doc.line(lineNum);
+
+  if (!line.text.trim().startsWith('```mermaid')) {
+    return null;
   }
+
   const decos: StateRange<Decoration>[] = [];
   const doc = state.doc;
   const selection = state.selection.main;
@@ -694,49 +751,46 @@ export function getMermaidDecos(state: EditorState, activeLineNum: number): Stat
   const viewMode = state.facet(EditorState.readOnly);
   const isChunkMode = state.facet(chunkModeFacet);
 
-  for (let i = 1; i <= doc.lines; i++) {
-    const line = doc.line(i);
-    if (line.text.trim().startsWith('```mermaid')) {
-      const startLine = i;
-      let endLine = i;
-      const content = [];
+  const startLine = lineNum;
+  let endLine = lineNum;
+  const content = [];
 
-      for (let j = i + 1; j <= doc.lines; j++) {
-        const nextLine = doc.line(j);
-        if (nextLine.text.trim().startsWith('```')) {
-          endLine = j;
-          break;
-        }
-        content.push(nextLine.text);
-      }
-      const blockFrom = doc.line(startLine).from;
-      const blockTo = doc.line(endLine).to;
-      const isBlockActive = activeLineNum >= startLine && activeLineNum <= endLine;
-      const isSelected = !selection.empty && selection.from < blockTo && selection.to > blockFrom;
-      if (viewMode || (!isBlockActive && !isSelected && !sourceMode && !isChunkMode)) {
-        for (let k = startLine; k <= endLine; k++) {
-          decos.push(
-            Decoration.line({
-              attributes: { class: 'cm-syntax-hide' },
-            }).range(doc.line(k).from)
-          );
-        }
-
-        decos.push(
-          Decoration.widget({
-            widget: new MermaidWidget(content.join('\n'), line.from),
-            side: 1,
-            block: true,
-          }).range(doc.line(endLine).to)
-        );
-      }
-
-      i = endLine; // Skip to next section
+  for (let j = lineNum + 1; j <= doc.lines; j++) {
+    const nextLine = doc.line(j);
+    if (nextLine.text.trim().startsWith('```')) {
+      endLine = j;
+      break;
     }
+    content.push(nextLine.text);
   }
-  return decos;
-}
 
+  const blockFrom = doc.line(startLine).from;
+  const blockTo = doc.line(endLine).to;
+  const isBlockActive = activeLineNum >= startLine && activeLineNum <= endLine;
+  const isSelected = !selection.empty && selection.from < blockTo && selection.to > blockFrom;
+
+  if (viewMode || (!isBlockActive && !isSelected && !sourceMode && !isChunkMode)) {
+    for (let k = startLine; k <= endLine; k++) {
+      decos.push(
+        Decoration.line({
+          attributes: { class: 'cm-syntax-hide' },
+        }).range(doc.line(k).from)
+      );
+    }
+
+    decos.push(
+      Decoration.widget({
+        widget: new MermaidWidget(content.join('\n'), line.from),
+        side: 1,
+        block: true,
+      }).range(doc.line(endLine).to)
+    );
+
+    return { decos, skipToLine: endLine };
+  }
+
+  return null;
+}
 export function getTagDecos(text: string, lineFrom: number): StateRange<Decoration>[] {
   if (!text.includes('#')) return [];
   const decos: StateRange<Decoration>[] = [];
@@ -840,86 +894,92 @@ export function getInlineMathDecos(state: EditorState, text: string, lineFrom: n
   }
   return decos;
 }
-export function getMathBlockDecos(state: EditorState, activeLineNum: number): StateRange<Decoration>[] {
-  if (!state.doc.toString().includes('$$')) return [];
+
+export function getMathBlockDecos(
+  state: EditorState,
+  lineNum: number,
+  activeLineNum: number
+): { decos: StateRange<Decoration>[]; skipToLine: number } | null {
+  const line = state.doc.line(lineNum);
+  const text = line.text.trim();
+
+  // Only trigger if THIS specific line starts the block
+  if (!text.startsWith('$$')) return null;
+
   const decos: StateRange<Decoration>[] = [];
   const doc = state.doc;
   const sourceMode = state.field(sourceModeField, false);
   const viewMode = state.facet(EditorState.readOnly);
   const isChunkMode = state.facet(chunkModeFacet);
 
-  for (let i = 1; i <= doc.lines; i++) {
-    const line = doc.line(i);
-    const text = line.text.trim();
+  let endLine = -1;
+  let content = '';
 
-    if (text.startsWith('$$')) {
-      const startLine = i;
-      let endLine = -1;
-      let content = '';
+  // --- START YOUR ORIGINAL LOGIC ---
+  const secondIndex = line.text.indexOf('$$', 2);
+  if (secondIndex !== -1) {
+    endLine = lineNum;
+    content = line.text.slice(2, secondIndex).trim();
+  } else {
+    const linesCollected = [];
+    const firstLineTrailing = line.text.slice(2).trim();
+    if (firstLineTrailing) linesCollected.push(firstLineTrailing);
 
-      const secondIndex = line.text.indexOf('$$', 2);
-      if (secondIndex !== -1) {
-        endLine = i;
-        content = line.text.slice(2, secondIndex).trim();
-      } else {
-        const linesCollected = [];
-        const firstLineTrailing = line.text.slice(2).trim();
-        if (firstLineTrailing) linesCollected.push(firstLineTrailing);
-
-        for (let j = i + 1; j <= doc.lines; j++) {
-          const nextLine = doc.line(j);
-          if (nextLine.text.trim().startsWith('$$')) {
-            endLine = j;
-            const lastLineLeading = nextLine.text.trim().replace('$$', '').trim();
-            if (lastLineLeading) linesCollected.push(lastLineLeading);
-            break;
-          }
-          linesCollected.push(nextLine.text);
-        }
-        content = linesCollected.join('\n');
+    for (let j = lineNum + 1; j <= doc.lines; j++) {
+      const nextLine = doc.line(j);
+      if (nextLine.text.trim().startsWith('$$')) {
+        endLine = j;
+        const lastLineLeading = nextLine.text.trim().replace('$$', '').trim();
+        if (lastLineLeading) linesCollected.push(lastLineLeading);
+        break;
       }
+      linesCollected.push(nextLine.text);
+    }
+    content = linesCollected.join('\n');
+  }
 
-      if (endLine !== -1) {
-        const blockFrom = doc.line(startLine).from;
-        const blockTo = doc.line(endLine).to;
-        const isBlockActive = activeLineNum >= startLine && activeLineNum <= endLine;
-        const isSelected = isRangeSelected(state, blockFrom, blockTo);
+  if (endLine !== -1) {
+    const blockFrom = doc.line(lineNum).from;
+    const blockTo = doc.line(endLine).to;
+    const isBlockActive = activeLineNum >= lineNum && activeLineNum <= endLine;
+    const isSelected = isRangeSelected(state, blockFrom, blockTo);
 
-        if (viewMode || (!isBlockActive && !isSelected && !sourceMode && !isChunkMode)) {
-          for (let k = startLine; k <= endLine; k++) {
-            decos.push(Decoration.line({ attributes: { class: 'cm-hidden-line' } }).range(doc.line(k).from));
+    if (viewMode || (!isBlockActive && !isSelected && !sourceMode && !isChunkMode)) {
+      for (let k = lineNum; k <= endLine; k++) {
+        decos.push(Decoration.line({ attributes: { class: 'cm-hidden-line' } }).range(doc.line(k).from));
+      }
+      decos.push(
+        Decoration.widget({
+          widget: new MathWidget(content, blockFrom),
+          side: 1,
+          block: true,
+        }).range(blockTo)
+      );
+    } else {
+      // Syntax Highlighting Mode
+      for (let k = lineNum; k <= endLine; k++) {
+        const l = doc.line(k);
+        if (l.text.includes('$$')) {
+          const idx = l.text.indexOf('$$');
+          decos.push(Decoration.mark({ class: 'cm-math-marker' }).range(l.from + idx, l.from + idx + 2));
+          // Single-line block logic
+          if (k === lineNum && endLine === lineNum) {
+            const innerText = l.text.slice(idx + 2, l.text.lastIndexOf('$$'));
+            decos.push(...getMathSyntaxHighlighting(innerText, l.from + idx + 2));
+            const lastIdx = l.text.lastIndexOf('$$');
+            decos.push(Decoration.mark({ class: 'cm-math-marker' }).range(l.from + lastIdx, l.from + lastIdx + 2));
           }
-          decos.push(
-            Decoration.widget({
-              widget: new MathWidget(content, blockFrom),
-              side: 1,
-              block: true,
-            }).range(blockTo)
-          );
         } else {
-          for (let k = startLine; k <= endLine; k++) {
-            const l = doc.line(k);
-            if (l.text.includes('$$')) {
-              const idx = l.text.indexOf('$$');
-              decos.push(Decoration.mark({ class: 'cm-math-marker' }).range(l.from + idx, l.from + idx + 2));
-              if (k === startLine && endLine === startLine) {
-                const innerText = l.text.slice(idx + 2, l.text.lastIndexOf('$$'));
-                decos.push(...getMathSyntaxHighlighting(innerText, l.from + idx + 2));
-                const lastIdx = l.text.lastIndexOf('$$');
-                decos.push(Decoration.mark({ class: 'cm-math-marker' }).range(l.from + lastIdx, l.from + lastIdx + 2));
-              }
-            } else {
-              decos.push(...getMathSyntaxHighlighting(l.text, l.from));
-            }
-          }
+          decos.push(...getMathSyntaxHighlighting(l.text, l.from));
         }
-        i = endLine;
       }
     }
-  }
-  return decos;
-}
+    // --- END ORIGINAL LOGIC ---
 
+    return { decos, skipToLine: endLine };
+  }
+  return null;
+}
 export function getInternalLinkDecos(state: EditorState, text: string, lineFrom: number, isLineActive: boolean): StateRange<Decoration>[] {
   if (!text.includes('[[')) return [];
   const decos: StateRange<Decoration>[] = [];
@@ -1064,244 +1124,171 @@ export function getFrontmatterDecos(state: EditorState, activeLineNum: number): 
   return { decos: [], skipToLine: endLineNum };
 }
 
-export interface LineCtx {
-  state: EditorState;
-  sourceMode: boolean;
-  chunkMode: boolean;
-  viewMode: boolean;
-  selection: SelectionRange;
-}
+// export function buildDecorations(state: EditorState, from: number, to: number): RangeSet<Decoration> {
+//   const allDecos: StateRange<Decoration>[] = [];
+//   const activeLineNum = state.doc.lineAt(state.selection.main.head).number;
 
-export function makeCtx(state: EditorState): LineCtx {
-  return {
-    state,
-    sourceMode: state.field(sourceModeField, false) ?? false,
-    chunkMode: state.facet(chunkModeFacet),
-    viewMode: state.facet(EditorState.readOnly),
-    selection: state.selection.main,
-  };
-}
+//   // 1. CONTEXT LOOK-BACK (Scans up to find if we're inside a code block)
+//   let startLine = from;
+//   const LOOKBACK_LIMIT = 500;
+//   for (let j = from; j > Math.max(1, from - LOOKBACK_LIMIT); j--) {
+//     const text = state.doc.line(j).text.trim();
+//     if (text.startsWith('```') || text.startsWith('$$')) {
+//       startLine = j;
+//       break;
+//     }
+//   }
 
-export function buildLineDecos(state: EditorState, line: Line, isActive: boolean, ctx?: LineCtx): StateRange<Decoration>[] {
-  const c = ctx ?? makeCtx(state);
-  const { text, from, to } = line;
+//   const BUFFER = 10;
+//   const endLine = Math.min(state.doc.lines, to + BUFFER);
+//   const skipUntil = -1;
 
-  return [
-    ...getHeadingDecos(c.state, text, from, isActive),
-    ...getInternalLinkDecos(c.state, text, from, isActive),
-    ...getBoldDecos(c.state, text, from, isActive),
-    ...getInlineCodeDecos(c.state, text, from, isActive),
-    ...getHRDecos(c.state, text, from, to, isActive),
-    ...getItalicDecos(c.state, text, from, isActive),
-    ...getTaskDecos(c.state, text, from),
-    ...getNumberedListDecos(text, from),
-    ...getBulletListDecos(c.state, text, from, isActive),
-    ...getStrikethroughDecos(c.state, text, from, isActive),
-    ...getHighlightDecos(c.state, text, from, isActive),
-    ...getInlineMathDecos(c.state, text, from, isActive),
-    ...getLinkDecos(c.state, text, from, isActive),
-    ...getBlockquoteDecos(c.state, text, from, isActive),
-    ...getTagDecos(text, from),
-    ...getImageDecos(c.state, text, from, to, isActive),
-  ];
-}
+//   // 2. MAIN PROCESSING LOOP
+//   for (let i = startLine; i <= endLine; i++) {
+//     if (i <= skipUntil) continue;
 
-export function buildDecorations(state: EditorState): RangeSet<Decoration> {
-  const decos: StateRange<Decoration>[] = [];
+//     const line = state.doc.line(i);
+//     const text = line.text;
+//     const isActive = i === activeLineNum;
+//     const lineDecos: StateRange<Decoration>[] = [];
+//     let skipToLine = i;
+
+//     // --- A. BLOCK LEVEL (Fences, Mermaid, Tables, Callouts) ---
+//     const fence = getFenceDecos(state, i, activeLineNum);
+//     const mermaid = !fence ? getMermaidDecos(state, i, activeLineNum) : null;
+//     const table = !fence && !mermaid ? getTableDecos(state, i) : null;
+//     const mathBlock = !fence && !mermaid ? getMathBlockDecos(state, i, activeLineNum) : null;
+//     const callout = !fence && !mermaid && !table ? getCalloutDecos(state, i, activeLineNum) : null;
+
+//     if (fence || mermaid || table || callout || mathBlock) {
+//       const block = fence || mermaid || table || callout || mathBlock;
+//       // Only add to result if it overlaps the actual visible area
+//       if (block!.skipToLine >= from) {
+//         lineDecos.push(...block!.decos);
+//       }
+//       skipToLine = block!.skipToLine;
+//     } else if (i >= from - BUFFER) {
+//       if (text.length > 0) {
+//         lineDecos.push(...getHeadingDecos(state, text, line.from, isActive));
+//         lineDecos.push(...getInternalLinkDecos(state, text, line.from, isActive));
+//         lineDecos.push(...getLinkDecos(state, text, line.from, isActive));
+//         lineDecos.push(...getImageDecos(state, text, line.from, line.to, isActive));
+//         lineDecos.push(...getBoldDecos(state, text, line.from, isActive));
+//         lineDecos.push(...getItalicDecos(state, text, line.from, isActive));
+//         lineDecos.push(...getBulletListDecos(state, text, line.from, isActive));
+//         lineDecos.push(...getInlineCodeDecos(state, text, line.from, isActive));
+//         lineDecos.push(...getStrikethroughDecos(state, text, line.from, isActive));
+//         lineDecos.push(...getHighlightDecos(state, text, line.from, isActive));
+//         lineDecos.push(...getInlineMathDecos(state, text, line.from, isActive));
+//         lineDecos.push(...getBlockquoteDecos(state, text, line.from, isActive));
+//         lineDecos.push(...getTaskDecos(state, text, line.from));
+//         lineDecos.push(...getHRDecos(state, text, line.from, line.to, isActive));
+//       }
+//     }
+
+//     allDecos.push(...lineDecos);
+//     i = skipToLine;
+//   }
+
+//   return RangeSet.of(
+//     allDecos.sort((a, b) => a.from - b.from),
+//     true
+//   );
+// }
+
+export function buildDecorations(state: EditorState, from: number, to: number): RangeSet<Decoration> {
+  const allDecos: StateRange<Decoration>[] = [];
   const activeLineNum = state.doc.lineAt(state.selection.main.head).number;
-  const ctx = makeCtx(state);
 
-  // Block-level decorations (multi-line, full-doc scan)
-  const frontmatter = getFrontmatterDecos(state, activeLineNum);
+  // START REPLACEMENT
+  // We ask CodeMirror's AST if our current 'from' position is inside a FencedCode block.
+  let logicStart = from;
+  const pos = state.doc.line(from).from;
+  const tree = syntaxTree(state);
+  let node: SyntaxNode | null = tree.resolveInner(pos, -1);
+
+  while (node) {
+    // "FencedCode" is the official Lezer AST name for ``` blocks.
+    if (node.name === 'FencedCode') {
+      logicStart = state.doc.lineAt(node.from).number;
+      break;
+    }
+    node = node.parent;
+  }
+
+  // Fallback ONLY for $$ Math blocks (if Lezer doesn't parse them natively)
+  if (logicStart === from) {
+    for (let j = from; j >= Math.max(1, from - 200); j--) {
+      if (state.doc.line(j).text.trim().startsWith('$$')) {
+        logicStart = j;
+        break;
+      }
+    }
+  }
+
+  const BUFFER = 10;
+  const endLine = Math.min(state.doc.lines, to + BUFFER);
   let skipUntil = -1;
+
+  const frontmatter = getFrontmatterDecos(state, activeLineNum);
   if (frontmatter) {
-    decos.push(...frontmatter.decos);
+    allDecos.push(...frontmatter.decos);
     skipUntil = frontmatter.skipToLine;
   }
-  decos.push(...getMermaidDecos(state, activeLineNum));
-  // decos.push(...getFenceDecos(state, activeLineNum));
-  decos.push(...getMathBlockDecos(state, activeLineNum));
 
-  // Per-line decorations
-  for (let lineNum = 1; lineNum <= state.doc.lines; lineNum++) {
-    if (lineNum <= skipUntil) continue;
+  // MAIN PROCESSING LOOP (Proceeds normally, but guaranteed correct starting point)
+  for (let i = logicStart; i <= endLine; i++) {
+    if (i <= skipUntil) continue;
 
-    // Multi-line blocks — must be checked before single-line
-    const tableResult = getTableDecos(state, lineNum);
-    if (tableResult) {
-      decos.push(...tableResult.decos);
-      lineNum = tableResult.skipToLine;
-      continue;
+    const line = state.doc.line(i);
+    const text = line.text;
+
+    if (text.trim() === '') continue;
+
+    const isActive = i === activeLineNum;
+    const lineDecos: StateRange<Decoration>[] = [];
+    let skipToLine = i;
+
+    // BLOCK LEVEL
+    const mermaid = getMermaidDecos(state, i, activeLineNum);
+    const fence = !mermaid ? getFenceDecos(state, i, activeLineNum) : null;
+    const table = !fence && !mermaid ? getTableDecos(state, i) : null;
+    const mathBlock = !fence && !mermaid ? getMathBlockDecos(state, i, activeLineNum) : null;
+    const callout = !fence && !mermaid && !table ? getCalloutDecos(state, i, activeLineNum) : null;
+
+    if (fence || mermaid || table || callout || mathBlock) {
+      const block = mermaid || fence || table || callout || mathBlock;
+      // Only push if it overlaps the viewport
+      if (block!.skipToLine >= from) {
+        lineDecos.push(...block!.decos);
+      }
+      skipToLine = block!.skipToLine;
+    } else if (i >= from - BUFFER) {
+      // INLINE LEVEL
+      if (text.length > 0) {
+        lineDecos.push(...getHeadingDecos(state, text, line.from, isActive));
+        lineDecos.push(...getInternalLinkDecos(state, text, line.from, isActive));
+        lineDecos.push(...getLinkDecos(state, text, line.from, isActive));
+        lineDecos.push(...getImageDecos(state, text, line.from, line.to, isActive));
+        lineDecos.push(...getBoldDecos(state, text, line.from, isActive));
+        lineDecos.push(...getItalicDecos(state, text, line.from, isActive));
+        lineDecos.push(...getBulletListDecos(state, text, line.from, isActive));
+        lineDecos.push(...getInlineCodeDecos(state, text, line.from, isActive));
+        lineDecos.push(...getStrikethroughDecos(state, text, line.from, isActive));
+        lineDecos.push(...getHighlightDecos(state, text, line.from, isActive));
+        lineDecos.push(...getInlineMathDecos(state, text, line.from, isActive));
+        lineDecos.push(...getBlockquoteDecos(state, text, line.from, isActive));
+        lineDecos.push(...getTaskDecos(state, text, line.from));
+        lineDecos.push(...getHRDecos(state, text, line.from, line.to, isActive));
+      }
     }
 
-    const fenceResult = getFenceDecos(state, lineNum, activeLineNum);
-    if (fenceResult) {
-      decos.push(...fenceResult.decos);
-      lineNum = fenceResult.skipToLine;
-      continue;
-    }
-
-    const calloutResult = getCalloutDecos(state, lineNum, activeLineNum);
-    if (calloutResult) {
-      decos.push(...calloutResult.decos);
-      lineNum = calloutResult.skipToLine;
-      continue;
-    }
-
-    // Single-line decorations
-    const line = state.doc.line(lineNum);
-    decos.push(...buildLineDecos(state, line, lineNum === activeLineNum, ctx));
+    allDecos.push(...lineDecos);
+    i = skipToLine;
   }
 
   return RangeSet.of(
-    decos.sort((a, b) => a.from - b.from),
+    allDecos.sort((a, b) => a.from - b.from),
     true
   );
-}
-function isInsideFence(state: EditorState, lineNum: number): boolean {
-  const line = state.doc.line(lineNum);
-  const text = line.text.trim();
-
-  // If the current line is a marker, it counts as "block"
-  if (text.startsWith('```')) return true;
-
-  // Scan upwards to find the opening fence
-  // We cap this at 100 lines to keep it instant
-  for (let i = lineNum - 1; i >= Math.max(1, lineNum - 100); i--) {
-    const prevText = state.doc.line(i).text.trim();
-    if (prevText.startsWith('```')) {
-      // If we found a ``` and it's NOT a self-contained inline code
-      // then we are inside a block.
-      return true;
-    }
-  }
-  return false;
-}
-
-const isBlockLine = (state: EditorState, lineNum: number, activeLineNum: number) => {
-  const line = state.doc.line(lineNum);
-  const text = line.text;
-
-  // 1. Direct match for block markers
-  if (text.startsWith('```') || text.trim().startsWith('$$')) return true;
-
-  // 2. Complex block detection (Callouts / Tables)
-  if (getCalloutDecos(state, lineNum, activeLineNum)) return true;
-  if (getTableDecos(state, lineNum)) return true;
-
-  // 3. Context detection (Are we inside a code block?)
-  if (isInsideFence(state, lineNum)) return true;
-
-  return false;
-};
-export function updateChangedLines(decos: RangeSet<Decoration>, tr: Transaction): RangeSet<Decoration> {
-  const state = tr.state;
-  const activeLineNum = state.doc.lineAt(state.selection.main.head).number;
-  const ctx = makeCtx(state);
-  const toAdd: StateRange<Decoration>[] = [];
-  const affectedRanges: { from: number; to: number }[] = [];
-  let needsFullRebuild = false;
-
-  // Iterate over changed ranges
-  tr.changes.iterChangedRanges((_fromA, _toA, fromB, toB) => {
-    if (needsFullRebuild) return;
-
-    const startLine = state.doc.lineAt(fromB).number;
-    const endLine = state.doc.lineAt(toB).number;
-    for (let lineNum = startLine; lineNum <= endLine; lineNum++) {
-      if (isBlockLine(state, lineNum, activeLineNum)) {
-        // Any block-level change triggers a full rebuild
-        needsFullRebuild = true;
-        return;
-      }
-
-      const line = state.doc.line(lineNum);
-      affectedRanges.push({ from: line.from, to: line.to });
-      toAdd.push(...buildLineDecos(state, line, lineNum === activeLineNum, ctx));
-    }
-  });
-
-  if (needsFullRebuild) {
-    return buildDecorations(state);
-  }
-
-  // Only update affected lines
-  return decos.update({
-    filter: (from, to) => !affectedRanges.some(r => from >= r.from && to <= r.to),
-    add: toAdd,
-    sort: true,
-  });
-}
-
-export function updateActiveLine(decos: RangeSet<Decoration>, tr: Transaction): RangeSet<Decoration> {
-  const state = tr.state;
-  const startState = tr.startState;
-
-  const prevSel = startState.selection.main;
-  const nextSel = state.selection.main;
-
-  const prevStartLine = startState.doc.lineAt(prevSel.from).number;
-  const prevEndLine = startState.doc.lineAt(prevSel.to).number;
-  const nextStartLine = state.doc.lineAt(nextSel.from).number;
-  const nextEndLine = state.doc.lineAt(nextSel.to).number;
-
-  if (prevSel.eq(nextSel)) {
-    console.log('  [skip] selections are identical');
-    return decos;
-  }
-
-  // Block check
-  const prevIsBlock = isBlockLine(startState, prevStartLine, prevStartLine) || isBlockLine(startState, prevEndLine, prevEndLine);
-  const nextIsBlock = isBlockLine(state, nextStartLine, nextStartLine) || isBlockLine(state, nextEndLine, nextEndLine);
-  console.log(' d');
-  // console.log('  prevIsBlock:', prevIsBlock, '| nextIsBlock:', nextIsBlock);
-
-  if (prevIsBlock || nextIsBlock) {
-    console.log(' e');
-    return buildDecorations(state);
-  }
-
-  // Detect ctrl+a → collapse (previous selection spanned whole doc)
-  const prevWasFullDoc = !prevSel.empty && prevStartLine === 1 && prevEndLine === startState.doc.lines;
-
-  console.log('  prevWasFullDoc:', prevWasFullDoc, '| nextEmpty:', nextSel.empty);
-
-  if (prevWasFullDoc && nextSel.empty) {
-    console.log('  [full rebuild] ctrl+a → click collapse');
-    return buildDecorations(state);
-  }
-
-  // Refresh zone = union of prev and next selection line ranges
-  const refreshStart = Math.min(prevStartLine, nextStartLine);
-  const refreshEnd = Math.max(prevEndLine, nextEndLine);
-
-  console.log('  refresh zone: lines', refreshStart, '→', refreshEnd);
-
-  const toAdd: StateRange<Decoration>[] = [];
-  const affectedRanges: { from: number; to: number }[] = [];
-  const ctx = makeCtx(state);
-
-  for (let i = refreshStart; i <= refreshEnd; i++) {
-    const line = state.doc.line(i);
-    const isActive = i >= nextStartLine && i <= nextEndLine;
-
-    // Per-line debug: log every line that has a non-trivial selection interaction
-    if (!nextSel.empty || !prevSel.empty) {
-      const isSelected = isRangeSelected(state, line.from, line.to);
-      console.log(
-        `  line ${i}: isActive=${isActive} isSelected=${isSelected}`,
-        `from=${line.from} to=${line.to}`,
-        `selFrom=${nextSel.from} selTo=${nextSel.to}`
-      );
-    }
-
-    affectedRanges.push({ from: line.from, to: line.to });
-    toAdd.push(...buildLineDecos(state, line, isActive, ctx));
-  }
-
-  return decos.update({
-    filter: (from, to) => !affectedRanges.some(r => from >= r.from && to <= r.to),
-    add: toAdd,
-    sort: true,
-  });
 }

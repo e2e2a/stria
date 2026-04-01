@@ -39,7 +39,6 @@ export class BulletWidget extends WidgetType {
     return false;
   }
 }
-
 export class TablePreviewWidget extends WidgetType {
   public isFreshInsert = true;
   public selectedColumn: number | null = null;

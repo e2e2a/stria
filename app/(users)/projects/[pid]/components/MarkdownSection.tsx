@@ -16,6 +16,8 @@ import {
   setupDragTracking,
   sourceModeField,
   tableSelectionHighlighter,
+  viewportLinesField,
+  viewportLinesPlugin,
 } from '@/features/editor/plugins';
 import { languages } from '@codemirror/language-data';
 import {
@@ -195,6 +197,9 @@ function MarkdownSection({ node, isDirty }: { node: INode; isDirty: boolean }) {
       markdownLivePreviewField,
       chunkHighlightField,
       chunkTheme,
+      viewportLinesField,
+      viewportLinesPlugin,
+
       // createEditorStatsPlugin(node._id),
     ];
   }, [instance, ytext, onDocChange, setActiveNode, node._id, undoManager]);
@@ -309,11 +314,6 @@ function MarkdownSection({ node, isDirty }: { node: INode; isDirty: boolean }) {
                 // value={instance?.ydoc.getText('codemirror').toString() ?? ''}
                 onCreateEditor={view => {
                   editorViewRef.current = view;
-
-                  // Initial stats push without triggering React
-                  // const txt = view.state.doc.toString();
-                  // const wordEl = document.getElementById('cm-word-count');
-                  // if (wordEl) wordEl.textContent = (txt.trim() ? txt.trim().split(/\s+/).length : 0).toString();
 
                   setTimeout(() => {
                     setupDragTracking(view);
