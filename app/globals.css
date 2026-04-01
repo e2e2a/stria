@@ -336,7 +336,7 @@ body {
   .cm-content {
     height: auto !important;
     line-height: 1.25rem;
-    counter-reset: md-numbered-list;
+    counter-reset: md-numbered-list !important;
   }
 
   .cm-editor {
@@ -407,14 +407,8 @@ body {
 
   .cm-list-number {
     display: inline-block;
-    font-size: 0; /* Hides the typed "2." */
-  }
-
-  .cm-list-number::before {
-    font-size: 1rem; /* Brings back the visual number */
-    content: counter(md-numbered-list) '. ';
-    counter-increment: md-numbered-list;
-    @apply text-muted-foreground pl-2;
+    font-size: 1rem; /* Hides the typed "2." */
+    @apply text-muted-foreground pl-5;
   }
 
   /** Start Table preview **/
@@ -760,16 +754,6 @@ body {
     pointer-events: none;
   }
 
-  .cm-task-inner {
-    color: var(--primary);
-    font-family: monospace;
-    font-weight: bold;
-  }
-
-  .cm-task-inner::selection {
-    color: var(--foreground);
-  }
-
   .cm-link-text {
     color: var(--primary);
     text-decoration: underline;
@@ -1007,6 +991,10 @@ body {
 
   .cm-hashtag {
     @apply rounded-full bg-primary/30 cursor-pointer border border-primary text-primary-foreground/90 px-1.5;
+  }
+
+  .cm-task {
+    @apply pl-3!;
   }
 
   .cm-task-completed {

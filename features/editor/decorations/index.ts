@@ -17,6 +17,27 @@ import { FrontmatterWidget } from '../widgets/front-matter-widget';
 import { syntaxTree } from '@codemirror/language';
 import { SyntaxNode } from '@lezer/common';
 
+// REGEX
+const BOLD_ITALIC_REGEX = /(?<![\*_])(\*\*\*|___)(.+?)\1(?![\*_])/g;
+const BOLD_REGEX = /(\*\*|__)(.*?)\1/g;
+const HEADING_REGEX = /^(#{1,6})\s/;
+const CODE_REGEX = /`([^`]+)`/g;
+const ITALIC_REGEX = /(^|[^*_])([*_])([^*_]+)\2/g;
+const BULLET_LIST_REGEX = /^(\s*)([-*+])(\s+)/;
+const NUMBER_LIST_REGEX = /^(\d+\.\s+)/;
+const TABLE_SEPARATOR_REGEX = /^[\s|:-]+$/;
+const BLOCKQOUTE_REGEX = /^(\s{0,3})(>+)\s?/;
+const CALLOUT_REGEX = /^(\s{0,3})>\s?\[!(\w+)\]/;
+const HR_REGEX = /^(\s{0,3})([-*_])(\s*\2){2,}\s*$/;
+const TASK_REGEX = /^(\s*)-\s\[([ xX])\](\s)/;
+const LINK_START_REGEX = /\[([^\]]+)\]\(/g;
+const IMG_REGEX = /!\[([^\]]*)\]\(([^)]+)\)/g;
+const TAG_REGEX = /(^|\s)#([a-zA-Z][\w-]+)/g;
+const STRIKE_REGEX = /~~(.*?)~~/g;
+const HIGHLIGHT_REGEX = /==(.*?)==/g;
+const MATH_INLINE_REGEX = /\$(?:`([^`]+)`|([^$]+))\$/g;
+const WIKI_REGEX = /\[\[([^|\]]+)(?:\|([^\]]+))?\]\]/g;
+
 function isRangeSelected(state: EditorState, from: number, to: number): boolean {
   const sel = state.selection.main;
   if (sel.empty) {
@@ -47,7 +68,7 @@ export function getMathSyntaxHighlighting(text: string, startPos: number): State
 }
 
 export function getHeadingDecos(state: EditorState, text: string, lineFrom: number, isLineActive: boolean): StateRange<Decoration>[] {
-  const match = text.match(/^(#{1,6})\s/);
+  const match = text.match(HEADING_REGEX);
   if (!match) return [];
   const decos: StateRange<Decoration>[] = [];
   const sourceMode = state.field(sourceModeField, false);
@@ -66,11 +87,8 @@ export function getHeadingDecos(state: EditorState, text: string, lineFrom: numb
   return decos;
 }
 
-// Move Regex outside so it's not re-compiled thousands of times
-const BOLD_REGEX = /\*\*(.*?)\*\*/g;
-
 export function getBoldDecos(state: EditorState, text: string, lineFrom: number, isLineActive: boolean): StateRange<Decoration>[] {
-  if (!text.includes('**')) return [];
+  if (!text.includes('**') && !text.includes('__')) return [];
   const decos: StateRange<Decoration>[] = [];
   const sourceMode = state.field(sourceModeField, false);
   const isChunkMode = state.facet(chunkModeFacet);
@@ -98,16 +116,46 @@ export function getBoldDecos(state: EditorState, text: string, lineFrom: number,
   }
   return decos;
 }
+
+export function getBoldItalicDecos(state: EditorState, text: string, lineFrom: number, isLineActive: boolean): StateRange<Decoration>[] {
+  if (!text.includes('***') && !text.includes('___')) return [];
+
+  const decos: StateRange<Decoration>[] = [];
+  const sourceMode = state.field(sourceModeField, false);
+  const isChunkMode = state.facet(chunkModeFacet);
+  const viewMode = state.facet(EditorState.readOnly);
+  const selection = state.selection.main;
+
+  BOLD_ITALIC_REGEX.lastIndex = 0;
+  let match;
+
+  while ((match = BOLD_ITALIC_REGEX.exec(text)) !== null) {
+    const start = lineFrom + match.index;
+    const end = start + match[0].length;
+
+    // Apply both classes for Bold and Italic
+    decos.push(Decoration.mark({ class: 'cm-bold-text cm-italic-text' }).range(start, end));
+
+    const isSelected = selection.from <= end && selection.to >= start;
+
+    if (viewMode || (!isLineActive && !isSelected && !sourceMode && !isChunkMode)) {
+      // Hide 3 characters for *** or ___
+      decos.push(Decoration.mark({ class: 'cm-syntax-hide' }).range(start, start + 3));
+      decos.push(Decoration.mark({ class: 'cm-syntax-hide' }).range(end - 3, end));
+    }
+  }
+  return decos;
+}
+
 export function getInlineCodeDecos(state: EditorState, text: string, lineFrom: number, isLineActive: boolean): StateRange<Decoration>[] {
   if (text.indexOf('`') === text.lastIndexOf('`')) return [];
   const decos: StateRange<Decoration>[] = [];
-  const codeRegex = /`([^`]+)`/g;
   const sourceMode = state.field(sourceModeField, false);
   const viewMode = state.facet(EditorState.readOnly);
   const isChunkMode = state.facet(chunkModeFacet);
   let match;
 
-  while ((match = codeRegex.exec(text)) !== null) {
+  while ((match = CODE_REGEX.exec(text)) !== null) {
     const start = lineFrom + match.index;
     const end = start + match[0].length;
     const contentStart = start + 1;
@@ -126,13 +174,12 @@ export function getInlineCodeDecos(state: EditorState, text: string, lineFrom: n
 export function getItalicDecos(state: EditorState, text: string, lineFrom: number, isLineActive: boolean): StateRange<Decoration>[] {
   if (!text.includes('*') && !text.includes('_')) return [];
   const decos: StateRange<Decoration>[] = [];
-  const italicRegex = /(^|[^*_])([*_])([^*_]+)\2/g;
   const sourceMode = state.field(sourceModeField, false);
   const viewMode = state.facet(EditorState.readOnly);
   const isChunkMode = state.facet(chunkModeFacet);
   let match;
 
-  while ((match = italicRegex.exec(text)) !== null) {
+  while ((match = ITALIC_REGEX.exec(text)) !== null) {
     const start = lineFrom + match.index + match[1].length;
     const end = start + match[0].length - match[1].length;
     decos.push(
@@ -156,10 +203,9 @@ export function getBulletListDecos(state: EditorState, text: string, lineFrom: n
   const sourceMode = state.field(sourceModeField, false);
   const viewMode = state.facet(EditorState.readOnly);
   const isChunkMode = state.facet(chunkModeFacet);
-  const match = text.match(/^(\s*)([-*+])(\s+)/);
+  const match = text.match(BULLET_LIST_REGEX);
+  if (TASK_REGEX.test(text)) return decos; // exit if its a TASK DECORATION
 
-  // if its - [ ] or - [x] return this decoration
-  if (/^\s*- \[( |x|X)\]\s/.test(text)) return decos;
   if (match) {
     const indent = match[1].length;
     const markerStart = lineFrom + indent;
@@ -181,12 +227,13 @@ export function getBulletListDecos(state: EditorState, text: string, lineFrom: n
   return decos;
 }
 export function getNumberedListDecos(text: string, lineFrom: number): StateRange<Decoration>[] {
-  if (!text || text[0] < '0' || text[0] > '9') return [];
+  // if (!text || text[0] < '0' || text[0] > '9') return [];
   const decos: StateRange<Decoration>[] = [];
-  const match = text.match(/^(\d+\.\s+)/);
+  const match = text.match(NUMBER_LIST_REGEX);
 
   if (match) {
     const prefixLength = match[0].length;
+
     decos.push(
       Decoration.mark({
         class: 'cm-list-number',
@@ -202,7 +249,6 @@ export function getFenceDecos(state: EditorState, lineNum: number, activeLineNum
   const text = line.text;
   const trimmedText = text.trim();
 
-  // If it doesn't start a fence, return null so the loop continues
   if (!trimmedText.startsWith('```')) return null;
 
   const decos: StateRange<Decoration>[] = [];
@@ -210,8 +256,6 @@ export function getFenceDecos(state: EditorState, lineNum: number, activeLineNum
   const viewMode = state.facet(EditorState.readOnly);
   const isChunkMode = state.facet(chunkModeFacet);
 
-  // --- 1. HANDLE INLINE TRIPLE BACKTICKS (```code```) ---
-  // If the line has both opening and closing on the same line
   const firstMatch = text.indexOf('```');
   const secondMatch = text.indexOf('```', firstMatch + 3);
 
@@ -244,11 +288,9 @@ export function getFenceDecos(state: EditorState, lineNum: number, activeLineNum
     return { decos, skipToLine: lineNum };
   }
 
-  // --- 2. HANDLE MULTI-LINE CODE BLOCKS ---
   let closingLine = lineNum;
   const content = [];
 
-  // Scan down to find the end of the fence
   for (let j = lineNum + 1; j <= state.doc.lines; j++) {
     const nextLine = state.doc.line(j);
     if (nextLine.text.trim().startsWith('```')) {
@@ -262,7 +304,6 @@ export function getFenceDecos(state: EditorState, lineNum: number, activeLineNum
   const isSelected = isRangeSelected(state, line.from, state.doc.line(closingLine).to);
   const language = trimmedText.slice(3).trim();
 
-  // A. Opening Line Decor
   decos.push(
     Decoration.widget({
       widget: new FenchCodeWidget(language, content.join('\n')),
@@ -275,12 +316,10 @@ export function getFenceDecos(state: EditorState, lineNum: number, activeLineNum
     decos.push(Decoration.mark({ class: 'cm-syntax-hide' }).range(line.from, line.to));
   }
 
-  // B. Content Lines
   for (let m = lineNum + 1; m < closingLine; m++) {
     decos.push(Decoration.line({ attributes: { class: 'cm-code-block-line' } }).range(state.doc.line(m).from));
   }
 
-  // C. Closing Line Decor (if found)
   if (closingLine > lineNum) {
     const lastLine = state.doc.line(closingLine);
     decos.push(Decoration.line({ attributes: { class: 'cm-code-block-fence cm-code-block-end' } }).range(lastLine.from));
@@ -298,7 +337,7 @@ export function getTableDecos(state: EditorState, startLine: number) {
   if (startLine < state.doc.lines) {
     const nextLineText = state.doc.line(startLine + 1).text.trim();
 
-    const isNextLineSeparator = nextLineText.includes('-') && /^[\s|:-]+$/.test(nextLineText);
+    const isNextLineSeparator = nextLineText.includes('-') && TABLE_SEPARATOR_REGEX.test(nextLineText);
     if (!isNextLineSeparator) return null;
   } else {
     return null;
@@ -335,8 +374,8 @@ export function getBlockquoteDecos(state: EditorState, text: string, lineFrom: n
   const sourceMode = state.field(sourceModeField, false);
   const viewMode = state.facet(EditorState.readOnly);
   const isChunkMode = state.facet(chunkModeFacet);
-  const match = text.match(/^(\s{0,3})(>+)\s?/);
 
+  const match = text.match(BLOCKQOUTE_REGEX);
   if (!match) return decos;
 
   const indent = match[1].length;
@@ -362,7 +401,8 @@ export function getCalloutDecos(state: EditorState, startLine: number, activeLin
   const firstLine = doc.line(startLine);
   const text = firstLine.text;
   if (!text.includes('[!')) return null;
-  const match = firstLine.text.match(/^(\s{0,3})>\s?\[!(\w+)\]/);
+
+  const match = firstLine.text.match(CALLOUT_REGEX);
   if (!match) return null;
 
   let endLine = startLine;
@@ -401,7 +441,7 @@ export function getCalloutDecos(state: EditorState, startLine: number, activeLin
 
 export function getHRDecos(state: EditorState, text: string, lineFrom: number, lineTo: number, isLineActive: boolean): StateRange<Decoration>[] {
   if (!text.includes('-') && !text.includes('*') && !text.includes('_')) return [];
-  const isHR = /^(\s{0,3})([-*_])(\s*\2){2,}\s*$/.test(text);
+  const isHR = HR_REGEX.test(text);
   if (!isHR) return [];
   const decos: StateRange<Decoration>[] = [];
   const sourceMode = state.field(sourceModeField, false);
@@ -416,7 +456,7 @@ export function getHRDecos(state: EditorState, text: string, lineFrom: number, l
   return decos;
 }
 
-export function getTaskDecos(state: EditorState, text: string, lineFrom: number): StateRange<Decoration>[] {
+export function getTaskDecos(state: EditorState, text: string, lineFrom: number, isLineActive: boolean): StateRange<Decoration>[] {
   if (!text.includes('[')) return [];
 
   const trimmed = text.trimStart();
@@ -428,7 +468,7 @@ export function getTaskDecos(state: EditorState, text: string, lineFrom: number)
   const viewMode = state.facet(EditorState.readOnly);
   const isChunkMode = state.facet(chunkModeFacet);
 
-  const match = text.match(/^(\s*)-\s\[([ xX])\](\s)/);
+  const match = text.match(TASK_REGEX);
   if (!match) return decos;
 
   const indent = match[1].length;
@@ -438,14 +478,21 @@ export function getTaskDecos(state: EditorState, text: string, lineFrom: number)
   const end = start + match[0].trimStart().length - 1;
   if (sourceMode || isChunkMode) return decos;
   const isSelected = isRangeSelected(state, start, end);
+
+  let lineClasses = 'cm-task';
   if (isChecked) {
-    decos.push(
-      Decoration.line({
-        attributes: { class: 'cm-task-completed' },
-      }).range(lineFrom)
-    );
+    lineClasses += ' cm-task-completed';
   }
-  if (viewMode || !isSelected) {
+
+  decos.push(
+    Decoration.line({
+      attributes: { class: lineClasses },
+    }).range(lineFrom)
+  );
+
+  const head = state.selection.main.head;
+  const isCursorInTaskSyntax = isLineActive && head >= lineFrom && head <= lineFrom + 5;
+  if (viewMode || (!isSelected && !isCursorInTaskSyntax)) {
     decos.push(
       Decoration.replace({
         widget: new CheckboxWidget(isChecked, start, end),
@@ -465,10 +512,9 @@ export function getLinkDecos(state: EditorState, text: string, lineFrom: number,
   const viewMode = state.facet(EditorState.readOnly);
   const isChunkMode = state.facet(chunkModeFacet);
 
-  const linkStartRegex = /\[([^\]]+)\]\(/g;
   let match;
 
-  while ((match = linkStartRegex.exec(text)) !== null) {
+  while ((match = LINK_START_REGEX.exec(text)) !== null) {
     const start = lineFrom + match.index;
     const label = match[1];
 
@@ -520,12 +566,11 @@ export function getLinkDecos(state: EditorState, text: string, lineFrom: number,
 export function getImageDecos(state: EditorState, text: string, lineFrom: number, lineTo: number, isLineActive: boolean): StateRange<Decoration>[] {
   if (!text.includes('![') || !text.includes('](')) return [];
   const decos: StateRange<Decoration>[] = [];
-  const imageRegex = /!\[([^\]]*)\]\(([^)]+)\)/g;
   const sourceMode = state.field(sourceModeField, false);
   const viewMode = state.facet(EditorState.readOnly);
   let match;
 
-  while ((match = imageRegex.exec(text)) !== null) {
+  while ((match = IMG_REGEX.exec(text)) !== null) {
     const start = lineFrom + match.index;
     const end = start + match[0].length;
     const isSelected = isRangeSelected(state, start, end);
@@ -656,13 +701,13 @@ export function getMermaidDecos(
 
   return null;
 }
+
 export function getTagDecos(text: string, lineFrom: number): StateRange<Decoration>[] {
   if (!text.includes('#')) return [];
   const decos: StateRange<Decoration>[] = [];
-  const tagRegex = /(^|\s)#([a-zA-Z][\w-]+)/g;
   let match;
 
-  while ((match = tagRegex.exec(text)) !== null) {
+  while ((match = TAG_REGEX.exec(text)) !== null) {
     const tagName = match[2];
     const start = lineFrom + match.index + match[1].length;
     const end = start + match[0].length - match[1].length;
@@ -676,13 +721,12 @@ export function getTagDecos(text: string, lineFrom: number): StateRange<Decorati
 export function getStrikethroughDecos(state: EditorState, text: string, lineFrom: number, isLineActive: boolean): StateRange<Decoration>[] {
   if (!text.includes('~~')) return [];
   const decos: StateRange<Decoration>[] = [];
-  const strikeRegex = /~~(.*?)~~/g;
   const sourceMode = state.field(sourceModeField, false);
   const viewMode = state.facet(EditorState.readOnly);
   const isChunkMode = state.facet(chunkModeFacet);
   let match;
 
-  while ((match = strikeRegex.exec(text)) !== null) {
+  while ((match = STRIKE_REGEX.exec(text)) !== null) {
     const start = lineFrom + match.index;
     const end = start + match[0].length;
 
@@ -700,13 +744,12 @@ export function getStrikethroughDecos(state: EditorState, text: string, lineFrom
 export function getHighlightDecos(state: EditorState, text: string, lineFrom: number, isLineActive: boolean): StateRange<Decoration>[] {
   if (!text.includes('==')) return [];
   const decos: StateRange<Decoration>[] = [];
-  const highRegex = /==(.*?)==/g;
   const sourceMode = state.field(sourceModeField, false);
   const viewMode = state.facet(EditorState.readOnly);
   const isChunkMode = state.facet(chunkModeFacet);
   let match;
 
-  while ((match = highRegex.exec(text)) !== null) {
+  while ((match = HIGHLIGHT_REGEX.exec(text)) !== null) {
     const start = lineFrom + match.index;
     const end = start + match[0].length;
 
@@ -724,14 +767,12 @@ export function getHighlightDecos(state: EditorState, text: string, lineFrom: nu
 export function getInlineMathDecos(state: EditorState, text: string, lineFrom: number, isLineActive: boolean): StateRange<Decoration>[] {
   if (text.indexOf('$') === text.lastIndexOf('$')) return [];
   const decos: StateRange<Decoration>[] = [];
-  const mathRegex = /\$(?:`([^`]+)`|([^$]+))\$/g;
-
   const sourceMode = state.field(sourceModeField, false);
   const viewMode = state.facet(EditorState.readOnly);
   const isChunkMode = state.facet(chunkModeFacet);
   let match;
 
-  while ((match = mathRegex.exec(text)) !== null) {
+  while ((match = MATH_INLINE_REGEX.exec(text)) !== null) {
     const start = lineFrom + match.index;
     const end = start + match[0].length;
 
@@ -780,7 +821,6 @@ export function getMathBlockDecos(
   let endLine = -1;
   let content = '';
 
-  // --- START YOUR ORIGINAL LOGIC ---
   const secondIndex = line.text.indexOf('$$', 2);
   if (secondIndex !== -1) {
     endLine = lineNum;
@@ -821,13 +861,11 @@ export function getMathBlockDecos(
         }).range(blockTo)
       );
     } else {
-      // Syntax Highlighting Mode
       for (let k = lineNum; k <= endLine; k++) {
         const l = doc.line(k);
         if (l.text.includes('$$')) {
           const idx = l.text.indexOf('$$');
           decos.push(Decoration.mark({ class: 'cm-math-marker' }).range(l.from + idx, l.from + idx + 2));
-          // Single-line block logic
           if (k === lineNum && endLine === lineNum) {
             const innerText = l.text.slice(idx + 2, l.text.lastIndexOf('$$'));
             decos.push(...getMathSyntaxHighlighting(innerText, l.from + idx + 2));
@@ -839,26 +877,22 @@ export function getMathBlockDecos(
         }
       }
     }
-    // --- END ORIGINAL LOGIC ---
 
     return { decos, skipToLine: endLine };
   }
   return null;
 }
+
 export function getInternalLinkDecos(state: EditorState, text: string, lineFrom: number, isLineActive: boolean): StateRange<Decoration>[] {
   if (!text.includes('[[')) return [];
   const decos: StateRange<Decoration>[] = [];
-
-  // Regex: Group 1 = Path/Heading, Group 2 = Alias
-  const wikiRegex = /\[\[([^|\]]+)(?:\|([^\]]+))?\]\]/g;
-
   const sourceMode = state.field(sourceModeField, false);
   const viewMode = state.facet(EditorState.readOnly);
   const isChunkMode = state.facet(chunkModeFacet);
   const selection = state.selection.main;
 
   let match;
-  while ((match = wikiRegex.exec(text)) !== null) {
+  while ((match = WIKI_REGEX.exec(text)) !== null) {
     const start = lineFrom + match.index;
     const end = start + match[0].length;
 
@@ -871,11 +905,8 @@ export function getInternalLinkDecos(state: EditorState, text: string, lineFrom:
     const linkAttrs = { 'data-link': fullLink };
 
     if (!shouldHide) {
-      // MODE: EDITING - Show raw syntax, disable click handler
       decos.push(Decoration.mark({ class: 'cm-link-source-editing' }).range(start, end));
     } else {
-      // MODE: DECORATED - Apply "Obsidian-style" hiding
-
       if (displayText) {
         /**
          * CASE 1: Alias exists [[Path#Heading|Alias]]
@@ -1061,6 +1092,7 @@ export function buildDecorations(state: EditorState, from: number, to: number): 
       // INLINE LEVEL
       if (text.length > 0) {
         lineDecos.push(...getHeadingDecos(state, text, line.from, isActive));
+        lineDecos.push(...getBoldItalicDecos(state, text, line.from, isActive));
         lineDecos.push(...getInternalLinkDecos(state, text, line.from, isActive));
         lineDecos.push(...getLinkDecos(state, text, line.from, isActive));
         lineDecos.push(...getImageDecos(state, text, line.from, line.to, isActive));
@@ -1068,11 +1100,12 @@ export function buildDecorations(state: EditorState, from: number, to: number): 
         lineDecos.push(...getItalicDecos(state, text, line.from, isActive));
         lineDecos.push(...getBulletListDecos(state, text, line.from, isActive));
         lineDecos.push(...getInlineCodeDecos(state, text, line.from, isActive));
+        lineDecos.push(...getNumberedListDecos(text, line.from));
         lineDecos.push(...getStrikethroughDecos(state, text, line.from, isActive));
         lineDecos.push(...getHighlightDecos(state, text, line.from, isActive));
         lineDecos.push(...getInlineMathDecos(state, text, line.from, isActive));
         lineDecos.push(...getBlockquoteDecos(state, text, line.from, isActive));
-        lineDecos.push(...getTaskDecos(state, text, line.from));
+        lineDecos.push(...getTaskDecos(state, text, line.from, isActive));
         lineDecos.push(...getHRDecos(state, text, line.from, line.to, isActive));
       }
     }

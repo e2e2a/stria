@@ -27,7 +27,7 @@ export class BulletWidget extends WidgetType {
     const content = this.active ? '-' : '•';
     const span = document.createElement('span');
     span.textContent = content;
-    span.style.marginLeft = '0.8em';
+    span.style.marginLeft = '12px';
     return span;
   }
 
@@ -39,6 +39,7 @@ export class BulletWidget extends WidgetType {
     return false;
   }
 }
+
 export class TablePreviewWidget extends WidgetType {
   public isFreshInsert = true;
   public selectedColumn: number | null = null;
