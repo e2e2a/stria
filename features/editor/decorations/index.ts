@@ -589,60 +589,6 @@ export function getImageDecos(state: EditorState, text: string, lineFrom: number
   return decos;
 }
 
-// export function getMermaidDecos(state: EditorState, activeLineNum: number): StateRange<Decoration>[] {
-//   if (!state.doc.toString().includes('```mermaid')) {
-//     return [];
-//   }
-//   const decos: StateRange<Decoration>[] = [];
-//   const doc = state.doc;
-//   const selection = state.selection.main;
-//   const sourceMode = state.field(sourceModeField, false);
-//   const viewMode = state.facet(EditorState.readOnly);
-//   const isChunkMode = state.facet(chunkModeFacet);
-
-//   for (let i = 1; i <= doc.lines; i++) {
-//     const line = doc.line(i);
-//     if (line.text.trim().startsWith('```mermaid')) {
-//       const startLine = i;
-//       let endLine = i;
-//       const content = [];
-
-//       for (let j = i + 1; j <= doc.lines; j++) {
-//         const nextLine = doc.line(j);
-//         if (nextLine.text.trim().startsWith('```')) {
-//           endLine = j;
-//           break;
-//         }
-//         content.push(nextLine.text);
-//       }
-//       const blockFrom = doc.line(startLine).from;
-//       const blockTo = doc.line(endLine).to;
-//       const isBlockActive = activeLineNum >= startLine && activeLineNum <= endLine;
-//       const isSelected = !selection.empty && selection.from < blockTo && selection.to > blockFrom;
-//       if (viewMode || (!isBlockActive && !isSelected && !sourceMode && !isChunkMode)) {
-//         for (let k = startLine; k <= endLine; k++) {
-//           decos.push(
-//             Decoration.line({
-//               attributes: { class: 'cm-syntax-hide' },
-//             }).range(doc.line(k).from)
-//           );
-//         }
-
-//         decos.push(
-//           Decoration.widget({
-//             widget: new MermaidWidget(content.join('\n'), line.from),
-//             side: 1,
-//             block: true,
-//           }).range(doc.line(endLine).to)
-//         );
-//       }
-
-//       i = endLine; // Skip to next section
-//     }
-//   }
-//   return decos;
-// }
-// Changed: Added lineNum as an argument
 export function getMermaidDecos(
   state: EditorState,
   lineNum: number,
