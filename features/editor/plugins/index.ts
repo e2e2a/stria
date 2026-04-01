@@ -1,12 +1,10 @@
 import { EditorView, Decoration, ViewPlugin, ViewUpdate, DecorationSet } from '@codemirror/view';
-import { Range as StateRange, StateField, RangeSet, EditorState, StateEffect, RangeSetBuilder, Facet } from '@codemirror/state';
+import { StateField, RangeSet, EditorState, StateEffect, RangeSetBuilder, Facet } from '@codemirror/state';
 import { buildDecorations } from '../decorations';
 import { TablePreviewWidget } from '../widgets';
 
-// The Effect: The message sent when scrolling/resizing happens
 export const setViewportLinesEffect = StateEffect.define<{ from: number; to: number }>();
 
-// The Field: The permanent storage in the State for these line numbers
 export const viewportLinesField = StateField.define<{ from: number; to: number }>({
   create() {
     return { from: 1, to: 1 };
@@ -22,19 +20,14 @@ export const viewportLinesField = StateField.define<{ from: number; to: number }
 export const viewportLinesPlugin = ViewPlugin.fromClass(
   class {
     update(update: ViewUpdate) {
-      // Only act if the viewport actually shifted or the doc changed
       if (update.viewportChanged || update.docChanged) {
         const state = update.state;
         const view = update.view;
 
-        // Calculate the lines
         const fromLine = state.doc.lineAt(view.viewport.from).number;
         const toLine = state.doc.lineAt(view.viewport.to).number;
 
-        // FIX: Use requestAnimationFrame to defer the dispatch
-        // until the current update cycle is complete.
         requestAnimationFrame(() => {
-          // Double check the view hasn't been destroyed in the meantime
           if (view.dom.parentNode) {
             view.dispatch({
               effects: setViewportLinesEffect.of({ from: fromLine, to: toLine }),
@@ -93,7 +86,6 @@ export function setupDragTracking(view: EditorView) {
     view.dispatch({ effects: setDraggingEffect.of(true) });
   };
 
-  // We use a shared "reset" function for all ways a drag can end
   const onRelease = () => {
     if (view.state.field(dragStatusField)) {
       view.dispatch({
@@ -103,14 +95,8 @@ export function setupDragTracking(view: EditorView) {
   };
 
   view.dom.addEventListener('mousedown', onMouseDown);
-
-  // 1. Normal mouse release
   window.addEventListener('mouseup', onRelease);
-
-  // 2. Browser native drag release (Crucial for bottom-to-top)
   window.addEventListener('dragend', onRelease);
-
-  // 3. Fallback for when a drop occurs
   window.addEventListener('drop', onRelease);
 
   return () => {
@@ -141,17 +127,10 @@ export const markdownLivePreviewField = StateField.define<RangeSet<Decoration>>(
     const dragJustEnded = wasDragging && !isDragging;
     const vLines = tr.state.field(viewportLinesField);
 
-    if (dragJustEnded) {
-      console.log('[deco] selection drag ended → full rebuild');
-      return buildDecorations(tr.state, vLines.from, vLines.to);
-    }
-
+    if (dragJustEnded) return buildDecorations(tr.state, vLines.from, vLines.to);
     if (isDragging) return decos.map(tr.changes);
-
     if (docChanged || rebuildEffect || viewportChanged || selectionChanged) return buildDecorations(tr.state, vLines.from, vLines.to);
-    // if (tr.docChanged || tr.selection || tr.reconfigured || tr.effects.some(e => e.is(toggleSourceMode))) {
-    //   return buildDecorations(tr.state);
-    // }
+
     return decos.map(tr.changes);
   },
   provide: f => EditorView.decorations.from(f),
@@ -192,16 +171,55 @@ export const tableSelectionHighlighter = ViewPlugin.fromClass(
 );
 
 export const createEditorStatsPlugin = (nodeId: string) => {
+  let currentWordCount = 0;
+
   return ViewPlugin.fromClass(
     class {
+      constructor(view: EditorView) {
+        const fullText = view.state.doc.toString();
+        currentWordCount = fullText.match(/\S+/g)?.length || 0;
+      }
+
       update(update: ViewUpdate) {
         if (update.docChanged) {
-          const text = update.state.doc.toString();
-          const wordEl = document.getElementById(`cm-word-count-${nodeId}`);
-          const charEl = document.getElementById(`cm-char-count-${nodeId}`);
+          const charCount = update.state.doc.length;
+          const lineCount = update.state.doc.lines;
 
-          if (wordEl) wordEl.textContent = (text.trim() ? text.trim().split(/\s+/).length : 0).toString();
-          if (charEl) charEl.textContent = text.length.toString();
+          const charEl = document.getElementById(`cm-char-count-${nodeId}`);
+          const lineEl = document.getElementById(`cm-line-count-${nodeId}`);
+          if (charEl) charEl.textContent = charCount.toString();
+          if (lineEl) lineEl.textContent = lineCount.toString();
+
+          let minOld = Infinity,
+            maxOld = -Infinity;
+          let minNew = Infinity,
+            maxNew = -Infinity;
+
+          update.changes.iterChangedRanges((fromA, toA, fromB, toB) => {
+            minOld = Math.min(minOld, fromA);
+            maxOld = Math.max(maxOld, toA);
+            minNew = Math.min(minNew, fromB);
+            maxNew = Math.max(maxNew, toB);
+          });
+
+          if (minOld !== Infinity) {
+            const oldStartLine = update.startState.doc.lineAt(minOld);
+            const oldEndLine = update.startState.doc.lineAt(maxOld);
+            const oldText = update.startState.doc.sliceString(oldStartLine.from, oldEndLine.to);
+            const oldWords = oldText.match(/\S+/g)?.length || 0;
+
+            const newStartLine = update.state.doc.lineAt(minNew);
+            const newEndLine = update.state.doc.lineAt(maxNew);
+            const newText = update.state.doc.sliceString(newStartLine.from, newEndLine.to);
+            const newWords = newText.match(/\S+/g)?.length || 0;
+
+            currentWordCount += newWords - oldWords;
+
+            currentWordCount = Math.max(0, currentWordCount);
+
+            const wordEl = document.getElementById(`cm-word-count-${nodeId}`);
+            if (wordEl) wordEl.textContent = currentWordCount.toString();
+          }
         }
       }
     }

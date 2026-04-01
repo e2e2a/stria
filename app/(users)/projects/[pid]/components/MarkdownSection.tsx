@@ -199,8 +199,7 @@ function MarkdownSection({ node, isDirty }: { node: INode; isDirty: boolean }) {
       chunkTheme,
       viewportLinesField,
       viewportLinesPlugin,
-
-      // createEditorStatsPlugin(node._id),
+      createEditorStatsPlugin(node._id),
     ];
   }, [instance, ytext, onDocChange, setActiveNode, node._id, undoManager]);
 
