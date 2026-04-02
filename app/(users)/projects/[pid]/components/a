@@ -1,0 +1,210 @@
+import React, { useState, useEffect, useMemo, useRef, memo } from 'react';
+
+const CHUNK_MAX = 10;
+const BLOCK_SIZE = 5000; // How many characters to process per virtual block
+
+interface ChunkTemplateProps {
+  text: string;
+  dbSplitPoints: number[];
+  onSplitsChange?: (newSplits: number[]) => void;
+}
+
+export function ChunkTemplate({ text, dbSplitPoints, onSplitsChange }: ChunkTemplateProps) {
+  const textString = text.toString();
+  const docLength = textString.length;
+  const [splits, setSplits] = useState<number[]>([]);
+  const draggingIndexRef = useRef<number | null>(null);
+
+  // 1. Calculate ONLY the numerical split boundaries globally (Fast, low memory)
+  useEffect(() => {
+    const activeSplits = [...dbSplitPoints];
+    let lastSplit = activeSplits.length > 0 ? activeSplits[activeSplits.length - 1] : 0;
+
+    while (lastSplit + CHUNK_MAX < docLength) {
+      lastSplit += CHUNK_MAX;
+      activeSplits.push(lastSplit);
+    }
+    setSplits(activeSplits);
+  }, [dbSplitPoints, docLength]);
+
+  // 2. Drag Logic remains exactly the same (handled by the parent)
+  useEffect(() => {
+    const handleMouseMove = (e: MouseEvent) => {
+      if (draggingIndexRef.current === null) return;
+      const splitIndex = draggingIndexRef.current;
+
+      // ... (Your exact same mousemove logic here) ...
+      let range;
+      if (document.caretRangeFromPoint) {
+        range = document.caretRangeFromPoint(e.clientX, e.clientY);
+      } else if ((document as any).caretPositionFromPoint) {
+        const pos = (document as any).caretPositionFromPoint(e.clientX, e.clientY);
+        if (pos) {
+          range = document.createRange();
+          range.setStart(pos.offsetNode, pos.offset);
+        }
+      }
+
+      if (range && range.startContainer.nodeType === Node.TEXT_NODE) {
+        const textNode = range.startContainer;
+        const parentSpan = textNode.parentElement;
+        const hoverChunkIndex = parseInt(parentSpan?.dataset.chunkIndex || '-1', 10);
+
+        if (hoverChunkIndex !== -1) {
+          const chunkStart = hoverChunkIndex === 0 ? 0 : splits[hoverChunkIndex - 1];
+          const absolutePos = chunkStart + range.startOffset;
+
+          setSplits(prev => {
+            const prevSplitPos = splitIndex > 0 ? prev[splitIndex - 1] : 0;
+            const minPos = prevSplitPos + 1;
+            const maxPos = Math.min(prevSplitPos + CHUNK_MAX, docLength);
+            const clampedPos = Math.max(minPos, Math.min(absolutePos, maxPos));
+
+            if (prev[splitIndex] === clampedPos) return prev;
+
+            const newSplits = prev.slice(0, splitIndex);
+            newSplits.push(clampedPos);
+
+            let lastSplit = clampedPos;
+            while (lastSplit + CHUNK_MAX < docLength) {
+              lastSplit += CHUNK_MAX;
+              newSplits.push(lastSplit);
+            }
+            return newSplits;
+          });
+        }
+      }
+    };
+
+    const handleMouseUp = () => {
+      if (draggingIndexRef.current !== null && onSplitsChange) {
+        onSplitsChange(splits);
+      }
+      draggingIndexRef.current = null;
+      document.body.style.cursor = 'default';
+      document.body.style.userSelect = 'auto';
+    };
+
+    window.addEventListener('mousemove', handleMouseMove);
+    window.addEventListener('mouseup', handleMouseUp);
+    return () => {
+      window.removeEventListener('mousemove', handleMouseMove);
+      window.removeEventListener('mouseup', handleMouseUp);
+    };
+  }, [splits, docLength, onSplitsChange]);
+
+  const handleDragStart = (index: number) => {
+    draggingIndexRef.current = index;
+    document.body.style.cursor = 'col-resize';
+    document.body.style.userSelect = 'none';
+  };
+
+  // 3. Determine how many blocks we need
+  const numBlocks = Math.ceil(docLength / BLOCK_SIZE);
+
+  return (
+    <div className="w-auto bg h-full px-10 pt-17 tracking-widest text-[11px] leading-6 whitespace-pre-wrap font-sans overflow-y-auto text-[#d4d4d4]">
+      {Array.from({ length: numBlocks }).map((_, i) => (
+        <VirtualChunkBlock key={i} blockIndex={i} textString={textString} splits={splits} docLength={docLength} onDragStart={handleDragStart} />
+      ))}
+    </div>
+  );
+}
+
+// ------------------------------------------------------------------
+// NEW: The Virtual Block (Only renders DOM nodes when visible on screen)
+// ------------------------------------------------------------------
+
+interface VirtualBlockProps {
+  blockIndex: number;
+  textString: string;
+  splits: number[];
+  docLength: number;
+  onDragStart: (index: number) => void;
+}
+
+const VirtualChunkBlock = memo(({ blockIndex, textString, splits, docLength, onDragStart }: VirtualBlockProps) => {
+  const [isVisible, setIsVisible] = useState(false);
+  const [cachedHeight, setCachedHeight] = useState<number>(100); // Default estimate
+  const containerRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        if (entry.isIntersecting) {
+          setIsVisible(true);
+        } else {
+          setIsVisible(false);
+          // Save the exact height before unmounting so the scrollbar doesn't jump
+          if (containerRef.current) {
+            setCachedHeight(containerRef.current.getBoundingClientRect().height);
+          }
+        }
+      },
+      // Root margin renders the block slightly before it scrolls into view to prevent flickering
+      { rootMargin: '1000px 0px' }
+    );
+
+    if (containerRef.current) {
+      observer.observe(containerRef.current);
+    }
+    return () => observer.disconnect();
+  }, []);
+
+  // ONLY generate the chunk string slices for this specific block when it is visible
+  const blockChunks = useMemo(() => {
+    if (!isVisible || splits.length === 0) return [];
+
+    const blockStartChar = blockIndex * BLOCK_SIZE;
+    const blockEndChar = Math.min(blockStartChar + BLOCK_SIZE, docLength);
+
+    const localChunks = [];
+    let start = blockStartChar;
+
+    // Find the first split that falls inside this block
+    const firstRelevantSplitIndex = splits.findIndex(s => s >= blockStartChar);
+    if (firstRelevantSplitIndex === -1) return [];
+
+    for (let i = firstRelevantSplitIndex; i <= splits.length; i++) {
+      const end = i < splits.length ? splits[i] : docLength;
+
+      // If the start of this chunk has passed our block end, stop processing
+      if (start >= blockEndChar) break;
+
+      // Clamp the end to our block boundary so text doesn't bleed over
+      const chunkEndClamp = Math.min(end, blockEndChar);
+
+      if (start < chunkEndClamp) {
+        localChunks.push({
+          index: i,
+          start,
+          end: chunkEndClamp,
+          content: textString.slice(start, chunkEndClamp),
+          isBoundary: end !== chunkEndClamp, // True if the actual chunk continues into the next block
+        });
+      }
+      start = chunkEndClamp;
+    }
+
+    return localChunks;
+  }, [isVisible, splits, blockIndex, textString, docLength]);
+
+  return (
+    <div ref={containerRef} style={{ minHeight: isVisible ? 'auto' : `${cachedHeight}px` }} className="w-full relative">
+      {isVisible &&
+        blockChunks.map((chunk, i) => (
+          <React.Fragment key={`${chunk.index}-${chunk.start}`}>
+            <span data-chunk-index={chunk.index} className={`chunk-bg-${chunk.index % 7} py-1 tracking-widest rounded-[2px] px-1 w-auto`}>
+              {chunk.content}
+            </span>
+            {/* Only show the drag handle if we are at the true end of the chunk (not just a block boundary) */}
+            {!chunk.isBoundary && chunk.index < splits.length && (
+              <span className={`cm-drag-handle chunk-border-${chunk.index % 7}`} onMouseDown={() => onDragStart(chunk.index)} />
+            )}
+          </React.Fragment>
+        ))}
+    </div>
+  );
+});
+
+VirtualChunkBlock.displayName = 'VirtualChunkBlock';

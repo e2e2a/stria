@@ -1,14 +1,14 @@
 'use client';
 import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { drawSelection, dropCursor, EditorView, keymap } from '@codemirror/view';
-import CodeMirror, { Compartment, EditorState } from '@uiw/react-codemirror';
+import CodeMirror, { EditorState } from '@uiw/react-codemirror';
 import { yCollab, yUndoManagerKeymap } from 'y-codemirror.next';
 import { markdown, markdownLanguage } from '@codemirror/lang-markdown';
 import { createTheme } from '@uiw/codemirror-themes';
 import { INode } from '@/types';
 import { tags as t } from '@lezer/highlight';
 import {
-  chunkHighlightField,
+  chunkModeFacet,
   columnSelectionField,
   createEditorStatsPlugin,
   dragStatusField,
@@ -39,8 +39,9 @@ import ContextMenuClient from './context-menu/context-menu-client';
 import { useSession } from 'next-auth/react';
 import FooterLinks from './footer-links';
 import { EditorStatusBar } from './editor-status-bar';
-import { chunkTheme } from './editor-theme';
 import { useEditorEvents } from './use-editor-events';
+import { ChunkEditor } from './chunk-template';
+import { cn } from '@/lib/utils';
 
 const myOwnDarkTheme = createTheme({
   theme: 'dark',
@@ -68,8 +69,6 @@ const myOwnDarkTheme = createTheme({
   ],
 });
 
-export const editableCompartment = new Compartment();
-export const chunkModeCompartment = new Compartment();
 function MarkdownSection({ node, isDirty }: { node: INode; isDirty: boolean }) {
   const { data } = useSession();
   const [synced, setSynced] = useState(false);
@@ -81,7 +80,10 @@ function MarkdownSection({ node, isDirty }: { node: INode; isDirty: boolean }) {
   const [editorReady, setEditorReady] = useState(false);
   // for context menu
   const [contextType, setContextType] = useState<'general' | 'callout'>('general');
-  useEditorEvents(node._id, synced, editorViewRef);
+
+  const [isReadOnly, setIsReadOnly] = useState(false);
+  const [isChunkActive, setIsChunkActive] = useState(false);
+  useEditorEvents(node._id, synced, editorViewRef, setIsReadOnly, setIsChunkActive);
 
   const providerRef = useRef<HocuspocusProvider | null>(null);
 
@@ -174,8 +176,11 @@ function MarkdownSection({ node, isDirty }: { node: INode; isDirty: boolean }) {
       internalLinkCompletion,
       internalLinkClickHandler,
       linkClickHandler,
-      editableCompartment.of(EditorState.readOnly.of(false)),
-      chunkModeCompartment.of([]),
+      EditorState.readOnly.of(isReadOnly || isChunkActive),
+      isChunkActive ? chunkModeFacet.of(true) : [],
+      EditorView.editorAttributes.of({ class: isChunkActive ? 'cm-chunk-mode-active' : '' }),
+
+      markdownLivePreviewField,
       onDocChange,
       tableBackspace,
       sourceModeField,
@@ -194,14 +199,11 @@ function MarkdownSection({ node, isDirty }: { node: INode; isDirty: boolean }) {
       EditorView.lineWrapping,
       dragStatusField,
       columnSelectionField,
-      markdownLivePreviewField,
-      chunkHighlightField,
-      chunkTheme,
       viewportLinesField,
       viewportLinesPlugin,
       createEditorStatsPlugin(node._id),
     ];
-  }, [instance, ytext, onDocChange, setActiveNode, node._id, undoManager]);
+  }, [instance, ytext, onDocChange, setActiveNode, node._id, undoManager, isReadOnly, isChunkActive]);
 
   useEffect(() => {
     if (!ytext) return;
@@ -267,6 +269,10 @@ function MarkdownSection({ node, isDirty }: { node: INode; isDirty: boolean }) {
     }
   }, [synced, pendingScrollHeading, ytext, node._id]);
 
+  const handleSplitsChange = (newSplits: number[]) => {
+    console.log('Save these to DB:', newSplits);
+    // e.g., useProjectUIStore.getState().saveChunks(newSplits);
+  };
   return (
     <>
       <div className="absolute top-12 left-0 right-0 h-1 z-51 w-full bg-background" />
@@ -275,16 +281,37 @@ function MarkdownSection({ node, isDirty }: { node: INode; isDirty: boolean }) {
           <h1 className="text-5xl font-bold tracking-tighter text-foreground truncate select-text w-fit! cursor-text">
             {(node as INode)?.title || 'Not Found'}
           </h1>
-          <EditorOptions editorViewRef={editorViewRef} />
+          <EditorOptions
+            editorViewRef={editorViewRef}
+            isReadOnly={isReadOnly}
+            setIsReadOnly={setIsReadOnly}
+            isChunkActive={isChunkActive}
+            setIsChunkActive={setIsChunkActive}
+          />
         </div>
       </div>
+      {isChunkActive && (
+        <div
+          className={cn(
+            'absolute inset-0 z-30 bg-background',
+            'h-full! grid grid-cols-1 max-h-full w-full px-10 overflow-y-auto relative [&::-webkit-scrollbar-track]:mt-[56px]'
+          )}
+        >
+          <div className="w-full h-auto pb-4 flex flex-col" tabIndex={-1}>
+            <ChunkEditor text={ytext?.toString() || ''} splits={[]} onSplitsChange={handleSplitsChange} />
+          </div>
+        </div>
+      )}
       <div
         tabIndex={-1}
-        className="h-full! grid grid-cols-1 max-h-full w-full px-10 overflow-y-auto overflow-hidden relative [&::-webkit-scrollbar-track]:mt-[56px]"
+        className={cn(
+          'h-full! grid grid-cols-1 max-h-full w-full px-10 overflow-y-auto overflow-x-hidden relative [&::-webkit-scrollbar-track]:mt-[56px]',
+          isChunkActive ? 'hidden' : ''
+        )}
       >
         <ContextMenuClient editorViewRef={editorViewRef} contextType={contextType} setContextType={setContextType} synced={synced}>
           <div
-            className="w-full h-auto pb-4 flex flex-col"
+            className={cn('w-full h-auto pb-4 flex flex-col', isChunkActive ? 'hidden' : 'w-full h-auto')}
             onMouseDown={e => {
               const target = e.target as HTMLElement;
 

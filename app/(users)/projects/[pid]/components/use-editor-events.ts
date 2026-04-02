@@ -1,8 +1,7 @@
-import { useEffect, MutableRefObject } from 'react';
+import React, { useEffect, MutableRefObject } from 'react';
 import { EditorView } from '@codemirror/view';
-import { chunkModeFacet, sourceModeField, toggleSourceMode } from '@/features/editor/plugins';
-import { EditorSelection, EditorState } from '@uiw/react-codemirror';
-import { chunkModeCompartment, editableCompartment } from './MarkdownSection';
+import { sourceModeField, toggleSourceMode } from '@/features/editor/plugins';
+import { EditorSelection } from '@uiw/react-codemirror';
 
 interface EditorJumpDetail {
   nodeId: string;
@@ -11,7 +10,13 @@ interface EditorJumpDetail {
   matchIndices: number[];
 }
 
-export const useEditorEvents = (nodeId: string, synced: boolean, editorViewRef: MutableRefObject<EditorView | null>) => {
+export const useEditorEvents = (
+  nodeId: string,
+  synced: boolean,
+  editorViewRef: MutableRefObject<EditorView | null>,
+  setIsReadOnly: React.Dispatch<React.SetStateAction<boolean>>,
+  setIsChunkActive: React.Dispatch<React.SetStateAction<boolean>>
+) => {
   useEffect(() => {
     const timers = new Set<ReturnType<typeof setTimeout>>();
 
@@ -104,41 +109,36 @@ export const useEditorEvents = (nodeId: string, synced: boolean, editorViewRef: 
 
       switch (action) {
         case 'toggle-chunk': {
-          const isChunk = view.dom.classList.contains('cm-chunk-mode-active');
-          const nextState = !isChunk;
-          view.dispatch({
-            effects: chunkModeCompartment.reconfigure(nextState ? chunkModeFacet.of(true) : []),
-          });
-          view.dom.classList.toggle('cm-chunk-mode-active', nextState);
+          setIsChunkActive(prev => !prev);
           break;
         }
 
         case 'toggle-read-only': {
-          const isRead = view.state.facet(EditorState.readOnly);
-          const nextState = !isRead;
-          view.dispatch({
-            effects: editableCompartment.reconfigure(EditorState.readOnly.of(nextState)),
+          setIsReadOnly((prev: boolean) => {
+            const nextState = !prev;
+            if (view) {
+              if (nextState) {
+                view.scrollDOM.classList.add('cm-readonly');
+                view.contentDOM.blur();
+              } else {
+                view.scrollDOM.classList.remove('cm-readonly');
+                view.focus();
+              }
+            }
+            return nextState;
           });
-          if (nextState) {
-            view.scrollDOM.classList.add('cm-readonly');
-            view.contentDOM.blur();
-          } else {
-            view.scrollDOM.classList.remove('cm-readonly');
-            view.focus();
-          }
           break;
         }
 
         case 'toggle-source': {
-          const isSource = view.state.field(sourceModeField, false);
-          view.dispatch({
-            effects: toggleSourceMode.of(!isSource),
-          });
+          if (view) {
+            const isSource = view.state.field(sourceModeField, false);
+            view.dispatch({ effects: toggleSourceMode.of(!isSource) });
+          }
           break;
         }
       }
 
-      // Notify UI components like EditorOptions to re-render
       window.dispatchEvent(new CustomEvent('cm-state-refresh'));
     };
 

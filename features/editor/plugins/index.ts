@@ -1,6 +1,6 @@
 import { EditorView, Decoration, ViewPlugin, ViewUpdate, DecorationSet } from '@codemirror/view';
-import { StateField, RangeSet, EditorState, StateEffect, RangeSetBuilder, Facet } from '@codemirror/state';
-import { buildDecorations } from '../decorations';
+import { StateField, RangeSet, EditorState, StateEffect, Facet } from '@codemirror/state';
+import { buildChunkDecorations, buildDecorations } from '../decorations';
 import { TablePreviewWidget } from '../widgets';
 
 export const setViewportLinesEffect = StateEffect.define<{ from: number; to: number }>();
@@ -112,9 +112,7 @@ export function setupDragTracking(view: EditorView) {
 // ------------------------------
 export const markdownLivePreviewField = StateField.define<RangeSet<Decoration>>({
   create(state: EditorState) {
-    if (state.field(sourceModeField, false)) {
-      return RangeSet.empty;
-    }
+    if (state.field(sourceModeField, false)) return RangeSet.empty;
     return state.field(sourceModeField, false) ? RangeSet.empty : buildDecorations(state, 1, 100);
   },
   update(decos, tr) {
@@ -136,6 +134,26 @@ export const markdownLivePreviewField = StateField.define<RangeSet<Decoration>>(
   provide: f => EditorView.decorations.from(f),
 });
 
+export const chunkLivePreviewPlugin = ViewPlugin.fromClass(
+  class {
+    decorations: DecorationSet;
+
+    constructor(view: EditorView) {
+      this.decorations = buildChunkDecorations(view, view.state.field(chunkSplitsField));
+    }
+
+    update(update: ViewUpdate) {
+      const splitsChanged = update.state.field(chunkSplitsField) !== update.startState.field(chunkSplitsField);
+
+      if (update.docChanged || update.viewportChanged || splitsChanged) {
+        this.decorations = buildChunkDecorations(update.view, update.view.state.field(chunkSplitsField));
+      }
+    }
+  },
+  {
+    decorations: v => v.decorations,
+  }
+);
 export const tableSelectionHighlighter = ViewPlugin.fromClass(
   class {
     constructor(readonly view: EditorView) {
@@ -231,38 +249,16 @@ export const chunkModeFacet = Facet.define<boolean, boolean>({
   combine: values => values.some(v => v === true),
 });
 
-export const chunkHighlightField = StateField.define<DecorationSet>({
+export const setSplitsEffect = StateEffect.define<number[]>();
+
+export const chunkSplitsField = StateField.define<number[]>({
   create() {
-    return Decoration.none;
+    return [];
   },
-  update(value, tr) {
-    if (!tr.docChanged && value !== Decoration.none) return value;
-
-    const builder = new RangeSetBuilder<Decoration>();
-    const docLength = tr.state.doc.length;
-    const chunkSize = 512;
-    const paletteSize = 7;
-
-    for (let i = 0; i < docLength; i += chunkSize) {
-      const from = i;
-      const to = Math.min(i + chunkSize, docLength);
-      const chunkIndex = Math.floor(i / chunkSize);
-      const colorIndex = chunkIndex % paletteSize;
-
-      builder.add(
-        from,
-        to,
-        Decoration.mark({
-          class: `cm-chunk-${colorIndex}`,
-          attributes: { 'data-chunk': chunkIndex.toString() },
-        })
-      );
+  update(splits, tr) {
+    for (const e of tr.effects) {
+      if (e.is(setSplitsEffect)) return e.value;
     }
-    return builder.finish();
+    return splits;
   },
-  provide: f =>
-    EditorView.decorations.compute([f, chunkModeFacet], state => {
-      const active = state.facet(chunkModeFacet);
-      return active ? state.field(f) : Decoration.none;
-    }),
 });

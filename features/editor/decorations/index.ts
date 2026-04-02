@@ -1,4 +1,4 @@
-import { Decoration } from '@codemirror/view';
+import { Decoration, EditorView } from '@codemirror/view';
 import { Range as StateRange, EditorState, RangeSet } from '@codemirror/state';
 import {
   BulletWidget,
@@ -16,6 +16,7 @@ import { chunkModeFacet, sourceModeField } from '../plugins';
 import { FrontmatterWidget } from '../widgets/front-matter-widget';
 import { syntaxTree } from '@codemirror/language';
 import { SyntaxNode } from '@lezer/common';
+import { DragHandleWidget } from '../widgets/chunk-widget';
 
 // REGEX
 const BOLD_ITALIC_REGEX = /(?<![\*_])(\*\*\*|___)(.+?)\1(?![\*_])/g;
@@ -1048,6 +1049,7 @@ export function buildDecorations(state: EditorState, from: number, to: number): 
         lineDecos.push(...getInlineCodeDecos(state, text, line.from, isActive));
         lineDecos.push(...getNumberedListDecos(text, line.from));
         lineDecos.push(...getStrikethroughDecos(state, text, line.from, isActive));
+        lineDecos.push(...getTagDecos(text, line.from));
         lineDecos.push(...getHighlightDecos(state, text, line.from, isActive));
         lineDecos.push(...getInlineMathDecos(state, text, line.from, isActive));
         lineDecos.push(...getBlockquoteDecos(state, text, line.from, isActive));
@@ -1058,6 +1060,77 @@ export function buildDecorations(state: EditorState, from: number, to: number): 
 
     allDecos.push(...lineDecos);
     i = skipToLine;
+  }
+
+  return RangeSet.of(
+    allDecos.sort((a, b) => a.from - b.from),
+    true
+  );
+}
+
+export function getFullSplits(customSplits: number[], docLength: number) {
+  const safeSplits: number[] = [];
+  let currentStart = 0;
+  const sortedCustom = [...customSplits].sort((a, b) => a - b);
+
+  for (const split of sortedCustom) {
+    let temp = currentStart;
+    while (temp + 512 < split) {
+      temp += 512;
+      safeSplits.push(temp);
+    }
+    safeSplits.push(split);
+    currentStart = split;
+  }
+
+  while (currentStart + 512 < docLength) {
+    currentStart += 512;
+    safeSplits.push(currentStart);
+  }
+
+  return safeSplits;
+}
+
+export function buildChunkDecorations(view: EditorView, customSplits: number[]): RangeSet<Decoration> {
+  const allDecos: StateRange<Decoration>[] = [];
+  const docLength = view.state.doc.length;
+
+  const BUFFER = 2000;
+  const viewFrom = Math.max(0, view.viewport.from - BUFFER);
+  const viewTo = Math.min(docLength, view.viewport.to + BUFFER);
+
+  const allSplits = getFullSplits(customSplits, docLength);
+  let currentStart = 0;
+
+  for (let i = 0; i <= allSplits.length; i++) {
+    const currentEnd = i < allSplits.length ? allSplits[i] : docLength;
+
+    if (currentEnd >= viewFrom && currentStart <= viewTo) {
+      const safeStart = Math.max(0, currentStart);
+      const safeEnd = Math.min(currentEnd, docLength);
+
+      if (safeStart < safeEnd) {
+        allDecos.push(
+          Decoration.mark({
+            class: `cm-chunk-highlight chunk-bg-${i % 7} py-1 tracking-widest rounded-[2px] px-1`,
+          }).range(safeStart, safeEnd)
+        );
+
+        if (i < allSplits.length && currentEnd < docLength) {
+          const chunkStart = i === 0 ? 0 : allSplits[i - 1];
+          const chunkSize = currentEnd - chunkStart;
+
+          allDecos.push(
+            Decoration.widget({
+              widget: new DragHandleWidget(currentEnd, i, chunkSize),
+              side: 1,
+            }).range(currentEnd)
+          );
+        }
+      }
+    }
+    currentStart = currentEnd;
+    if (currentStart > viewTo) break;
   }
 
   return RangeSet.of(
