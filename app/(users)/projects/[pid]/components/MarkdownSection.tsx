@@ -40,7 +40,7 @@ import { useSession } from 'next-auth/react';
 import FooterLinks from './footer-links';
 import { EditorStatusBar } from './editor-status-bar';
 import { useEditorEvents } from './use-editor-events';
-import { ChunkEditor } from './chunk-template';
+import { ChunkEditor } from './chunk-editor';
 import { cn } from '@/lib/utils';
 
 const myOwnDarkTheme = createTheme({
