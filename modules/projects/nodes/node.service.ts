@@ -136,9 +136,13 @@ export const nodeService = {
     const targetFullPath = normalizeFilePath(targetNode.path);
     const targetName = path.basename(targetFullPath);
 
-    const targetTitle = targetNode.title;
+    const targetTitle = targetNode.title || '';
+
+    const cleanTitle = targetTitle.replace(/\s+/g, '');
+    const shouldSearchUnlinked = cleanTitle.length >= 3;
+
     const escapedTitle = targetTitle.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
-    const unlinkedRegex = new RegExp(`\\b${escapedTitle}\\b`, 'gi');
+    const unlinkedRegex = shouldSearchUnlinked ? new RegExp(`\\b${escapedTitle}\\b`, 'gi') : null;
 
     const allNodes = await nodeRepository.findMany({ projectId: targetNode.projectId });
     const linkedBacklinks: BacklinkResponse[] = [];
@@ -156,7 +160,7 @@ export const nodeService = {
       const linkRegex = /\[\[([^\]]+)\]\]|\[([^\]]+)\]\(([^)]+)\)/g;
       let match: RegExpExecArray | null;
 
-      // 1. SCAN FOR LINKED BACKLINKS
+      // 1. SCAN FOR LINKED BACKLINKS (Always runs)
       while ((match = linkRegex.exec(content)) !== null) {
         const rawLink: string = match[1] || match[3];
         const alias: string | undefined = match[2];
@@ -187,20 +191,22 @@ export const nodeService = {
         }
       }
 
-      let uMatch: RegExpExecArray | null;
-      while ((uMatch = unlinkedRegex.exec(content)) !== null) {
-        if (!linkedIndices.has(uMatch.index)) {
-          const lineIndex = content.substring(0, uMatch.index).split('\n').length;
-          const lineStart = content.lastIndexOf('\n', uMatch.index) + 1;
-          const lineEnd = content.indexOf('\n', uMatch.index);
-          const excerptEnd = lineEnd === -1 ? content.length : lineEnd;
+      if (unlinkedRegex) {
+        let uMatch: RegExpExecArray | null;
+        while ((uMatch = unlinkedRegex.exec(content)) !== null) {
+          if (!linkedIndices.has(uMatch.index)) {
+            const lineIndex = content.substring(0, uMatch.index).split('\n').length;
+            const lineStart = content.lastIndexOf('\n', uMatch.index) + 1;
+            const lineEnd = content.indexOf('\n', uMatch.index);
+            const excerptEnd = lineEnd === -1 ? content.length : lineEnd;
 
-          unlinkedInThisFile.push({
-            excerpt: content.substring(lineStart, excerptEnd).trim(),
-            line: lineIndex,
-            length: uMatch[0].length,
-            index: uMatch.index,
-          });
+            unlinkedInThisFile.push({
+              excerpt: content.substring(lineStart, excerptEnd).trim(),
+              line: lineIndex,
+              length: uMatch[0].length,
+              index: uMatch.index,
+            });
+          }
         }
       }
 
