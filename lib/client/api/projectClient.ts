@@ -3,6 +3,11 @@ import { SearchResult } from '@/utils/client/search-nodes-utils';
 const BASE_URL_PROJECTS = `${process.env.NEXT_PUBLIC_BASE_URL}/api/projects`;
 const BASE_URL_WORKSPACES = `${process.env.NEXT_PUBLIC_BASE_URL}/api/workspaces`;
 
+export interface PropertyStat {
+  key: string;
+  count: number;
+}
+
 export const projectClient = {
   async create(data: {
     title: string;
@@ -97,6 +102,12 @@ export const projectClient = {
     const json = await res.json();
     if (!res.ok) throw new Error('Failed to fetch search nodes in project');
     return json;
+  },
+
+  getProperties: async (projectId: string): Promise<PropertyStat[]> => {
+    const res = await fetch(`${BASE_URL_PROJECTS}/${projectId}/properties`);
+    if (!res.ok) throw new Error('Failed to fetch projects in workspace');
+    return res.json();
   },
   // async getProjectsByUserId(userId?: string) {
   //   const res = await fetch(BASE_URL_PROJECTS + `?userId=${userId}`);

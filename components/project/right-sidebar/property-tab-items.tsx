@@ -1,8 +1,7 @@
-import { useNodeStore } from '@/features/editor/stores/nodes';
 import { useProjectUIStore } from '@/features/editor/stores/project-ui';
-import { getAllPropertyStats } from '@/features/helpers/editor/getPropertyStats';
-import { flattenNodeTree } from '@/utils/client/node-utils';
-import { useDeferredValue, useMemo } from 'react';
+import { useMemo } from 'react';
+import { useProjectPropertiesQuery } from '@/hooks/project/useProjectQuery';
+import { useParams } from 'next/navigation';
 
 const ICON_MAP: Record<string, string> = {
   tags: '🏷',
@@ -18,18 +17,19 @@ interface IProps {
 }
 
 export const PropertyTabItems = ({ sortMode, searchQuery }: IProps) => {
-  const nodes = useNodeStore(state => state.nodes);
+  const params = useParams();
+  const projectId = params.pid as string;
+
   const { setSearchQuery, setLeftSidebarTab } = useProjectUIStore();
-  const deferredNodes = useDeferredValue(nodes);
-  const flatNodes = useMemo(() => flattenNodeTree(deferredNodes), [deferredNodes]);
-  // const propertyStats = useMemo(() => getAllPropertyStats(flatNodes || []), [flatNodes]);
+  const { data } = useProjectPropertiesQuery(projectId);
 
   const handlePropertyClick = (key: string) => {
     setSearchQuery(`["${key}"]`);
     setLeftSidebarTab('search');
   };
+
   const propertyStats = useMemo(() => {
-    let stats = getAllPropertyStats(flatNodes || []);
+    let stats = data && data.length > 0 ? data : [];
 
     if (searchQuery.trim()) {
       const lowerQuery = searchQuery.toLowerCase();
@@ -50,7 +50,7 @@ export const PropertyTabItems = ({ sortMode, searchQuery }: IProps) => {
           return 0;
       }
     });
-  }, [flatNodes, sortMode, searchQuery]);
+  }, [data, sortMode, searchQuery]);
 
   return (
     <div className="flex flex-col py-2">

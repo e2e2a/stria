@@ -25,3 +25,11 @@ export function useProjectSearchQuery(projectId: string, query: string) {
     placeholderData: previousData => previousData,
   });
 }
+
+export function useProjectPropertiesQuery(id: string) {
+  return useQuery({
+    queryKey: ['projectProperties', id],
+    queryFn: () => projectClient.getProperties(id),
+    enabled: !!id,
+  });
+}

@@ -14,7 +14,6 @@ type RenderItem =
   | { type: 'header'; nodeId: string; title: string; count: number }
   | { type: 'line'; nodeId: string; match: SearchMatch; queryLen: number };
 
-// --- SUB-COMPONENT: ROW ---
 const SearchRow = memo(function SearchRow({
   item,
   isCollapsed,
@@ -80,20 +79,16 @@ function renderLine(text: string, indices: number[], len: number): ReactElement[
   return parts;
 }
 
-// --- MAIN COMPONENT ---
 function SearchTabContentComponent({ query, onResultClick }: { query: string; onResultClick: (id: string) => void }) {
   const params = useParams();
   const projectId = params.pid as string;
 
-  // 1. TanStack Query with Debounce
   const debouncedQuery = useDeferredValue(query);
   const { data: backendData, isFetching } = useProjectSearchQuery(projectId, debouncedQuery);
 
-  // 2. State for Real-Time Changes & UI
   const [realTimeOverrides, setRealTimeOverrides] = useState<Record<string, SearchResult>>({});
   const [collapsedFiles, setCollapsedFiles] = useState<Set<string>>(new Set());
 
-  // 3. Listen for Editor Changes
   useEffect(() => {
     const handleActiveEditorChange = (e: Event) => {
       const { nodeId, title, content } = (e as CustomEvent).detail;
@@ -111,7 +106,6 @@ function SearchTabContentComponent({ query, onResultClick }: { query: string; on
     return () => window.removeEventListener('editor-content-changed', handleActiveEditorChange);
   }, [query]);
 
-  // 4. Reset overrides when the search term changes significantly
   useEffect(() => {
     // eslint-disable-next-line react-hooks/set-state-in-effect
     setRealTimeOverrides({});
@@ -122,10 +116,8 @@ function SearchTabContentComponent({ query, onResultClick }: { query: string; on
     if (!query) return { visibleItems: [], totalFound: 0 };
 
     const results = backendData || [];
-    // Replace backend file data with editor data if it exists
     const mergedResults: SearchResult[] = results.map(res => realTimeOverrides[res.nodeId] || res);
 
-    // Add active files that aren't in backend results yet
     Object.values(realTimeOverrides).forEach(override => {
       if (!results.find(r => r.nodeId === override.nodeId)) {
         mergedResults.unshift(override);
@@ -139,8 +131,9 @@ function SearchTabContentComponent({ query, onResultClick }: { query: string; on
       const { nodeId, title, matches } = file;
       const isTitleMatch = title.toLowerCase().includes(query.toLowerCase());
 
-      // Accuracy: matches count + title match count
-      const highlights = matches.reduce((acc, m) => acc + (m.matchIndices?.length || 0), 0);
+      let highlights = matches.reduce((acc, m) => acc + (m.matchIndices?.length || 0), 0);
+      if (highlights === 0 && matches.length > 0) highlights = matches.length;
+
       const fileTotal = highlights || (isTitleMatch ? 1 : 0);
 
       if (fileTotal === 0) return;
