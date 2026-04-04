@@ -227,6 +227,19 @@ export const nodeService = {
 
     return { linked: linkedBacklinks, unlinked: unlinkedMentions };
   },
+
+  // this is only called in local
+  getProjectFlatNode: async (data: { projectId: string; type?: 'file' | 'folder' }, exclude?: string) => {
+    const fields = (exclude
+      ?.split(',')
+      .map(f => f.trim())
+      .filter(Boolean) ?? []) as ExcludeField[];
+
+    if (!fields.every(f => ALLOWED.includes(f))) throw new HttpError('BAD_INPUT', `Only ${ALLOWED.join(', ')} can be excluded.`);
+    const flatNodes = await nodeRepository.findMany(data, fields);
+    return flatNodes;
+  },
+
   getProjectNodeTree: async (user: User, projectId: string, exclude?: string): Promise<{ nodes: TreeNode[] }> => {
     const project = await projectService.findById(projectId);
     if (!project) throw new HttpError('NOT_FOUND', `Project not found`);

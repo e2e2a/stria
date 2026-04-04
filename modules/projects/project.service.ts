@@ -1,6 +1,6 @@
 import { HttpError } from '@/utils/server/errors';
 import { projectRepository } from '@/modules/projects/project.repository';
-import { ProjectPushNodeDTO } from '@/types';
+import { INode, ProjectPushNodeDTO } from '@/types';
 import { User } from 'next-auth';
 import { projectMemberService } from './member/member.service';
 import { projectMemberRepository } from '@/modules/projects/member/member.repository';
@@ -10,6 +10,7 @@ import { workspaceMemberService } from '../workspaces/members/member.service';
 import { UnitOfWork } from '@/common/UnitOfWork';
 import { ensureProjectMember } from './project.context';
 import { nodeService } from './nodes/node.service';
+import { performSearch } from '@/utils/client/search-nodes-utils';
 
 export const projectService = {
   create: async (
@@ -55,6 +56,19 @@ export const projectService = {
 
       return { project: newProject };
     });
+  },
+
+  search: async (data: { pid: string; query: string }, email: string) => {
+    const project = await projectRepository.findOne({ _id: data.pid });
+    if (!project) throw new HttpError('NOT_FOUND', 'No project to be updated');
+
+    await Promise.all([
+      ensureWorkspaceMember(project.workspaceId, email), // wCtx
+      ensureProjectMember(project._id, email), // pCtx
+    ]);
+    const flatNodes = await nodeService.getProjectFlatNode({ projectId: project._id, type: 'file' });
+    const results = performSearch(data.query, flatNodes as unknown as INode[]);
+    return results;
   },
 
   import: async (

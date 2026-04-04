@@ -1,24 +1,16 @@
-import { NextResponse } from 'next/server';
-import Node from '@/modules/projects/nodes/node.model';
+import { NextRequest, NextResponse } from 'next/server';
 import connectDb from '@/lib/db/connection';
-import { performSearch } from '@/utils/client/search-nodes-utils';
-import { INode } from '@/types';
+import { handleError } from '@/lib/server/handleError';
+import { projectController } from '@/modules/projects/project.controller';
 
-export async function POST(req: Request, { params }: { params: Promise<{ pid: string }> }) {
+export async function POST(req: NextRequest, context: { params: Promise<{ pid: string }> }) {
   try {
     await connectDb();
     const { query } = await req.json();
-    const resolvedParams = await params;
-    const pid = resolvedParams.pid;
-
-    if (!query || !pid) return NextResponse.json([]);
-
-    // Only fetch exactly what is needed for search (no chunks, no dates)
-    const nodes = await Node.find({ projectId: pid, type: 'file' }).select('_id title content').lean();
-
-    const results = performSearch(query, nodes as unknown as INode[]);
-    return NextResponse.json(results);
-  } catch {
-    return NextResponse.json({ error: 'Failed to search' }, { status: 500 });
+    const { pid } = await context.params;
+    const res = await projectController.search(pid, query);
+    return NextResponse.json(res, { status: 201 });
+  } catch (err) {
+    return handleError(err);
   }
 }

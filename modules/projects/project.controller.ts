@@ -51,6 +51,18 @@ export const projectController = {
     return { project };
   },
 
+  search: async (pid: string, query: string) => {
+    const session = await ensureAuthenticated();
+    const resP = ProjectDTO.search.safeParse({ pid, query });
+    if (!resP.success) {
+      const errorMessage = resP.error.issues[0].message;
+      throw new HttpError('BAD_INPUT', errorMessage);
+    }
+
+    const res = await projectService.search(resP.data, session.user.email);
+    return res;
+  },
+
   update: async (req: NextRequest, pid: string) => {
     const body = await req.json();
     const session = await ensureAuthenticated();

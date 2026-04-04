@@ -16,6 +16,11 @@ export const ProjectDTO = {
     workspaceId: objectIdSchema('workspaceId'),
   }),
 
+  search: z.object({
+    pid: objectIdSchema('workspaceId'),
+    query: z.string().min(1).max(100),
+  }),
+
   import: z.object({
     workspaceId: objectIdSchema('workspaceId'),
     title: z.string().min(1).max(255),
