@@ -1091,7 +1091,7 @@ export function getFullSplits(customSplits: number[], docLength: number) {
   return safeSplits;
 }
 
-export function buildChunkDecorations(view: EditorView, customSplits: number[]): RangeSet<Decoration> {
+export function buildChunkDecorations(view: EditorView, customSplits: [number, number][]): RangeSet<Decoration> {
   const allDecos: StateRange<Decoration>[] = [];
   const docLength = view.state.doc.length;
 
@@ -1099,38 +1099,20 @@ export function buildChunkDecorations(view: EditorView, customSplits: number[]):
   const viewFrom = Math.max(0, view.viewport.from - BUFFER);
   const viewTo = Math.min(docLength, view.viewport.to + BUFFER);
 
-  const allSplits = getFullSplits(customSplits, docLength);
-  let currentStart = 0;
+  for (let i = 0; i < customSplits.length; i++) {
+    const [start, end] = customSplits[i];
 
-  for (let i = 0; i <= allSplits.length; i++) {
-    const currentEnd = i < allSplits.length ? allSplits[i] : docLength;
+    // Only render if it intersects the buffered viewport
+    if (end >= viewFrom && start <= viewTo) {
+      const size = end - start;
 
-    if (currentEnd >= viewFrom && currentStart <= viewTo) {
-      const safeStart = Math.max(0, currentStart);
-      const safeEnd = Math.min(currentEnd, docLength);
+      if (start < end) allDecos.push(Decoration.mark({ class: `cm-chunk-highlight chunk-bg-${i % 7} py-1 rounded-[2px] px-1` }).range(start, end));
 
-      if (safeStart < safeEnd) {
-        allDecos.push(
-          Decoration.mark({
-            class: `cm-chunk-highlight chunk-bg-${i % 7} py-1 tracking-widest rounded-[2px] px-1`,
-          }).range(safeStart, safeEnd)
-        );
-
-        if (i < allSplits.length && currentEnd < docLength) {
-          const chunkStart = i === 0 ? 0 : allSplits[i - 1];
-          const chunkSize = currentEnd - chunkStart;
-
-          allDecos.push(
-            Decoration.widget({
-              widget: new DragHandleWidget(currentEnd, i, chunkSize),
-              side: 1,
-            }).range(currentEnd)
-          );
-        }
-      }
+      // side: 1 Places it after the text
+      allDecos.push(Decoration.widget({ widget: new DragHandleWidget(start, i, 'start', size), side: 1 }).range(start));
+      // side: -1 Places it after the text
+      allDecos.push(Decoration.widget({ widget: new DragHandleWidget(end, i, 'end', size), side: -1 }).range(end));
     }
-    currentStart = currentEnd;
-    if (currentStart > viewTo) break;
   }
 
   return RangeSet.of(

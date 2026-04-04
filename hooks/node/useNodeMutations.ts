@@ -1,15 +1,18 @@
+import { useProjectPresence } from '@/features/editor/stores/project-pressence';
 import { nodeClient } from '@/lib/client/api/nodeClient';
 import { INode } from '@/types';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 
 export function useNodeMutations() {
   const queryClient = useQueryClient();
+  const broadcastTreeUpdate = useProjectPresence(state => state.broadcastTreeUpdate);
 
   const create = useMutation({
     mutationFn: (data: { projectId: string; parentId: string | null; type: 'file' | 'folder'; title: string }) => nodeClient.create(data),
     onSuccess: (_data, variables) => {
       if (!variables) return;
       queryClient.invalidateQueries({ queryKey: ['nodesByProjectId', variables.projectId] });
+      broadcastTreeUpdate();
     },
   });
 

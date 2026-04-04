@@ -49,7 +49,6 @@ const myOwnDarkTheme = createTheme({
     background: '#191d24',
     foreground: '#d4d4d4',
     caret: '#ffffff',
-    // selection: '#5d00ff',
     selectionMatch: '#3a3a3a',
     gutterBackground: '#191d24',
     lineHighlight: '#ffffff0f',
@@ -78,11 +77,11 @@ function MarkdownSection({ node, isDirty }: { node: INode; isDirty: boolean }) {
   const setActiveNode = useNodeStore(state => state.setActiveNode);
   const pid = useParams().pid as string;
   const [editorReady, setEditorReady] = useState(false);
-  // for context menu
-  const [contextType, setContextType] = useState<'general' | 'callout'>('general');
 
+  const [contextType, setContextType] = useState<'general' | 'callout'>('general');
   const [isReadOnly, setIsReadOnly] = useState(false);
   const [isChunkActive, setIsChunkActive] = useState(false);
+
   useEditorEvents(node._id, synced, editorViewRef, setIsReadOnly, setIsChunkActive);
 
   const providerRef = useRef<HocuspocusProvider | null>(null);
@@ -97,7 +96,6 @@ function MarkdownSection({ node, isDirty }: { node: INode; isDirty: boolean }) {
       providerRef.current.destroy();
     }
 
-    // 3. Initialize New Provider
     const ydoc = new Y.Doc();
     const provider = new HocuspocusProvider({
       url: 'ws://localhost:1234',
@@ -179,7 +177,6 @@ function MarkdownSection({ node, isDirty }: { node: INode; isDirty: boolean }) {
       EditorState.readOnly.of(isReadOnly || isChunkActive),
       isChunkActive ? chunkModeFacet.of(true) : [],
       EditorView.editorAttributes.of({ class: isChunkActive ? 'cm-chunk-mode-active' : '' }),
-
       markdownLivePreviewField,
       onDocChange,
       tableBackspace,
@@ -269,10 +266,6 @@ function MarkdownSection({ node, isDirty }: { node: INode; isDirty: boolean }) {
     }
   }, [synced, pendingScrollHeading, ytext, node._id]);
 
-  const handleSplitsChange = (newSplits: number[]) => {
-    console.log('Save these to DB:', newSplits);
-    // e.g., useProjectUIStore.getState().saveChunks(newSplits);
-  };
   return (
     <>
       <div className="absolute top-12 left-0 right-0 h-1 z-51 w-full bg-background" />
@@ -290,18 +283,21 @@ function MarkdownSection({ node, isDirty }: { node: INode; isDirty: boolean }) {
           />
         </div>
       </div>
+
       {isChunkActive && (
         <div
+          tabIndex={-1}
           className={cn(
             'absolute inset-0 z-30 bg-background',
-            'h-full! grid grid-cols-1 max-h-full w-full px-10 overflow-y-auto relative [&::-webkit-scrollbar-track]:mt-[56px]'
+            'h-full! grid grid-cols-1 max-h-full w-full px-10 overflow-y-auto overflow-x-hidden relative [&::-webkit-scrollbar-track]:mt-[56px]'
           )}
         >
           <div className="w-full h-auto pb-4 flex flex-col" tabIndex={-1}>
-            <ChunkEditor text={ytext?.toString() || ''} splits={[]} onSplitsChange={handleSplitsChange} />
+            <ChunkEditor text={ytext?.toString() || ''} splits={[]} ydoc={instance?.ydoc} />
           </div>
         </div>
       )}
+
       <div
         tabIndex={-1}
         className={cn(
@@ -337,14 +333,12 @@ function MarkdownSection({ node, isDirty }: { node: INode; isDirty: boolean }) {
             {editorReady ? (
               <CodeMirror
                 key={node._id}
-                // value={instance?.ydoc.getText('codemirror').toString() ?? ''}
                 onCreateEditor={view => {
                   editorViewRef.current = view;
 
                   setTimeout(() => {
                     setupDragTracking(view);
                   }, 0);
-                  // setupDragTracking(view);
                 }}
                 theme={myOwnDarkTheme}
                 basicSetup={false}

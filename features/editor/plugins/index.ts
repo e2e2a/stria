@@ -137,23 +137,19 @@ export const markdownLivePreviewField = StateField.define<RangeSet<Decoration>>(
 export const chunkLivePreviewPlugin = ViewPlugin.fromClass(
   class {
     decorations: DecorationSet;
-
     constructor(view: EditorView) {
       this.decorations = buildChunkDecorations(view, view.state.field(chunkSplitsField));
     }
-
     update(update: ViewUpdate) {
       const splitsChanged = update.state.field(chunkSplitsField) !== update.startState.field(chunkSplitsField);
-
       if (update.docChanged || update.viewportChanged || splitsChanged) {
         this.decorations = buildChunkDecorations(update.view, update.view.state.field(chunkSplitsField));
       }
     }
   },
-  {
-    decorations: v => v.decorations,
-  }
+  { decorations: v => v.decorations }
 );
+
 export const tableSelectionHighlighter = ViewPlugin.fromClass(
   class {
     constructor(readonly view: EditorView) {
@@ -249,9 +245,9 @@ export const chunkModeFacet = Facet.define<boolean, boolean>({
   combine: values => values.some(v => v === true),
 });
 
-export const setSplitsEffect = StateEffect.define<number[]>();
+export const setSplitsEffect = StateEffect.define<[number, number][]>();
 
-export const chunkSplitsField = StateField.define<number[]>({
+export const chunkSplitsField = StateField.define<[number, number][]>({
   create() {
     return [];
   },

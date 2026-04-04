@@ -9,50 +9,84 @@ interface ChunkContextMenuProps {
   selection: { from: number; to: number } | null;
 }
 
+const sliceAndInsert = (existingSplits: [number, number][], from: number, to: number): [number, number][] => {
+  const result: [number, number][] = [];
+  const newChunks: [number, number][] = [];
+
+  if (from < to) {
+    let curr = from;
+    while (curr < to) {
+      const next = Math.min(curr + 512, to);
+      newChunks.push([curr, next]);
+      curr = next;
+    }
+  }
+
+  for (const [A, B] of existingSplits) {
+    if (B <= from || A >= to) {
+      result.push([A, B]);
+    } else {
+      if (A < from) result.push([A, from]);
+      if (B > to) result.push([to, B]);
+    }
+  }
+
+  result.push(...newChunks);
+  return result;
+};
+
 const ChunkContextMenu = ({ editorViewRef, cursorPos, selection }: ChunkContextMenuProps) => {
-  const handleUpdateSplits = (newCustomSplits: number[]) => {
+  const handleUpdateSplits = (newCustomSplits: [number, number][]) => {
     const view = editorViewRef.current;
     if (!view) return;
 
-    const uniqueSortedSplits = Array.from(new Set(newCustomSplits)).sort((a, b) => a - b);
+    const validSplits = newCustomSplits.filter(s => s[0] < s[1]).sort((a, b) => a[0] - b[0]);
+    // LOGGING: Specific log including the new state of chunks
+    console.log('user update chunk splits and db update', validSplits);
+    view.dispatch({ effects: setSplitsEffect.of(validSplits) });
 
-    view.dispatch({ effects: setSplitsEffect.of(uniqueSortedSplits) });
-
-    window.dispatchEvent(
-      new CustomEvent('chunk-splits-changed', {
-        detail: { splits: uniqueSortedSplits },
-      })
-    );
+    window.dispatchEvent(new CustomEvent('chunk-splits-changed', { detail: { splits: validSplits } }));
   };
 
   const handleInsertSplit = () => {
     const view = editorViewRef.current;
     if (!view) return;
     const currentSplits = view.state.field(chunkSplitsField, false) || [];
-    handleUpdateSplits([...currentSplits, cursorPos]);
+    const docLength = view.state.doc.length;
+
+    const isInsideChunk = currentSplits.some(([start, end]) => cursorPos > start && cursorPos < end);
+
+    if (isInsideChunk) {
+      const newSplits = sliceAndInsert(currentSplits, cursorPos, cursorPos);
+      handleUpdateSplits(newSplits);
+    } else {
+      let nextLimit = docLength;
+      for (const [start] of currentSplits) {
+        if (start >= cursorPos) nextLimit = Math.min(nextLimit, start);
+      }
+      const newEnd = Math.min(cursorPos + 512, nextLimit);
+
+      if (cursorPos < newEnd) handleUpdateSplits([...currentSplits, [cursorPos, newEnd]]);
+    }
   };
 
   const handleInsertFromSelection = () => {
     const view = editorViewRef.current;
     if (!view || !selection) return;
 
-    const { from, to } = selection;
     const currentSplits = view.state.field(chunkSplitsField, false) || [];
-
-    const newSplits = [...currentSplits, from, to];
-
+    const newSplits = sliceAndInsert(currentSplits, selection.from, selection.to);
     handleUpdateSplits(newSplits);
   };
 
-  const handleRemoveSplit = () => {
+  const handleRemoveChunk = () => {
     const view = editorViewRef.current;
     if (!view) return;
     const currentSplits = view.state.field(chunkSplitsField, false) || [];
-    if (currentSplits.length === 0) return;
 
-    const nearestSplit = currentSplits.reduce((prev, curr) => (Math.abs(curr - cursorPos) < Math.abs(prev - cursorPos) ? curr : prev));
-
-    handleUpdateSplits(currentSplits.filter(s => s !== nearestSplit));
+    // Simply filter out the chunk that the user right-clicked inside of
+    const nextSplits = currentSplits.filter(([start, end]) => !(cursorPos >= start && cursorPos <= end));
+    handleUpdateSplits(nextSplits);
   };
 
   const handleClearAll = () => {
@@ -70,10 +104,11 @@ const ChunkContextMenu = ({ editorViewRef, cursorPos, selection }: ChunkContextM
 
         <ContextMenuSeparator />
 
-        <ContextMenuItem onSelect={handleRemoveSplit}>Remove Nearest Custom Boundary</ContextMenuItem>
+        {/* Updated label to reflect the new block-based architecture */}
+        <ContextMenuItem onSelect={handleRemoveChunk}>Remove Chunk</ContextMenuItem>
 
         <ContextMenuItem onSelect={handleClearAll} className="text-red-500 focus:bg-red-500/10 focus:text-red-500">
-          Clear All Custom Boundaries
+          Clear All Chunks
         </ContextMenuItem>
       </ContextMenuGroup>
     </ContextMenuContent>
