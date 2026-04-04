@@ -43,7 +43,7 @@ export type INode = {
   title: string;
   content?: string | null;
   archived?: IArchived;
-  updatedAt?: Date;
+  createdAt?: Date;
 };
 
 export type UpdateNodeDTO = Pick<INode, '_id' | 'title' | 'content' | 'archived' | 'userId'>;

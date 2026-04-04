@@ -23,7 +23,7 @@ interface IBacklinkResponse {
 
 export const nodeClient = {
   async getNodes(projectId: string) {
-    const res = await fetch(`${BASE_URL_PROJECT}/${projectId}/nodes`);
+    const res = await fetch(`${BASE_URL_PROJECT}/${projectId}/nodes?exclude=content,updatedAt`);
     if (!res.ok) throw new Error('Failed to fetch nodes');
     return res.json();
   },

@@ -28,7 +28,7 @@ export interface BacklinkResponse {
   mentions: Mention[];
 }
 
-const ALLOWED = ['createdAt', 'updatedAt'] as const;
+const ALLOWED = ['content', 'chunks', 'createdAt', 'updatedAt'] as const;
 export type ExcludeField = (typeof ALLOWED)[number];
 interface FlatNode {
   _id: ObjectId;
