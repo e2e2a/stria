@@ -210,7 +210,16 @@ function MarkdownSection({ node, isDirty }: { node: INode; isDirty: boolean }) {
     const observer = () => {
       const currentContent = ytext.toString();
       if (currentContent === '' && !synced) return;
-      if (currentContent === node.content) return;
+      // NEW: Dispatch event to update local search instantly
+      window.dispatchEvent(
+        new CustomEvent('editor-content-changed', {
+          detail: {
+            nodeId: node._id,
+            title: node.title,
+            content: currentContent,
+          },
+        })
+      );
       clearTimeout(timer);
       timer = setTimeout(() => {
         useNodeStore.getState().updateNode(node._id, { content: currentContent });
@@ -222,7 +231,7 @@ function MarkdownSection({ node, isDirty }: { node: INode; isDirty: boolean }) {
       ytext.unobserve(observer);
       clearTimeout(timer);
     };
-  }, [ytext, node._id, node.content, synced]);
+  }, [ytext, node._id, node.title, synced]);
 
   useEffect(() => {
     if (instance && ytext) {

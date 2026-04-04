@@ -16,3 +16,12 @@ export function useProjectByIdQuery(id: string) {
     enabled: !!id,
   });
 }
+
+export function useProjectSearchQuery(projectId: string, query: string) {
+  return useQuery({
+    queryKey: ['projectSearch', projectId, query],
+    queryFn: () => projectClient.search(projectId, query),
+    enabled: !!projectId && query.trim().length > 0,
+    placeholderData: previousData => previousData,
+  });
+}

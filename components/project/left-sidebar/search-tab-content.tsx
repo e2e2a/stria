@@ -1,24 +1,20 @@
 'use client';
 
-import { useEffect, useState, useRef, useCallback, useMemo, memo, ReactElement } from 'react';
+import { useEffect, useState, useCallback, useMemo, memo, ReactElement, useDeferredValue } from 'react';
 import { Virtuoso } from 'react-virtuoso';
 import { ChevronDown, ChevronRight } from 'lucide-react';
-import { SearchMatch, searchSingleNode } from '@/utils/client/search-nodes-utils';
+import { useParams } from 'next/navigation';
 import { INode } from '@/types';
+import { SearchMatch, SearchResult, searchSingleNode } from '@/utils/client/search-nodes-utils';
+import { useProjectSearchQuery } from '@/hooks/project/useProjectQuery';
 
 const MAX_VISIBLE_RESULTS = 10000;
-const BATCH_UPDATE_MS = 50;
 
 type RenderItem =
   | { type: 'header'; nodeId: string; title: string; count: number }
   | { type: 'line'; nodeId: string; match: SearchMatch; queryLen: number };
 
-interface WorkerResult {
-  nodeId: string;
-  title: string;
-  matches: SearchMatch[];
-}
-
+// --- SUB-COMPONENT: ROW ---
 const SearchRow = memo(function SearchRow({
   item,
   isCollapsed,
@@ -67,137 +63,107 @@ const SearchRow = memo(function SearchRow({
   );
 });
 
-function SearchTabContentComponent({
-  query,
-  flatNodes,
-  onResultClick,
-}: {
-  query: string;
-  flatNodes: INode[] | null;
-  onResultClick: (id: string) => void;
-}) {
-  const [items, setItems] = useState<RenderItem[]>([]);
+function renderLine(text: string, indices: number[], len: number): ReactElement[] | ReactElement {
+  if (!indices?.length) return <span>{text}</span>;
+  const parts: ReactElement[] = [];
+  let last = 0;
+  indices.forEach((start, i) => {
+    parts.push(<span key={`t-${i}`}>{text.substring(last, start)}</span>);
+    parts.push(
+      <mark key={`m-${i}`} className="bg-yellow-500/20 text-yellow-500 font-bold rounded-sm px-0.5">
+        {text.substring(start, start + len)}
+      </mark>
+    );
+    last = start + len;
+  });
+  parts.push(<span key="last">{text.substring(last)}</span>);
+  return parts;
+}
+
+// --- MAIN COMPONENT ---
+function SearchTabContentComponent({ query, onResultClick }: { query: string; onResultClick: (id: string) => void }) {
+  const params = useParams();
+  const projectId = params.pid as string;
+
+  // 1. TanStack Query with Debounce
+  const debouncedQuery = useDeferredValue(query);
+  const { data: backendData, isFetching } = useProjectSearchQuery(projectId, debouncedQuery);
+
+  // 2. State for Real-Time Changes & UI
+  const [realTimeOverrides, setRealTimeOverrides] = useState<Record<string, SearchResult>>({});
   const [collapsedFiles, setCollapsedFiles] = useState<Set<string>>(new Set());
-  const [totalFound, setTotalFound] = useState(0);
 
-  const workerRef = useRef<Worker | null>(null);
-  const searchIdRef = useRef(0);
-  const bufferRef = useRef<RenderItem[]>([]);
-  const batchTimerRef = useRef<NodeJS.Timeout | null>(null);
-  const lastNodesRef = useRef<INode[] | null>(null);
-
-  // 1. Initial cleanup on unmount
+  // 3. Listen for Editor Changes
   useEffect(() => {
-    return () => {
-      workerRef.current?.terminate();
-      if (batchTimerRef.current) clearTimeout(batchTimerRef.current);
+    const handleActiveEditorChange = (e: Event) => {
+      const { nodeId, title, content } = (e as CustomEvent).detail;
+      if (!query) return;
+
+      const matches = searchSingleNode(query, { _id: nodeId, title, content } as INode);
+
+      setRealTimeOverrides(prev => ({
+        ...prev,
+        [nodeId]: { nodeId, title, matches },
+      }));
     };
-  }, []);
 
-  // 2. The Main Search Orchestrator
+    window.addEventListener('editor-content-changed', handleActiveEditorChange);
+    return () => window.removeEventListener('editor-content-changed', handleActiveEditorChange);
+  }, [query]);
+
+  // 4. Reset overrides when the search term changes significantly
   useEffect(() => {
-    const currentId = ++searchIdRef.current;
-
-    // STEP A: KILL EVERYTHING INSTANTLY
-    if (batchTimerRef.current) clearTimeout(batchTimerRef.current);
-    batchTimerRef.current = null;
-    workerRef.current?.terminate();
-    workerRef.current = null;
-
     // eslint-disable-next-line react-hooks/set-state-in-effect
-    setItems([]);
-    setTotalFound(0);
-    bufferRef.current = [];
-    setCollapsedFiles(new Set());
+    setRealTimeOverrides({});
+  }, [debouncedQuery]);
 
-    if (!query || query.trim().length < 1) return;
+  // 5. Merge Data & Calculate Results
+  const { visibleItems, totalFound } = useMemo(() => {
+    if (!query) return { visibleItems: [], totalFound: 0 };
 
-    const delay = setTimeout(() => {
-      const worker = new Worker(new URL('@/utils/client/search.worker.ts', import.meta.url));
-      workerRef.current = worker;
+    const results = backendData || [];
+    // Replace backend file data with editor data if it exists
+    const mergedResults: SearchResult[] = results.map(res => realTimeOverrides[res.nodeId] || res);
 
-      worker.onmessage = (e: MessageEvent<{ type: string; data: WorkerResult[]; searchId: number }>) => {
-        const { type, data, searchId } = e.data;
-
-        if (searchId !== currentId) return;
-
-        if (type === 'LINE_MATCH_CHUNK') {
-          data.forEach(file => {
-            const { nodeId, title, matches } = file;
-            const highlights = matches.reduce((acc, m) => acc + (m.matchIndices?.length || 0), 0);
-            setTotalFound(prev => prev + (highlights || (matches.length > 0 ? matches.length : 1)));
-
-            bufferRef.current.push({ type: 'header', nodeId, title, count: matches.length });
-            matches.forEach(m => {
-              if (bufferRef.current.length < MAX_VISIBLE_RESULTS) {
-                bufferRef.current.push({ type: 'line', nodeId, match: m, queryLen: query.length });
-              }
-            });
-          });
-
-          if (!batchTimerRef.current) {
-            batchTimerRef.current = setTimeout(() => {
-              setItems([...bufferRef.current]);
-              batchTimerRef.current = null;
-            }, BATCH_UPDATE_MS);
-          }
-        }
-      };
-
-      worker.postMessage({ query, nodes: flatNodes, searchId: currentId });
-    }, 180);
-
-    return () => {
-      clearTimeout(delay);
-      workerRef.current?.terminate();
-    };
-  }, [query, flatNodes]);
-
-  useEffect(() => {
-    if (!flatNodes || !lastNodesRef.current || !query) {
-      lastNodesRef.current = flatNodes;
-      return;
-    }
-
-    const changedNode = flatNodes.find((node, i) => {
-      const prev = lastNodesRef.current?.[i];
-      return prev && node._id === prev._id && node.content !== prev.content;
+    // Add active files that aren't in backend results yet
+    Object.values(realTimeOverrides).forEach(override => {
+      if (!results.find(r => r.nodeId === override.nodeId)) {
+        mergedResults.unshift(override);
+      }
     });
 
-    if (changedNode) {
-      const matches = searchSingleNode(query, changedNode);
-      const newHighlights = matches.reduce((acc, m) => acc + (m.matchIndices?.length || 0), 0);
-      const isTitleMatch = changedNode.title.toLowerCase().includes(query.toLowerCase());
-      const newFileTotal = newHighlights === 0 && isTitleMatch ? 1 : newHighlights;
+    let newTotal = 0;
+    const items: RenderItem[] = [];
 
-      setItems(prev => {
-        const firstIdx = prev.findIndex(it => it.nodeId === changedNode._id);
-        const oldHeader = prev[firstIdx] as Extract<RenderItem, { type: 'header' }> | undefined;
-        const oldFileTotal = oldHeader?.type === 'header' ? oldHeader.count : 0;
+    mergedResults.forEach(file => {
+      const { nodeId, title, matches } = file;
+      const isTitleMatch = title.toLowerCase().includes(query.toLowerCase());
 
-        setTotalFound(current => current + (newFileTotal - oldFileTotal));
-        const filtered = prev.filter(it => it.nodeId !== changedNode._id);
+      // Accuracy: matches count + title match count
+      const highlights = matches.reduce((acc, m) => acc + (m.matchIndices?.length || 0), 0);
+      const fileTotal = highlights || (isTitleMatch ? 1 : 0);
 
-        if (matches.length === 0) return filtered;
+      if (fileTotal === 0) return;
 
-        const newEntries: RenderItem[] = [
-          { type: 'header', nodeId: changedNode._id, title: changedNode.title, count: matches.length },
-          ...matches.map(m => ({
-            type: 'line' as const,
-            nodeId: changedNode._id,
-            match: { ...m },
-            queryLen: query.length,
-          })),
-        ];
+      newTotal += fileTotal;
 
-        if (firstIdx === -1) return [...filtered, ...newEntries];
-        const result = [...filtered];
-        result.splice(firstIdx, 0, ...newEntries);
-        return result;
-      });
-    }
-    lastNodesRef.current = flatNodes;
-  }, [flatNodes, query]);
+      const isCollapsed = collapsedFiles.has(nodeId);
+      const neededSlots = matches.length > 0 ? 2 : 1;
+
+      if (items.length + neededSlots <= MAX_VISIBLE_RESULTS) {
+        items.push({ type: 'header', nodeId, title, count: matches.length });
+
+        if (!isCollapsed) {
+          for (const m of matches) {
+            if (items.length >= MAX_VISIBLE_RESULTS) break;
+            items.push({ type: 'line', nodeId, match: m, queryLen: query.length });
+          }
+        }
+      }
+    });
+
+    return { visibleItems: items, totalFound: newTotal };
+  }, [backendData, realTimeOverrides, collapsedFiles, query]);
 
   const toggleFile = useCallback((id: string) => {
     setCollapsedFiles(prev => {
@@ -218,24 +184,21 @@ function SearchTabContentComponent({
     [onResultClick]
   );
 
-  const visibleItems = useMemo(() => {
-    if (collapsedFiles.size === 0) return items;
-    return items.filter(it => it.type === 'header' || !collapsedFiles.has(it.nodeId));
-  }, [items, collapsedFiles]);
-
   return (
     <div className="flex-1 flex flex-col overflow-hidden select-none bg-sidebar">
-      <div className="pt-16 px-4 pb-2 text-[10px] uppercase tracking-wider opacity-50 font-bold">{totalFound} results</div>
+      <div className="pt-16 px-4 pb-2 text-[10px] uppercase tracking-wider opacity-50 font-bold flex items-center justify-between">
+        <span>{totalFound} results</span>
+        {isFetching && <div className="w-3 h-3 border-2 border-primary/50 border-t-primary rounded-full animate-spin" />}
+      </div>
       <div className="flex-1">
         <Virtuoso
           data={visibleItems}
           className="[scrollbar-width:none] overflow-x-hidden"
           itemContent={idx => {
             const item = visibleItems[idx];
-            const key = item.type === 'header' ? `h-${item.nodeId}` : `l-${item.nodeId}-${item.match.index}-${item.match.lineNumber}`;
             return (
               <SearchRow
-                key={key}
+                key={item.type === 'header' ? `h-${item.nodeId}` : `l-${item.nodeId}-${item.match.index}`}
                 item={item}
                 isCollapsed={collapsedFiles.has(item.nodeId)}
                 onToggle={toggleFile}
@@ -249,23 +212,6 @@ function SearchTabContentComponent({
       </div>
     </div>
   );
-}
-
-function renderLine(text: string, indices: number[], len: number): ReactElement[] | ReactElement {
-  if (!indices?.length) return <span>{text}</span>;
-  const parts: ReactElement[] = [];
-  let last = 0;
-  indices.forEach((start, i) => {
-    parts.push(<span key={`t-${i}`}>{text.substring(last, start)}</span>);
-    parts.push(
-      <mark key={`m-${i}`} className="bg-yellow-500/20 text-yellow-500 font-bold rounded-sm px-0.5">
-        {text.substring(start, start + len)}
-      </mark>
-    );
-    last = start + len;
-  });
-  parts.push(<span key="last">{text.substring(last)}</span>);
-  return parts;
 }
 
 export const SearchTabContent = memo(SearchTabContentComponent);

@@ -1,7 +1,7 @@
 import React, { useEffect, MutableRefObject } from 'react';
 import { EditorView } from '@codemirror/view';
 import { sourceModeField, toggleSourceMode } from '@/features/editor/plugins';
-import { EditorSelection } from '@uiw/react-codemirror';
+import { EditorSelection, Transaction } from '@uiw/react-codemirror';
 
 interface EditorJumpDetail {
   nodeId: string;
@@ -53,9 +53,10 @@ export const useEditorEvents = (
           view.dispatch({
             selection: EditorSelection.create(ranges),
             effects: [EditorView.scrollIntoView(ranges[0].from, { y: 'center' })],
-            userEvent: 'select',
+            annotations: [Transaction.addToHistory.of(false)],
+            userEvent: 'select.search',
           });
-          view.focus();
+          setTimeout(() => view.focus(), 0);
         }
         window.__PENDING_JUMP__ = null;
       });

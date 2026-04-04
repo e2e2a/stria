@@ -233,7 +233,7 @@ function LeftSidebarTemplate({ projectData }: { projectData: IProject }) {
                   value="search"
                   className={cn('h-full min-h-0 p-0! gap-0! space-x-0 space-y-0! flex', leftSidebarTab !== 'search' && 'hidden')}
                 >
-                  <SearchTabContent query={searchQuery} flatNodes={flatNodes} onResultClick={handleSearchResultClick} />
+                  <SearchTabContent query={searchQuery} onResultClick={handleSearchResultClick} />
                 </TabsContent>
 
                 <TabsContent value="bookmarks" className="text-white pt-16">

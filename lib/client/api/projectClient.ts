@@ -1,3 +1,5 @@
+import { SearchResult } from '@/utils/client/search-nodes-utils';
+
 const BASE_URL_PROJECTS = `${process.env.NEXT_PUBLIC_BASE_URL}/api/projects`;
 const BASE_URL_WORKSPACES = `${process.env.NEXT_PUBLIC_BASE_URL}/api/workspaces`;
 
@@ -85,6 +87,17 @@ export const projectClient = {
     return json;
   },
 
+  search: async (projectId: string, query: string): Promise<SearchResult[]> => {
+    const res = await fetch(`/api/projects/${projectId}/search`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ query }),
+    });
+
+    const json = await res.json();
+    if (!res.ok) throw new Error('Failed to fetch search nodes in project');
+    return json;
+  },
   // async getProjectsByUserId(userId?: string) {
   //   const res = await fetch(BASE_URL_PROJECTS + `?userId=${userId}`);
   //   const json = await res.json();

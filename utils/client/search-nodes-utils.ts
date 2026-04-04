@@ -79,11 +79,12 @@ function handleOperatorSearch(operator: string, searchTerm: string, nodes: INode
         } else if (inTagsBlock && (trimmed.includes(':') || (trimmed === '' && line.length === 0))) {
           inTagsBlock = false;
         }
-
+        if (cleanTerm.length === 0) return results;
         if (inTagsBlock) {
           const searchStartIndex = isHeader ? lowerLine.indexOf('tags:') + 5 : 0;
 
           let pos = lowerLine.indexOf(cleanTerm, searchStartIndex);
+          console.log('pos', pos);
           while (pos !== -1) {
             lineMatchIndices.push(pos);
             pos = lowerLine.indexOf(cleanTerm, pos + cleanTerm.length);
@@ -101,10 +102,12 @@ function handleOperatorSearch(operator: string, searchTerm: string, nodes: INode
         }
 
         if (lineMatchIndices.length > 0) {
+          const matchText = inTagsBlock ? cleanTerm : searchTerm.startsWith('#') ? searchTerm : `#${searchTerm}`;
+
           matches.push({
-            text: searchTerm.startsWith('#') ? searchTerm : `#${searchTerm}`,
+            text: matchText,
             before: line.substring(0, lineMatchIndices[0]),
-            after: line.substring(lineMatchIndices[0] + (searchTerm.startsWith('#') ? searchTerm.length : searchTerm.length + 1)),
+            after: line.substring(lineMatchIndices[0] + matchText.length),
             index: absoluteIndex,
             lineNumber: i + 1,
             lineContent: line,
