@@ -1,4 +1,5 @@
 'use client';
+
 import { useMemo, useRef, useEffect, useState, useCallback } from 'react';
 import CodeMirror, { EditorView } from '@uiw/react-codemirror';
 import { createTheme } from '@uiw/codemirror-themes';
@@ -55,6 +56,7 @@ export function ChunkEditor({ text, splits, ydoc }: ChunkEditorProps) {
   const [isReady, setIsReady] = useState(false);
 
   const draggingInfoRef = useRef<{ index: number; type: 'start' | 'end' } | null>(null);
+  const latestSplitsRef = useRef<[number, number][] | null>(null);
 
   const broadcastToYjs = useCallback(
     (newSplits: [number, number][]) => {
@@ -86,28 +88,24 @@ export function ChunkEditor({ text, splits, ydoc }: ChunkEditorProps) {
   const syncSplitsToEditor = useCallback(
     (view: EditorView, currentSplits: [number, number][]) => {
       const docLength = view.state.doc.length;
-      let activeSplits = currentSplits;
+      let displaySplits = currentSplits;
 
       if (ydoc) {
         const ymap = ydoc.getMap<[number, number][]>('chunk-state');
         const savedYjsSplits = ymap.get('splits');
+
         if (savedYjsSplits && savedYjsSplits.length > 0) {
-          activeSplits = savedYjsSplits;
+          displaySplits = savedYjsSplits;
         }
       }
 
-      if (activeSplits.length === 0 && docLength > 0) {
-        activeSplits = generateDefaultSplits(docLength);
-        console.log('user update chunk splits and db update', activeSplits);
-
-        setTimeout(() => {
-          broadcastToYjs(activeSplits);
-        }, 0);
+      if (displaySplits.length === 0 && docLength > 0) {
+        displaySplits = generateDefaultSplits(docLength);
       }
 
-      view.dispatch({ effects: setSplitsEffect.of(activeSplits) });
+      view.dispatch({ effects: setSplitsEffect.of(displaySplits) });
     },
-    [ydoc, broadcastToYjs]
+    [ydoc]
   );
 
   useEffect(() => {
@@ -168,16 +166,20 @@ export function ChunkEditor({ text, splits, ydoc }: ChunkEditorProps) {
         draggingInfoRef.current!.index = nextSplits.indexOf(draggedChunk);
       }
 
-      console.log('user update chunk splits and db update', nextSplits);
-
       view.dispatch({ effects: setSplitsEffect.of(nextSplits) });
-      broadcastToYjs(nextSplits);
+
+      latestSplitsRef.current = nextSplits;
     };
 
     const handleMouseUp = () => {
       draggingInfoRef.current = null;
       document.body.style.cursor = 'default';
       document.body.style.userSelect = 'auto';
+
+      if (latestSplitsRef.current) {
+        broadcastToYjs(latestSplitsRef.current);
+        latestSplitsRef.current = null; // reset
+      }
     };
 
     const handleContextMenuSave = (e: Event) => {

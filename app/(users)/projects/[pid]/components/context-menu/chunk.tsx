@@ -41,9 +41,22 @@ const ChunkContextMenu = ({ editorViewRef, cursorPos, selection }: ChunkContextM
     if (!view) return;
 
     const validSplits = newCustomSplits.filter(s => s[0] < s[1]).sort((a, b) => a[0] - b[0]);
-    // LOGGING: Specific log including the new state of chunks
-    console.log('user update chunk splits and db update', validSplits);
-    view.dispatch({ effects: setSplitsEffect.of(validSplits) });
+
+    let splitsToDisplay = validSplits;
+
+    // If we are resetting (empty array), generate the 512 defaults just for the UI
+    if (validSplits.length === 0) {
+      splitsToDisplay = [];
+      const docLength = view.state.doc.length;
+      let start = 0;
+      while (start < docLength) {
+        const end = Math.min(start + 512, docLength);
+        splitsToDisplay.push([start, end]);
+        start = end;
+      }
+    }
+
+    view.dispatch({ effects: setSplitsEffect.of(splitsToDisplay) });
 
     window.dispatchEvent(new CustomEvent('chunk-splits-changed', { detail: { splits: validSplits } }));
   };
@@ -84,12 +97,14 @@ const ChunkContextMenu = ({ editorViewRef, cursorPos, selection }: ChunkContextM
     if (!view) return;
     const currentSplits = view.state.field(chunkSplitsField, false) || [];
 
-    // Simply filter out the chunk that the user right-clicked inside of
     const nextSplits = currentSplits.filter(([start, end]) => !(cursorPos >= start && cursorPos <= end));
     handleUpdateSplits(nextSplits);
   };
 
-  const handleClearAll = () => {
+  // 1️⃣ Renamed for better semantics
+  const handleResetChunks = () => {
+    // Passing an empty array triggers the implicit defaults in the UI
+    // and saves [] to the DB, saving space and telling the AI to use defaults.
     handleUpdateSplits([]);
   };
 
@@ -104,11 +119,10 @@ const ChunkContextMenu = ({ editorViewRef, cursorPos, selection }: ChunkContextM
 
         <ContextMenuSeparator />
 
-        {/* Updated label to reflect the new block-based architecture */}
         <ContextMenuItem onSelect={handleRemoveChunk}>Remove Chunk</ContextMenuItem>
 
-        <ContextMenuItem onSelect={handleClearAll} className="text-red-500 focus:bg-red-500/10 focus:text-red-500">
-          Clear All Chunks
+        <ContextMenuItem onSelect={handleResetChunks} className="text-red-500 focus:bg-red-500/10 focus:text-red-500">
+          Reset to Default Chunks (512 chars)
         </ContextMenuItem>
       </ContextMenuGroup>
     </ContextMenuContent>

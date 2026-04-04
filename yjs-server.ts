@@ -28,7 +28,7 @@ async function debouncedSave(documentName: string, document: Y.Doc) {
       }
 
       if (tracker.chunks) {
-        updateData.chunks = document.getMap('chunk-state').get('splits') as [number, number][];
+        updateData.chunks = (document.getMap('chunk-state').get('splits') as [number, number][]) || [];
         tracker.chunks = false;
       }
 

@@ -9,10 +9,11 @@ export interface INode extends Document {
   children: (Schema.Types.ObjectId | INode)[];
   title?: string;
   content: string;
+  chunks?: [number, number][];
   archived: {
     by: string;
     at: Date;
-    reason: mongoose.Schema.Types.ObjectId;
+    reason: string;
   } | null;
 }
 
@@ -26,6 +27,7 @@ const nodeSchema = new Schema<INode>(
     children: [{ type: Schema.Types.ObjectId, ref: 'Node', default: null }],
     title: { type: String },
     content: { type: String },
+    chunks: { type: [[Number]], default: [] },
     archived: {
       by: { type: Schema.Types.ObjectId, ref: 'User' },
       at: Date,
