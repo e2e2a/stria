@@ -2,6 +2,7 @@ import { EditorView, Decoration, ViewPlugin, ViewUpdate, DecorationSet } from '@
 import { StateField, RangeSet, EditorState, StateEffect, Facet } from '@codemirror/state';
 import { buildChunkDecorations, buildDecorations } from '../decorations';
 import { TablePreviewWidget } from '../widgets';
+import { makeToastError } from '@/lib/toast';
 
 export const setViewportLinesEffect = StateEffect.define<{ from: number; to: number }>();
 
@@ -257,4 +258,20 @@ export const chunkSplitsField = StateField.define<[number, number][]>({
     }
     return splits;
   },
+});
+
+const MAX_CHARACTERS = 5000000;
+const MAX_LINES = 100000;
+
+export const lineLimitGuard = EditorState.transactionFilter.of(tr => {
+  if (tr.newDoc.length > MAX_CHARACTERS) {
+    makeToastError(`Document is too large! Maximum limit is 5,000,000 characters.`);
+    return [];
+  }
+
+  if (tr.newDoc.lines > MAX_LINES) {
+    makeToastError(`Document limit reached! You cannot exceed ${MAX_LINES} lines.`);
+    return [];
+  }
+  return tr;
 });
