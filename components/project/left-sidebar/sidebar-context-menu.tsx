@@ -1,7 +1,7 @@
 'use client';
 import { ContextMenu, ContextMenuContent, ContextMenuItem, ContextMenuSeparator, ContextMenuTrigger } from '@/components/ui/context-menu';
 import { INode } from '@/types';
-import { ReactNode } from 'react';
+import { memo, ReactNode } from 'react';
 import { DangerConfirmDialog } from '../../danger-confirm-dialog';
 import { useNodeStore } from '@/features/editor/stores/nodes';
 import { cn } from '@/lib/utils';
@@ -13,7 +13,7 @@ interface ContainerProps {
   node: INode | null;
 }
 
-export function SidebarContextMenu({ children, node }: ContainerProps) {
+function SidebarContextMenuComponent({ children, node }: ContainerProps) {
   const params = useParams();
   const projectId = params.pid as string;
   const { data: mData } = useGetMyProjectMembership(projectId);
@@ -135,3 +135,9 @@ export function SidebarContextMenu({ children, node }: ContainerProps) {
     </ContextMenu>
   );
 }
+
+export const SidebarContextMenu = memo(SidebarContextMenuComponent, (prevProps, nextProps) => {
+  // If the function returns true, the component will NOT re-render.
+  // We check if the node _id is exactly the same.
+  return prevProps.node?._id === nextProps.node?._id && prevProps.children === nextProps.children;
+});

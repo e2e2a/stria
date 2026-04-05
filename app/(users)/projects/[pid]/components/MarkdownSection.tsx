@@ -44,7 +44,6 @@ import { EditorStatusBar } from './editor-status-bar';
 import { useEditorEvents } from './use-editor-events';
 import { ChunkEditor } from './chunk-editor';
 import { cn } from '@/lib/utils';
-import { useGetMyProjectMembership } from '@/hooks/projectMember/useQueries';
 
 const myOwnDarkTheme = createTheme({
   theme: 'dark',
@@ -71,7 +70,7 @@ const myOwnDarkTheme = createTheme({
   ],
 });
 
-function MarkdownSection({ node, isDirty }: { node: INode; isDirty: boolean }) {
+function MarkdownSection({ node, isDirty, canEditNode, canEditChunk }: { node: INode; isDirty: boolean; canEditNode: boolean; canEditChunk: boolean }) {
   const { data } = useSession();
   const [synced, setSynced] = useState(false);
   const [instance, setInstance] = useState<{ ydoc: Y.Doc; provider: HocuspocusProvider } | null>(null);
@@ -79,7 +78,6 @@ function MarkdownSection({ node, isDirty }: { node: INode; isDirty: boolean }) {
   const markDirty = useTabStore(state => state.markDirty);
   const setActiveNode = useNodeStore(state => state.setActiveNode);
   const pid = useParams().pid as string;
-  const { data: mData } = useGetMyProjectMembership(pid);
   const [editorReady, setEditorReady] = useState(false);
 
   const [contextType, setContextType] = useState<'general' | 'callout'>('general');
@@ -126,10 +124,8 @@ function MarkdownSection({ node, isDirty }: { node: INode; isDirty: boolean }) {
     };
   }, []);
 
-  const canEditNode = !!mData?.permissions?.canEditNode;
-
   useEffect(() => {
-    if (mData && !canEditNode) {
+    if (!canEditNode) {
       // eslint-disable-next-line react-hooks/set-state-in-effect
       setIsReadOnly(true);
 
@@ -139,7 +135,7 @@ function MarkdownSection({ node, isDirty }: { node: INode; isDirty: boolean }) {
         view.contentDOM.blur();
       }
     }
-  }, [mData, canEditNode, setIsReadOnly]);
+  }, [canEditNode, setIsReadOnly]);
 
   const ytext = useMemo(() => instance?.ydoc.getText('codemirror'), [instance]);
   const undoManager = useMemo(() => {
@@ -309,7 +305,7 @@ function MarkdownSection({ node, isDirty }: { node: INode; isDirty: boolean }) {
             setIsReadOnly={setIsReadOnly}
             isChunkActive={isChunkActive}
             setIsChunkActive={setIsChunkActive}
-            canEditChunk={!!mData?.permissions.canEditChunk}
+            canEditChunk={canEditChunk}
           />
         </div>
       </div>

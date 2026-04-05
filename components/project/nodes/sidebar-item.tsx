@@ -41,12 +41,23 @@ interface IProps {
   targetIdRef: React.RefObject<string | null>;
   activeDrag: INode | null;
   isParentDragging?: boolean;
-  isViewer: boolean;
+  canMoveNode: boolean;
   onDragStart: (node: INode) => void;
   onDragEnd: () => void;
 }
 
-function SidebarItem({ item, depth, nodesById, activeDrag, activeNode, targetIdRef, isViewer, isParentDragging = false, onDragStart, onDragEnd }: IProps) {
+function SidebarItem({
+  item,
+  depth,
+  nodesById,
+  activeDrag,
+  activeNode,
+  targetIdRef,
+  canMoveNode,
+  isParentDragging = false,
+  onDragStart,
+  onDragEnd,
+}: IProps) {
   const localStorageKey = `sidebar-folder-open-${item._id}`;
   const hoverTimeoutRef = useRef<number | null>(null);
   const isCreating = useNodeStore(state => state.isCreating);
@@ -126,7 +137,7 @@ function SidebarItem({ item, depth, nodesById, activeDrag, activeNode, targetIdR
 
   const handleDragStart = (e: DragEvent) => {
     e.dataTransfer.effectAllowed = 'move';
-    if (!isViewer) {
+    if (canMoveNode) {
       onDragStart(item);
     }
 
@@ -146,7 +157,7 @@ function SidebarItem({ item, depth, nodesById, activeDrag, activeNode, targetIdR
 
   const commonDragEvents = {
     onDragOver: (e: DragEvent) => {
-      if (isViewer) return;
+      if (!canMoveNode) return;
       e.preventDefault();
       e.dataTransfer.dropEffect = 'move';
       if (!activeDrag) return;
@@ -170,7 +181,7 @@ function SidebarItem({ item, depth, nodesById, activeDrag, activeNode, targetIdR
     },
 
     onDragLeave: (e: DragEvent) => {
-      if (isViewer) return;
+      if (!canMoveNode) return;
       e.preventDefault();
 
       clearOpenFolderTimeout();
@@ -182,10 +193,10 @@ function SidebarItem({ item, depth, nodesById, activeDrag, activeNode, targetIdR
     },
 
     onDragEnter: (e: DragEvent) => {
-      if (!isViewer) e.preventDefault();
+      if (!canMoveNode) e.preventDefault();
     },
     onDrop: (e: DragEvent) => {
-      if (isViewer) return;
+      if (!canMoveNode) return;
       e.preventDefault();
       // e.stopPropagation();
       clearOpenFolderTimeout();
@@ -270,7 +281,7 @@ function SidebarItem({ item, depth, nodesById, activeDrag, activeNode, targetIdR
                     activeDrag={activeDrag}
                     activeNode={activeNode}
                     targetIdRef={targetIdRef}
-                    isViewer={isViewer}
+                    canMoveNode={canMoveNode}
                     isParentDragging={isInForbiddenZone}
                     onDragStart={onDragStart}
                     onDragEnd={onDragEnd}
@@ -286,7 +297,7 @@ function SidebarItem({ item, depth, nodesById, activeDrag, activeNode, targetIdR
                     depth={depth + 3}
                     activeDrag={activeDrag}
                     targetIdRef={targetIdRef}
-                    isViewer={isViewer}
+                    canMoveNode={canMoveNode}
                     isParentDragging={isInForbiddenZone}
                     onDragStart={onDragStart}
                     onDragEnd={onDragEnd}

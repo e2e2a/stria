@@ -7,6 +7,7 @@ import { useTabStore } from '@/features/editor/stores/tabs';
 import { ProjectPresence } from './project-presence';
 import GraphViewSection from './graph-view-section';
 import { useEffect, useState } from 'react';
+import { useGetMyProjectMembership } from '@/hooks/projectMember/useQueries';
 
 export function ProjectSingleClient() {
   const params = useParams();
@@ -24,6 +25,10 @@ export function ProjectSingleClient() {
       setVisitedTabs(prev => new Set(prev).add(activeTabId));
     }
   }, [activeTabId]);
+
+  const { data: mData } = useGetMyProjectMembership(pid);
+  const canEditNode = !!mData?.permissions?.canEditNode;
+  const canEditChunk = !!mData?.permissions?.canEditChunk;
 
   return (
     <AppSidebarLayout>
@@ -50,7 +55,7 @@ export function ProjectSingleClient() {
                 {tab.nodeId === 'graph-view' ? (
                   <GraphViewSection projectId={pid} activeTabId={activeTabId} />
                 ) : (
-                  <MarkdownSection node={tab.node as INode} isDirty={tab.isDirty} />
+                  <MarkdownSection node={tab.node as INode} isDirty={tab.isDirty} canEditChunk={canEditChunk} canEditNode={canEditNode} />
                 )}
               </div>
             );
