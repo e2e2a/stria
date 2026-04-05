@@ -223,7 +223,7 @@ function LeftSidebarTemplate({ projectData }: { projectData: IProject }) {
               <SidebarContent className="ml-0 p-0! space-y-0! h-full flex">
                 <SidebarContextMenu node={null}>
                   <TabsContent className="h-full min-h-0 p-0! gap-0! space-x-0 space-y-0! m-0! font-(family-name:--font-IBM)" value="nodes">
-                    <NavMain />
+                    <NavMain pid={projectData?._id || ''} />
                   </TabsContent>
                 </SidebarContextMenu>
 

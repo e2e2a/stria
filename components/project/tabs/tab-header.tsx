@@ -4,6 +4,7 @@ import { useNodeStore } from '@/features/editor/stores/nodes';
 import { useTabStore } from '@/features/editor/stores/tabs';
 import { cn } from '@/lib/utils';
 import { TabItem } from './tab-item';
+import { useGetMyProjectMembership } from '@/hooks/projectMember/useQueries';
 
 interface TabsHeaderProps {
   pid: string;
@@ -14,7 +15,7 @@ export const TabsHeader = ({ pid }: TabsHeaderProps) => {
   const activeTabs = useTabStore(state => state.activeTabs);
   const openTab = useTabStore(state => state.openTab);
   const setActiveTab = useTabStore(state => state.setActiveTab);
-
+  const { data: mData } = useGetMyProjectMembership(pid);
   const activeDrag = useNodeStore(state => state.activeDrag);
   const setActiveNode = useNodeStore(state => state.setActiveNode);
 
@@ -122,6 +123,7 @@ export const TabsHeader = ({ pid }: TabsHeaderProps) => {
             isActive={isActive}
             isDropBefore={isDropBefore}
             pid={pid}
+            canEditChunk={!!mData?.permissions.canEditChunk}
             draggedTabId={draggedTabId}
             onDragStart={handleTabDragStart}
           />

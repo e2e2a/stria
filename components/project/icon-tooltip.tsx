@@ -4,12 +4,13 @@ interface IconTooltipProps {
   children: React.ReactNode;
   label: string;
   side?: 'top' | 'bottom' | 'left' | 'right';
+  disabled?: boolean;
 }
 
-export const IconTooltip = ({ children, label, side = 'bottom' }: IconTooltipProps) => {
+export const IconTooltip = ({ children, label, side = 'bottom', disabled = false }: IconTooltipProps) => {
   return (
     <TooltipProvider>
-      <Tooltip>
+      <Tooltip open={disabled ? false : undefined}>
         <TooltipTrigger asChild>
           <div className="w-fit h-fit ">{children}</div>
         </TooltipTrigger>

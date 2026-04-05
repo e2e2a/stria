@@ -17,6 +17,8 @@ import { LinkTabHeader } from './link-tab-header';
 import LinkTabContent from './link-tab-content';
 import MermaidTabContent from './mermaid/mermaid-tab-content';
 import { IconTooltip } from '../icon-tooltip';
+import { useParams } from 'next/navigation';
+import { useGetMyProjectMembership } from '@/hooks/projectMember/useQueries';
 
 interface OutlineNode {
   text: string;
@@ -66,6 +68,9 @@ const RightSidebarTemplate = ({ activeNodeId, activeNodeContent }: { activeNodeI
   const setRightSidebarTab = useProjectUIStore(state => state.setRightSidebarTab);
 
   const activeUsers = useProjectPresence(state => state.activeUsers);
+  const params = useParams();
+  const projectId = params.pid as string;
+  const { data: mData } = useGetMyProjectMembership(projectId);
 
   // --- PROPERTY STATES ---
   const [isSearchingInProperty, setIsSearchingInProperty] = useState(false);
@@ -176,14 +181,16 @@ const RightSidebarTemplate = ({ activeNodeId, activeNodeContent }: { activeNodeI
                       )}
                     </TabsTrigger>
                   </IconTooltip>
-                  <IconTooltip label={'Mermaid'}>
-                    <TabsTrigger
-                      className="grow-0 hover:bg-accent/50 data-[state=active]:bg-accent/50! data-[state=active]:border-accent!"
-                      value="mermaid"
-                    >
-                      <IconTrident className="w-6! h-6! rotate-45 -ml-1 mt-[4px]" />
-                    </TabsTrigger>
-                  </IconTooltip>
+                  {mData?.permissions.canEditNode && (
+                    <IconTooltip label={'Mermaid'}>
+                      <TabsTrigger
+                        className="grow-0 hover:bg-accent/50 data-[state=active]:bg-accent/50! data-[state=active]:border-accent!"
+                        value="mermaid"
+                      >
+                        <IconTrident className="w-6! h-6! rotate-45 -ml-1 mt-[4px]" />
+                      </TabsTrigger>
+                    </IconTooltip>
+                  )}
                 </TabsList>
               </div>
 
@@ -305,10 +312,11 @@ const RightSidebarTemplate = ({ activeNodeId, activeNodeContent }: { activeNodeI
               </section>
             </div>
           </TabsContent>
-
-          <TabsContent value="mermaid" className="m-0 flex-1 overflow-y-auto bg-sidebar/80">
-            <MermaidTabContent />
-          </TabsContent>
+          {mData?.permissions.canEditNode && (
+            <TabsContent value="mermaid" className="m-0 flex-1 overflow-y-auto bg-sidebar/80">
+              <MermaidTabContent />
+            </TabsContent>
+          )}
         </Tabs>
       </SidebarContent>
     </Sidebar>

@@ -43,6 +43,7 @@ export const resolveWorkspacePermissions = (role?: string): WorkspacePermissions
 
 export type ProjectPermissions = {
   canEditNode: boolean;
+  canEditChunk: boolean;
 
   canCreateNode: boolean;
 
@@ -57,6 +58,7 @@ export type ProjectPermissions = {
 export const resolveProjectPermissions = (role?: string): ProjectPermissions => {
   return {
     canEditNode: role === 'owner' || role === 'editor',
+    canEditChunk: role === 'owner' || role === 'editor',
 
     canCreateNode: role === 'owner' || role === 'editor',
 

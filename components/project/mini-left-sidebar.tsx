@@ -11,6 +11,7 @@ import { IconTooltip } from './icon-tooltip';
 import { flattenNodeTree } from '@/utils/client/node-utils';
 import { useDeferredValue, useMemo, useRef } from 'react';
 import { useNodeStore } from '@/features/editor/stores/nodes';
+import { useGetMyProjectMembership } from '@/hooks/projectMember/useQueries';
 
 export const CustomDotsIcon = ({ className }: { className?: string }) => {
   return (
@@ -31,6 +32,8 @@ const MiniSidebarTemplate = ({ LeftSidebarRef, isLeftCollapsed, RightSidebarRef 
   const params = useParams();
   const pid = params.pid as string;
   const nodes = useNodeStore(state => state.nodes);
+  const { data: mData } = useGetMyProjectMembership(pid);
+
   const setActiveNode = useNodeStore(state => state.setActiveNode);
   const openTab = useTabStore(state => state.openTab);
   const setRightSidebarTab = useProjectUIStore(state => state.setRightSidebarTab);
@@ -49,27 +52,20 @@ const MiniSidebarTemplate = ({ LeftSidebarRef, isLeftCollapsed, RightSidebarRef 
   const isLocked = useRef(false);
 
   const openRandomNode = (e: React.MouseEvent) => {
-    // 1. Stop the click from traveling to other elements
     e.preventDefault();
     e.stopPropagation();
 
-    // 2. The Gate: If locked, stop everything immediately
-    if (isLocked.current || !flatNodes?.length) return;
-
-    // 3. Lock the door NOW
     isLocked.current = true;
 
-    // 4. Run the logic (Only happens once per second)
     const randomIndex = Math.floor(Math.random() * flatNodes.length);
     const randomNode = flatNodes[randomIndex];
 
     openTab(randomNode.projectId, randomNode, true);
     setActiveNode(randomNode._id);
 
-    // 5. Wait 1 second before allowing another click
     setTimeout(() => {
       isLocked.current = false;
-    }, 2500);
+    }, 1500);
   };
 
   return (
@@ -101,22 +97,24 @@ const MiniSidebarTemplate = ({ LeftSidebarRef, isLeftCollapsed, RightSidebarRef 
                 </IconTooltip>
               </SidebarMenuItem>
 
-              <SidebarMenuItem
-                onClick={() => {
-                  const panel = RightSidebarRef?.current;
-                  if (!panel) return;
-                  if (panel.isCollapsed()) panel.expand();
-                  requestAnimationFrame(() => {
-                    setRightSidebarTab('mermaid');
-                  });
-                }}
-              >
-                <IconTooltip label={'Mermaid'} side="right">
-                  <Button type="button" tabIndex={-1} variant={'ghost'} className="cursor-pointer py-1 hover:bg-transparent!">
-                    <IconTrident className="w-6! h-6! rotate-45 -ml-1 mt-[4px] stroke-[1px]" />
-                  </Button>
-                </IconTooltip>
-              </SidebarMenuItem>
+              {mData?.permissions.canEditNode && (
+                <SidebarMenuItem
+                  onClick={() => {
+                    const panel = RightSidebarRef?.current;
+                    if (!panel) return;
+                    if (panel.isCollapsed()) panel.expand();
+                    requestAnimationFrame(() => {
+                      setRightSidebarTab('mermaid');
+                    });
+                  }}
+                >
+                  <IconTooltip label={'Mermaid'} side="right">
+                    <Button type="button" tabIndex={-1} variant={'ghost'} className="cursor-pointer py-1 hover:bg-transparent!">
+                      <IconTrident className="w-6! h-6! rotate-45 -ml-1 mt-[4px] stroke-[1px]" />
+                    </Button>
+                  </IconTooltip>
+                </SidebarMenuItem>
+              )}
             </SidebarMenu>
           </SidebarGroup>
         </SidebarContent>

@@ -4,7 +4,7 @@ import { ContextMenu, ContextMenuContent, ContextMenuItem, ContextMenuSeparator,
 import { Tab, useTabStore } from '@/features/editor/stores/tabs';
 import { tabActions } from '@/features/editor/stores/tabActions';
 
-const TabHeaderContextMenu = ({ children, tab, pid }: { children: ReactNode; tab: Tab; pid: string }) => {
+const TabHeaderContextMenu = ({ children, tab, pid, canEditChunk }: { children: ReactNode; tab: Tab; pid: string; canEditChunk: boolean }) => {
   const dispatchRemote = (action: 'toggle-chunk' | 'toggle-read-only' | 'toggle-source') => {
     window.dispatchEvent(
       new CustomEvent('editor:remote-action', {
@@ -30,12 +30,12 @@ const TabHeaderContextMenu = ({ children, tab, pid }: { children: ReactNode; tab
           <CodeXml className="mr-2 h-4 w-4 opacity-70" />
           <span>Toggle Source Mode</span>
         </ContextMenuItem>
-
-        <ContextMenuItem onSelect={() => dispatchRemote('toggle-chunk')}>
-          <Layers className="mr-2 h-4 w-4 opacity-70" />
-          <span>Toggle Chunk Mode</span>
-        </ContextMenuItem>
-
+        {canEditChunk && (
+          <ContextMenuItem onSelect={() => dispatchRemote('toggle-chunk')}>
+            <Layers className="mr-2 h-4 w-4 opacity-70" />
+            <span>Toggle Chunk Mode</span>
+          </ContextMenuItem>
+        )}
         <ContextMenuSeparator />
 
         <ContextMenuItem onSelect={() => tabActions.closeTab(pid, tab.nodeId)}>

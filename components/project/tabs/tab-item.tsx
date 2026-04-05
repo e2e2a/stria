@@ -12,18 +12,19 @@ interface TabItemProps {
   isActive: boolean;
   isDropBefore: boolean;
   pid: string;
+  canEditChunk: boolean;
   draggedTabId: string | null;
   onDragStart: (e: React.DragEvent, tabId: string) => void;
 }
 
-export const TabItem = ({ tab, isActive, draggedTabId, isDropBefore, pid, onDragStart }: TabItemProps) => {
+export const TabItem = ({ tab, isActive, draggedTabId, isDropBefore, pid, canEditChunk, onDragStart }: TabItemProps) => {
   const activeNode = useNodeStore(state => state.activeNode);
   const setActiveTab = useTabStore(state => state.setActiveTab);
   const pinTab = useTabStore(state => state.pinTab);
   const setActiveNode = useNodeStore(state => state.setActiveNode);
 
   return (
-    <TabHeaderContextMenu tab={tab} pid={pid}>
+    <TabHeaderContextMenu tab={tab} pid={pid} canEditChunk={canEditChunk}>
       <div
         key={tab.nodeId}
         data-tab-id={tab.nodeId}

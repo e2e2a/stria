@@ -16,12 +16,14 @@ export function EditorOptions({
   setIsReadOnly,
   isChunkActive,
   setIsChunkActive,
+  canEditChunk,
 }: {
   editorViewRef: React.RefObject<EditorView | null>;
   isReadOnly: boolean;
   setIsReadOnly: (val: boolean | ((prev: boolean) => boolean)) => void;
   isChunkActive: boolean;
   setIsChunkActive: (val: boolean | ((prev: boolean) => boolean)) => void;
+  canEditChunk: boolean;
 }) {
   const [open, setOpen] = React.useState(false);
 
@@ -112,20 +114,22 @@ export function EditorOptions({
                   <Check className={cn('h-5 w-5', isSourceMode ? 'opacity-100' : 'opacity-0')} />
                 </CommandItem>
               )}
+              {canEditChunk && (
+                <CommandItem
+                  onSelect={() => {
+                    toggleChunk();
+                    setOpen(false);
+                  }}
+                  className="flex justify-between items-center cursor-pointer py-2"
+                >
+                  <div className="flex items-center">
+                    <Layers className="mr-2 h-4 w-4" />
+                    <span className="text-xs font-medium">Chunk Mode (512 chars)</span>
+                  </div>
+                  <Check className={cn('h-4 w-4 text-blue-400', isChunkActive ? 'opacity-100' : 'opacity-0')} />
+                </CommandItem>
+              )}
 
-              <CommandItem
-                onSelect={() => {
-                  toggleChunk();
-                  setOpen(false);
-                }}
-                className="flex justify-between items-center cursor-pointer py-2"
-              >
-                <div className="flex items-center">
-                  <Layers className="mr-2 h-4 w-4" />
-                  <span className="text-xs font-medium">Chunk Mode (512 chars)</span>
-                </div>
-                <Check className={cn('h-4 w-4 text-blue-400', isChunkActive ? 'opacity-100' : 'opacity-0')} />
-              </CommandItem>
               <Separator />
             </CommandGroup>
           </Command>

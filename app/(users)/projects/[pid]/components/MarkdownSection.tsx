@@ -14,6 +14,7 @@ import {
   dragStatusField,
   lineLimitGuard,
   markdownLivePreviewField,
+  permissionGuard,
   setupDragTracking,
   sourceModeField,
   tableSelectionHighlighter,
@@ -43,6 +44,7 @@ import { EditorStatusBar } from './editor-status-bar';
 import { useEditorEvents } from './use-editor-events';
 import { ChunkEditor } from './chunk-editor';
 import { cn } from '@/lib/utils';
+import { useGetMyProjectMembership } from '@/hooks/projectMember/useQueries';
 
 const myOwnDarkTheme = createTheme({
   theme: 'dark',
@@ -77,6 +79,7 @@ function MarkdownSection({ node, isDirty }: { node: INode; isDirty: boolean }) {
   const markDirty = useTabStore(state => state.markDirty);
   const setActiveNode = useNodeStore(state => state.setActiveNode);
   const pid = useParams().pid as string;
+  const { data: mData } = useGetMyProjectMembership(pid);
   const [editorReady, setEditorReady] = useState(false);
 
   const [contextType, setContextType] = useState<'general' | 'callout'>('general');
@@ -122,6 +125,21 @@ function MarkdownSection({ node, isDirty }: { node: INode; isDirty: boolean }) {
       }
     };
   }, []);
+
+  const canEditNode = !!mData?.permissions?.canEditNode;
+
+  useEffect(() => {
+    if (mData && !canEditNode) {
+      // eslint-disable-next-line react-hooks/set-state-in-effect
+      setIsReadOnly(true);
+
+      const view = editorViewRef.current;
+      if (view) {
+        view.scrollDOM.classList.add('cm-readonly');
+        view.contentDOM.blur();
+      }
+    }
+  }, [mData, canEditNode, setIsReadOnly]);
 
   const ytext = useMemo(() => instance?.ydoc.getText('codemirror'), [instance]);
   const undoManager = useMemo(() => {
@@ -179,6 +197,7 @@ function MarkdownSection({ node, isDirty }: { node: INode; isDirty: boolean }) {
       isChunkActive ? chunkModeFacet.of(true) : [],
       EditorView.editorAttributes.of({ class: isChunkActive ? 'cm-chunk-mode-active' : '' }),
       lineLimitGuard,
+      permissionGuard(canEditNode),
       markdownLivePreviewField,
       onDocChange,
       tableBackspace,
@@ -202,7 +221,7 @@ function MarkdownSection({ node, isDirty }: { node: INode; isDirty: boolean }) {
       viewportLinesPlugin,
       createEditorStatsPlugin(node._id),
     ];
-  }, [instance, ytext, onDocChange, setActiveNode, node._id, undoManager, isReadOnly, isChunkActive]);
+  }, [instance, ytext, onDocChange, setActiveNode, node._id, undoManager, isReadOnly, isChunkActive, canEditNode]);
 
   useEffect(() => {
     if (!ytext) return;
@@ -212,7 +231,6 @@ function MarkdownSection({ node, isDirty }: { node: INode; isDirty: boolean }) {
     const observer = () => {
       const currentContent = ytext.toString();
       if (currentContent === '' && !synced) return;
-      // NEW: Dispatch event to update local search instantly
       window.dispatchEvent(
         new CustomEvent('editor-content-changed', {
           detail: {
@@ -291,6 +309,7 @@ function MarkdownSection({ node, isDirty }: { node: INode; isDirty: boolean }) {
             setIsReadOnly={setIsReadOnly}
             isChunkActive={isChunkActive}
             setIsChunkActive={setIsChunkActive}
+            canEditChunk={!!mData?.permissions.canEditChunk}
           />
         </div>
       </div>
@@ -344,6 +363,7 @@ function MarkdownSection({ node, isDirty }: { node: INode; isDirty: boolean }) {
             {editorReady ? (
               <CodeMirror
                 key={node._id}
+                editable={!isReadOnly && canEditNode}
                 onCreateEditor={view => {
                   editorViewRef.current = view;
 

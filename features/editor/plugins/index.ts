@@ -275,3 +275,14 @@ export const lineLimitGuard = EditorState.transactionFilter.of(tr => {
   }
   return tr;
 });
+
+export const permissionGuard = (canEditNode: boolean) =>
+  EditorState.transactionFilter.of(tr => {
+    const isUserAction = tr.isUserEvent('input') || tr.isUserEvent('delete') || tr.isUserEvent('paste') || tr.isUserEvent('drop');
+
+    if (!canEditNode && tr.docChanged && isUserAction) {
+      makeToastError(`View-only mode! You do not have permission to edit this document.`);
+      return [];
+    }
+    return tr;
+  });

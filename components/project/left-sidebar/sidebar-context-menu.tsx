@@ -5,6 +5,8 @@ import { ReactNode } from 'react';
 import { DangerConfirmDialog } from '../../danger-confirm-dialog';
 import { useNodeStore } from '@/features/editor/stores/nodes';
 import { cn } from '@/lib/utils';
+import { useGetMyProjectMembership } from '@/hooks/projectMember/useQueries';
+import { useParams } from 'next/navigation';
 
 interface ContainerProps {
   children: ReactNode;
@@ -12,6 +14,10 @@ interface ContainerProps {
 }
 
 export function SidebarContextMenu({ children, node }: ContainerProps) {
+  const params = useParams();
+  const projectId = params.pid as string;
+  const { data: mData } = useGetMyProjectMembership(projectId);
+
   const isUpdatingNode = useNodeStore(state => state.isUpdatingNode);
   const selectedNode = useNodeStore(state => state.selectedNode);
   const setIsUpdatingNode = useNodeStore(state => state.setIsUpdatingNode);
@@ -49,7 +55,7 @@ export function SidebarContextMenu({ children, node }: ContainerProps) {
       }}
       modal={true}
     >
-      <ContextMenuTrigger className={cn('h-auto w-full contents')} asChild>
+      <ContextMenuTrigger className={cn('h-auto w-full contents')} asChild disabled={mData && mData?.role === 'viewer' ? true : false}>
         {children}
       </ContextMenuTrigger>
       <ContextMenuContent

@@ -11,12 +11,14 @@ import SidebarCreateFileItem from '../nodes/sidebar-create-file-item';
 import { makeToastError } from '@/lib/toast';
 import { useNodeMutations } from '@/hooks/node/useNodeMutations';
 import { sortNodeTree } from '@/utils/client/sortNode';
+import { useGetMyProjectMembership } from '@/hooks/projectMember/useQueries';
 
 export function clearAllFolderDragOver() {
   document.querySelectorAll('[data-drag-over]').forEach(el => el.removeAttribute('data-drag-over'));
 }
 
-export function NavMain() {
+export function NavMain({ pid }: { pid: string }) {
+  const { data: mData } = useGetMyProjectMembership(pid);
   const nodes = useNodeStore(state => state.nodes);
   const isCreating = useNodeStore(state => state.isCreating);
   const activeDrag = useNodeStore(state => state.activeDrag);
@@ -142,6 +144,7 @@ export function NavMain() {
             targetIdRef={targetIdRef}
             activeNode={activeNode}
             activeDrag={activeDrag}
+            isViewer={!!mData?.permissions.canMoveNode}
             onDragStart={setActiveDrag}
             onDragEnd={handleDragFinished}
           />
@@ -157,6 +160,7 @@ export function NavMain() {
             targetIdRef={targetIdRef}
             activeNode={activeNode}
             activeDrag={activeDrag}
+            isViewer={!!mData?.permissions.canMoveNode}
             onDragStart={setActiveDrag}
             onDragEnd={handleDragFinished}
           />

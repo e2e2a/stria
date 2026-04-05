@@ -12,7 +12,7 @@ export function useGetMembersInProject(projectId: string) {
 export function useGetMyProjectMembership(projectId: string) {
   return useQuery({
     queryKey: ['projectMember', projectId],
-    queryFn: () => projectMemberClient.getMyWorkspaceMembership(projectId),
+    queryFn: () => projectMemberClient.getMyProjectMembership(projectId),
     enabled: !!projectId,
   });
 }

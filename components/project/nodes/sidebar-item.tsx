@@ -41,11 +41,12 @@ interface IProps {
   targetIdRef: React.RefObject<string | null>;
   activeDrag: INode | null;
   isParentDragging?: boolean;
+  isViewer: boolean;
   onDragStart: (node: INode) => void;
   onDragEnd: () => void;
 }
 
-function SidebarItem({ item, depth, nodesById, activeDrag, activeNode, targetIdRef, isParentDragging = false, onDragStart, onDragEnd }: IProps) {
+function SidebarItem({ item, depth, nodesById, activeDrag, activeNode, targetIdRef, isViewer, isParentDragging = false, onDragStart, onDragEnd }: IProps) {
   const localStorageKey = `sidebar-folder-open-${item._id}`;
   const hoverTimeoutRef = useRef<number | null>(null);
   const isCreating = useNodeStore(state => state.isCreating);
@@ -125,9 +126,10 @@ function SidebarItem({ item, depth, nodesById, activeDrag, activeNode, targetIdR
 
   const handleDragStart = (e: DragEvent) => {
     e.dataTransfer.effectAllowed = 'move';
-    onDragStart(item);
+    if (!isViewer) {
+      onDragStart(item);
+    }
 
-    // Create simple ghost image
     const dragImage = document.createElement('div');
     dragImage.innerText = item.title || 'Moving...';
     dragImage.style.cssText =
@@ -135,7 +137,6 @@ function SidebarItem({ item, depth, nodesById, activeDrag, activeNode, targetIdR
     document.body.appendChild(dragImage);
     e.dataTransfer.setDragImage(dragImage, 0, 0);
 
-    // Clean up the ghost DOM node after the drag starts
     setTimeout(() => {
       if (document.body.contains(dragImage)) {
         document.body.removeChild(dragImage);
@@ -145,6 +146,7 @@ function SidebarItem({ item, depth, nodesById, activeDrag, activeNode, targetIdR
 
   const commonDragEvents = {
     onDragOver: (e: DragEvent) => {
+      if (isViewer) return;
       e.preventDefault();
       e.dataTransfer.dropEffect = 'move';
       if (!activeDrag) return;
@@ -168,6 +170,7 @@ function SidebarItem({ item, depth, nodesById, activeDrag, activeNode, targetIdR
     },
 
     onDragLeave: (e: DragEvent) => {
+      if (isViewer) return;
       e.preventDefault();
 
       clearOpenFolderTimeout();
@@ -178,8 +181,11 @@ function SidebarItem({ item, depth, nodesById, activeDrag, activeNode, targetIdR
       }
     },
 
-    onDragEnter: (e: DragEvent) => e.preventDefault(),
+    onDragEnter: (e: DragEvent) => {
+      if (!isViewer) e.preventDefault();
+    },
     onDrop: (e: DragEvent) => {
+      if (isViewer) return;
       e.preventDefault();
       // e.stopPropagation();
       clearOpenFolderTimeout();
@@ -264,6 +270,7 @@ function SidebarItem({ item, depth, nodesById, activeDrag, activeNode, targetIdR
                     activeDrag={activeDrag}
                     activeNode={activeNode}
                     targetIdRef={targetIdRef}
+                    isViewer={isViewer}
                     isParentDragging={isInForbiddenZone}
                     onDragStart={onDragStart}
                     onDragEnd={onDragEnd}
@@ -279,6 +286,7 @@ function SidebarItem({ item, depth, nodesById, activeDrag, activeNode, targetIdR
                     depth={depth + 3}
                     activeDrag={activeDrag}
                     targetIdRef={targetIdRef}
+                    isViewer={isViewer}
                     isParentDragging={isInForbiddenZone}
                     onDragStart={onDragStart}
                     onDragEnd={onDragEnd}

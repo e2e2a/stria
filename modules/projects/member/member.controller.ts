@@ -3,14 +3,15 @@ import { projectMemberService } from './member.service';
 import { HttpError } from '@/utils/server/errors';
 import { MembersSchema } from '@/lib/validators/workspaceMember';
 import { NextRequest } from 'next/server';
+import { ensureProjectMember } from '../project.context';
 
 export const projectMemberController = {
-  // getMyMembership: async (workspaceId: string) => {
-  //   const session = await ensureAuthenticated();
-  //   // const context = await ensureWorkspaceMember(workspaceId, session.user.email);
+  getMyMembership: async (workspaceId: string) => {
+    const session = await ensureAuthenticated();
+    const context = await ensureProjectMember(workspaceId, session.user.email);
 
-  //   return { ...context };
-  // },
+    return { ...context };
+  },
 
   create: async (req: NextRequest, pid: string) => {
     const body = await req.json();

@@ -5,8 +5,11 @@ import { TabsContent } from '@/components/ui/tabs';
 import { useTabStore } from '@/features/editor/stores/tabs';
 import { IProject } from '@/types';
 import { IconTooltip } from '../icon-tooltip';
+import { useGetMyProjectMembership } from '@/hooks/projectMember/useQueries';
 
 const NodeTabHeader = ({ projectData }: { projectData: IProject }) => {
+  const { data: mData } = useGetMyProjectMembership(projectData._id.toString());
+
   const setCollapseAll = useNodeStore(state => state.setCollapseAll);
   const selectedNode = useNodeStore(state => state.selectedNode);
   const activeNode = useNodeStore(state => state.activeNode);
@@ -19,13 +22,15 @@ const NodeTabHeader = ({ projectData }: { projectData: IProject }) => {
 
   const activeTabs = useTabStore(state => state.activeTabs);
   const activeTabId = activeTabs[projectData._id];
+
   return (
     <TabsContent className="h-full min-h-0 w-full" value="nodes">
       <div className="bg-transparent w-full flex items-start gap-x-1 justify-start">
-        <IconTooltip label={'New Note'}>
+        <IconTooltip label={'New Note'} disabled={mData && mData?.role === 'viewer' ? true : false}>
           <Button
             className="px-2! py-1! border border-transparent"
             variant={'ghost'}
+            disabled={mData && mData?.role === 'viewer' ? true : false}
             onClick={() => {
               setIsCreating({ type: 'file', parentId });
               setTimeout(() => {
@@ -37,10 +42,11 @@ const NodeTabHeader = ({ projectData }: { projectData: IProject }) => {
             <SquarePen className="h-6! w-6!" />
           </Button>
         </IconTooltip>
-        <IconTooltip label={'New Folder'}>
+        <IconTooltip label={'New Folder'} disabled={mData && mData?.role === 'viewer' ? true : false}>
           <Button
             className="px-2! py-1! w-fit h-fit border border-transparent"
             variant={'ghost'}
+            disabled={mData && mData?.role === 'viewer' ? true : false}
             onClick={() => {
               setIsCreating({ type: 'folder', parentId });
               setTimeout(() => {
