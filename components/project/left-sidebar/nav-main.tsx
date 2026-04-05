@@ -24,7 +24,6 @@ export function NavMain({ canMoveNode }: { canMoveNode: boolean }) {
   const setNodes = useNodeStore(state => state.setNodes);
   const moveNode = useNodeStore(state => state.moveNode);
   const activeNode = useNodeStore(state => state.activeNode);
-  const undo = useNodeStore(state => state.undo);
   const mutation = useNodeMutations();
 
   const nodesById = useMemo(() => {
@@ -70,7 +69,6 @@ export function NavMain({ canMoveNode }: { canMoveNode: boolean }) {
         {
           onError: async err => {
             try {
-              undo();
               makeToastError(err.message);
             } catch {}
             return;
@@ -85,9 +83,6 @@ export function NavMain({ canMoveNode }: { canMoveNode: boolean }) {
         message = err as string;
       }
       makeToastError(message);
-      try {
-        undo();
-      } catch {}
     }
   };
 
