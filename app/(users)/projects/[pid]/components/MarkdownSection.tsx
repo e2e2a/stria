@@ -319,7 +319,7 @@ function MarkdownSection({ node, isDirty }: { node: INode; isDirty: boolean }) {
           tabIndex={-1}
           className={cn(
             'absolute inset-0 z-30 bg-background',
-            'h-full! grid grid-cols-1 max-h-full w-full px-10 overflow-y-auto overflow-x-hidden relative [&::-webkit-scrollbar-track]:mt-[56px]'
+            'h-full! grid grid-cols-1 max-h-full w-full px-10 overflow-y-auto overflow-x-hidden relative [&::-webkit-scrollbar-track]:mt-[56px] [&::-webkit-scrollbar-track]:mb-[20px]'
           )}
         >
           <div className="w-full h-auto pb-4 flex flex-col" tabIndex={-1}>
@@ -331,7 +331,7 @@ function MarkdownSection({ node, isDirty }: { node: INode; isDirty: boolean }) {
       <div
         tabIndex={-1}
         className={cn(
-          'h-full! grid grid-cols-1 max-h-full w-full px-10 overflow-y-auto overflow-x-hidden relative [&::-webkit-scrollbar-track]:mt-[56px]',
+          'h-full! grid grid-cols-1 max-h-full w-full px-10 overflow-y-auto overflow-x-hidden relative [&::-webkit-scrollbar-track]:mt-[56px] [&::-webkit-scrollbar-track]:mb-[20px]',
           isChunkActive ? 'hidden' : ''
         )}
       >
