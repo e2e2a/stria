@@ -20,7 +20,7 @@ export const nodeController = {
   },
 
   update: async (nid: string, rawBody: { title?: string; content?: string }) => {
-    await ensureAuthenticated();
+    const session = await ensureAuthenticated();
     if (!nid) throw new HttpError('BAD_INPUT');
     const validatedBody = NodeDTO.update.safeParse({ ...rawBody, _id: nid });
 
@@ -29,7 +29,7 @@ export const nodeController = {
       throw new HttpError('BAD_INPUT', errorMessage);
     }
 
-    const updatedNode = await nodeService.update(validatedBody.data);
+    const updatedNode = await nodeService.update(validatedBody.data, session.user.email);
     return updatedNode;
   },
 

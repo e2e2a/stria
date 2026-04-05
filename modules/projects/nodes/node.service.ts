@@ -277,11 +277,11 @@ export const nodeService = {
     }
   ) => {
     const project = await projectService.findById(data.projectId);
-    await Promise.all([
-      ensureWorkspaceMember(project.workspaceId, email), // wCtx
-      ensureProjectMember(project._id, email), // pCtx
-    ]);
-    let path = data.title; // Default for root-level nodes
+
+    const [, pCtx] = await Promise.all([ensureWorkspaceMember(project.workspaceId, email), ensureProjectMember(project._id, email)]);
+    if (!pCtx.permissions.canCreateNode) throw new HttpError('FORBIDDEN');
+
+    let path = data.title;
 
     if (data.parentId) {
       const parentNode = await nodeRepository.findOne({ _id: data.parentId });
@@ -312,7 +312,9 @@ export const nodeService = {
   ) => {
     const { projectId, workspaceId } = data[0];
 
-    await Promise.all([ensureWorkspaceMember(workspaceId, email), ensureProjectMember(projectId, email)]);
+    const [, pCtx] = await Promise.all([ensureWorkspaceMember(workspaceId, email), ensureProjectMember(projectId, email)]);
+    if (!pCtx.permissions.canCreateNode) throw new HttpError('FORBIDDEN');
+
     const project = await projectService.findById(projectId);
     for (const node of data) {
       if (node.projectId !== projectId) throw new HttpError('BAD_INPUT', 'All nodes must belong to the same project');
@@ -327,9 +329,13 @@ export const nodeService = {
     return await nodeRepository.insertMany(data);
   },
 
-  update: async (data: { _id: string; title?: string; content?: string }) => {
+  update: async (data: { _id: string; title?: string; content?: string }, email: string) => {
     const node = await nodeRepository.findOne({ _id: data._id });
     if (!node) throw new HttpError('NOT_FOUND', 'Node not found');
+
+    const [, pCtx] = await Promise.all([ensureWorkspaceMember(node.workspaceId, email), ensureProjectMember(node.projectId, email)]);
+    if (!pCtx.permissions.canEditNode) throw new HttpError('FORBIDDEN');
+
     if (data.title) await checkNodeExistence({ ...node, title: data.title });
 
     return await nodeRepository.updateOne({ _id: data._id }, data);
@@ -341,11 +347,9 @@ export const nodeService = {
     if (node.parentId?.toString() === data?.parentId) throw new HttpError('BAD_INPUT', 'Node is already in the parent node');
     if (node._id.toString() === data?.parentId) throw new HttpError('BAD_INPUT', 'Node cannot be moved to itself');
 
-    await Promise.all([
-      ensureWorkspaceMember(node.workspaceId, email), // wCtx
-      ensureProjectMember(node.projectId, email), // pCtx
-    ]);
-    // 2. Calculate the New Path
+    const [, pCtx] = await Promise.all([ensureWorkspaceMember(node.workspaceId, email), ensureProjectMember(node.projectId, email)]);
+    if (!pCtx.permissions.canMoveNode) throw new HttpError('FORBIDDEN');
+
     let newPath = node.title || node.name;
     if (data.parentId) {
       const parentNode = await nodeRepository.findOne({ _id: data.parentId });
@@ -386,10 +390,7 @@ export const nodeService = {
     const node = await nodeRepository.findOne({ _id: id });
     if (!node) throw new HttpError('NOT_FOUND', 'Node not found');
 
-    const [, pCtx] = await Promise.all([
-      ensureWorkspaceMember(node.workspaceId, email), // wCtx
-      ensureProjectMember(node.projectId, email), // pCtx
-    ]);
+    const [, pCtx] = await Promise.all([ensureWorkspaceMember(node.workspaceId, email), ensureProjectMember(node.projectId, email)]);
 
     if (!pCtx.permissions.canDeleteNode) throw new HttpError('FORBIDDEN');
 
