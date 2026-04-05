@@ -36,6 +36,7 @@ interface ChunkEditorProps {
   text: string;
   splits: [number, number][];
   ydoc?: Y.Doc;
+  canEditChunk: boolean;
 }
 
 function generateDefaultSplits(docLength: number): [number, number][] {
@@ -49,7 +50,7 @@ function generateDefaultSplits(docLength: number): [number, number][] {
   return defaults;
 }
 
-export function ChunkEditor({ text, splits, ydoc }: ChunkEditorProps) {
+export function ChunkEditor({ text, splits, ydoc, canEditChunk }: ChunkEditorProps) {
   const editorViewRef = useRef<EditorView | null>(null);
   const [cursorPos, setCursorPos] = useState(0);
   const [selection, setSelection] = useState<{ from: number; to: number } | null>(null);
@@ -206,7 +207,7 @@ export function ChunkEditor({ text, splits, ydoc }: ChunkEditorProps) {
       EditorView.lineWrapping,
       EditorView.editable.of(false),
       chunkSplitsField,
-      chunkLivePreviewPlugin,
+      chunkLivePreviewPlugin(canEditChunk),
       EditorView.domEventHandlers({
         contextmenu: (event, view) => {
           const pos = view.posAtCoords({ x: event.clientX, y: event.clientY });
@@ -219,7 +220,7 @@ export function ChunkEditor({ text, splits, ydoc }: ChunkEditorProps) {
         },
       }),
     ];
-  }, []);
+  }, [canEditChunk]);
 
   return (
     <div className="relative w-full h-full">

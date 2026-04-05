@@ -135,21 +135,41 @@ export const markdownLivePreviewField = StateField.define<RangeSet<Decoration>>(
   provide: f => EditorView.decorations.from(f),
 });
 
-export const chunkLivePreviewPlugin = ViewPlugin.fromClass(
-  class {
-    decorations: DecorationSet;
-    constructor(view: EditorView) {
-      this.decorations = buildChunkDecorations(view, view.state.field(chunkSplitsField));
-    }
-    update(update: ViewUpdate) {
-      const splitsChanged = update.state.field(chunkSplitsField) !== update.startState.field(chunkSplitsField);
-      if (update.docChanged || update.viewportChanged || splitsChanged) {
-        this.decorations = buildChunkDecorations(update.view, update.view.state.field(chunkSplitsField));
+// export const chunkLivePreviewPlugin = ViewPlugin.fromClass(
+//   class {
+//     decorations: DecorationSet;
+//     constructor(view: EditorView) {
+//       this.decorations = buildChunkDecorations(view, view.state.field(chunkSplitsField));
+//     }
+//     update(update: ViewUpdate) {
+//       const splitsChanged = update.state.field(chunkSplitsField) !== update.startState.field(chunkSplitsField);
+//       if (update.docChanged || update.viewportChanged || splitsChanged) {
+//         this.decorations = buildChunkDecorations(update.view, update.view.state.field(chunkSplitsField));
+//       }
+//     }
+//   },
+//   { decorations: v => v.decorations }
+// );
+
+export function chunkLivePreviewPlugin(canEditChunk: boolean) {
+  return ViewPlugin.fromClass(
+    class {
+      decorations: DecorationSet;
+      constructor(view: EditorView) {
+        // Pass canEditChunk to the builder
+        this.decorations = buildChunkDecorations(view, view.state.field(chunkSplitsField), canEditChunk);
       }
-    }
-  },
-  { decorations: v => v.decorations }
-);
+      update(update: ViewUpdate) {
+        const splitsChanged = update.state.field(chunkSplitsField) !== update.startState.field(chunkSplitsField);
+        if (update.docChanged || update.viewportChanged || splitsChanged) {
+          // Pass canEditChunk to the builder
+          this.decorations = buildChunkDecorations(update.view, update.view.state.field(chunkSplitsField), canEditChunk);
+        }
+      }
+    },
+    { decorations: v => v.decorations }
+  );
+}
 
 export const tableSelectionHighlighter = ViewPlugin.fromClass(
   class {

@@ -319,7 +319,7 @@ function MarkdownSection({ node, isDirty, canEditNode, canEditChunk }: { node: I
           )}
         >
           <div className="w-full h-auto pb-4 flex flex-col" tabIndex={-1}>
-            <ChunkEditor text={ytext?.toString() || ''} splits={[]} ydoc={instance?.ydoc} />
+            <ChunkEditor text={ytext?.toString() || ''} splits={[]} ydoc={instance?.ydoc} canEditChunk={canEditChunk} />
           </div>
         </div>
       )}

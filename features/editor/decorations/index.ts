@@ -1091,7 +1091,7 @@ export function getFullSplits(customSplits: number[], docLength: number) {
   return safeSplits;
 }
 
-export function buildChunkDecorations(view: EditorView, customSplits: [number, number][]): RangeSet<Decoration> {
+export function buildChunkDecorations(view: EditorView, customSplits: [number, number][], canEditChunk: boolean): RangeSet<Decoration> {
   const allDecos: StateRange<Decoration>[] = [];
   const docLength = view.state.doc.length;
 
@@ -1107,11 +1107,12 @@ export function buildChunkDecorations(view: EditorView, customSplits: [number, n
       const size = end - start;
 
       if (start < end) allDecos.push(Decoration.mark({ class: `cm-chunk-highlight chunk-bg-${i % 7} py-1 rounded-[2px] px-1` }).range(start, end));
-
-      // side: 1 Places it after the text
-      allDecos.push(Decoration.widget({ widget: new DragHandleWidget(start, i, 'start', size), side: 1 }).range(start));
-      // side: -1 Places it after the text
-      allDecos.push(Decoration.widget({ widget: new DragHandleWidget(end, i, 'end', size), side: -1 }).range(end));
+      if (canEditChunk) {
+        // side: 1 Places it after the text
+        allDecos.push(Decoration.widget({ widget: new DragHandleWidget(start, i, 'start', size), side: 1 }).range(start));
+        // side: -1 Places it after the text
+        allDecos.push(Decoration.widget({ widget: new DragHandleWidget(end, i, 'end', size), side: -1 }).range(end));
+      }
     }
   }
 
