@@ -6,7 +6,7 @@ import { useProjectPresence } from '@/features/editor/stores/project-pressence';
 import { useSession } from 'next-auth/react';
 import { NavUser } from '../../nav-user';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { List, Users, Link, ArrowDownLeft, Archive } from 'lucide-react';
+import { List, Users, Link, ArrowDownLeft, Archive, Hash } from 'lucide-react';
 import { useProjectUIStore } from '@/features/editor/stores/project-ui';
 import { IconTrident } from '@tabler/icons-react';
 import { OutlineTabItem } from './outline-tab-item';
@@ -19,6 +19,8 @@ import MermaidTabContent from './mermaid/mermaid-tab-content';
 import { IconTooltip } from '../icon-tooltip';
 import { useParams } from 'next/navigation';
 import { useGetMyProjectMembership } from '@/hooks/projectMember/useQueries';
+import { TagsTabHeader } from './tags-tab-header';
+import { TagsTabContent } from './tags-tab-content';
 
 interface OutlineNode {
   text: string;
@@ -71,6 +73,12 @@ const RightSidebarTemplate = ({ activeNodeId, activeNodeContent }: { activeNodeI
   const params = useParams();
   const projectId = params.pid as string;
   const { data: mData } = useGetMyProjectMembership(projectId);
+
+  // --- TAG STATES ---
+  const [isSearchingInTags, setIsSearchingInTags] = useState(false);
+  const [searchQueryInTags, setSearchQueryInTags] = useState('');
+  const [tagsExpand, setTagsExpand] = useState(true);
+  const [isNestedTagsView, setIsNestedTagsView] = useState(true);
 
   // --- PROPERTY STATES ---
   const [isSearchingInProperty, setIsSearchingInProperty] = useState(false);
@@ -152,6 +160,15 @@ const RightSidebarTemplate = ({ activeNodeId, activeNodeContent }: { activeNodeI
                   {/* <TabsTrigger className="grow-0" value="outgoing">
                     <OutboundLinkIcon className="w-6! h-6!" />
                   </TabsTrigger> */}
+                  {/* Inside TabsList */}
+                  <IconTooltip label={'Tags'}>
+                    <TabsTrigger
+                      className="grow-0 hover:bg-accent/50 data-[state=active]:bg-accent/50! data-[state=active]:border-accent!"
+                      value="tags" // <--- Make sure "tags" is in your onValueChange type signature
+                    >
+                      <Hash className="w-6! h-6!" />
+                    </TabsTrigger>
+                  </IconTooltip>
                   <IconTooltip label={'All Properties'}>
                     <TabsTrigger
                       className="grow-0 hover:bg-accent/50 data-[state=active]:bg-accent/50! data-[state=active]:border-accent!"
@@ -218,6 +235,19 @@ const RightSidebarTemplate = ({ activeNodeId, activeNodeContent }: { activeNodeI
                 setSortMode={setLinkSortMode}
               />
 
+              {/* Tags Header Content */}
+              <TagsTabHeader
+                isSearchingInTags={isSearchingInTags}
+                setIsSearchingInTags={setIsSearchingInTags}
+                searchQueryInTags={searchQueryInTags}
+                setSearchQueryInTags={setSearchQueryInTags}
+                defaultExpand={tagsExpand}
+                setDefaultExpand={setTagsExpand}
+                handleToggleExpand={setTagsExpand}
+                isNestedView={isNestedTagsView}
+                setIsNestedView={setIsNestedTagsView}
+              />
+
               {/* Properties Header Content */}
               <PropertyTabHeader
                 isSearchingInProperty={isSearchingInProperty}
@@ -258,6 +288,13 @@ const RightSidebarTemplate = ({ activeNodeId, activeNodeContent }: { activeNodeI
           {/* <TabsContent value="outgoing" className="m-0 flex-1 overflow-y-auto bg-sidebar/80">
             outgoing links
           </TabsContent> */}
+
+          <TabsContent
+            value="tags"
+            className="m-0 flex-1 h-full overflow-y-auto bg-sidebar/80 [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden"
+          >
+            <TagsTabContent searchQuery={searchQueryInTags} defaultExpand={tagsExpand} isNestedView={isNestedTagsView} />
+          </TabsContent>
 
           <TabsContent
             value="properties"

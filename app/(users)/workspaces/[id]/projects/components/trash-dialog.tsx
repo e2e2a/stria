@@ -38,7 +38,7 @@ export default function TrashDialog({ item, workspaceId }: IProps) {
   const refinedSchema = projectSchema.refine(
     data => {
       if (!data.title) return false;
-      return data.title.toLowerCase() === item.title;
+      return data.title.toLowerCase() === item.title.toLowerCase();
     },
     {
       message: 'Please type the correct project name.',

@@ -12,6 +12,7 @@ import { ensureProjectMember } from './project.context';
 import { nodeService } from './nodes/node.service';
 import { performSearch } from '@/utils/client/search-nodes-utils';
 import { getAllPropertyStats } from '@/utils/client/get-property-stats';
+import { getProjectTagsCount } from '@/utils/client/get-tags-count';
 
 export const projectService = {
   create: async (
@@ -69,6 +70,20 @@ export const projectService = {
     ]);
     const flatNodes = await nodeService.getProjectFlatNode({ projectId: project._id, type: 'file' });
     const results = performSearch(data.query, flatNodes as unknown as INode[]);
+    return results;
+  },
+
+  getTags: async (pid: string, email: string) => {
+    const project = await projectRepository.findOne({ _id: pid });
+    if (!project) throw new HttpError('NOT_FOUND', 'No project to be updated');
+
+    await Promise.all([
+      ensureWorkspaceMember(project.workspaceId, email), // wCtx
+      ensureProjectMember(project._id, email), // pCtx
+    ]);
+
+    const flatNodes = await nodeService.getProjectFlatNode({ projectId: project._id, type: 'file' });
+    const results = await getProjectTagsCount((flatNodes as unknown as INode[]) || []);
     return results;
   },
 

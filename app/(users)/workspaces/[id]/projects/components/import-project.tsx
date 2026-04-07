@@ -4,7 +4,7 @@ import { makeToastError, makeToastSucess } from '@/lib/toast';
 import { Button } from '@/components/ui/button';
 import { FolderDownIcon } from 'lucide-react';
 
-const IGNORED_DIRECTORIES = new Set(['node_modules', '.git', '.next', 'dist', 'build']); // due to browser limit
+const IGNORED_DIRECTORIES = new Set(['node_modules', '.git', '.next', 'dist']); // due to browser limit
 
 type NodeItem = {
   name: string;

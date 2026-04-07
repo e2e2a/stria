@@ -106,7 +106,13 @@ export const projectClient = {
 
   getProperties: async (projectId: string): Promise<PropertyStat[]> => {
     const res = await fetch(`${BASE_URL_PROJECTS}/${projectId}/properties`);
-    if (!res.ok) throw new Error('Failed to fetch projects in workspace');
+    if (!res.ok) throw new Error('Failed to fetch properties in project');
+    return res.json();
+  },
+
+  getTags: async (projectId: string): Promise<{ name: string; count: number }[]> => {
+    const res = await fetch(`${BASE_URL_PROJECTS}/${projectId}/tags`);
+    if (!res.ok) throw new Error('Failed to fetch tags in project');
     return res.json();
   },
   // async getProjectsByUserId(userId?: string) {

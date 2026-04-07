@@ -63,6 +63,13 @@ export const projectController = {
     return res;
   },
 
+  getTags: async (pid: string) => {
+    const session = await ensureAuthenticated();
+
+    const res = await projectService.getTags(pid, session.user.email);
+    return res;
+  },
+
   getProperties: async (pid: string) => {
     const session = await ensureAuthenticated();
 

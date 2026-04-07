@@ -24,9 +24,11 @@ export function performSearch(query: string, nodes: INode[] | null): SearchResul
   if (!query || query.length < 1 || !nodes) return [];
   const trimmed = query.trim().toLowerCase();
 
+  let results: SearchResult[] = [];
+
   if (trimmed.startsWith('["') && trimmed.endsWith('"]')) {
     const propertyTerm = trimmed.substring(2, trimmed.length - 2).trim();
-    return handlePropertySearch(propertyTerm, nodes);
+    results = handlePropertySearch(propertyTerm, nodes);
   }
 
   const operatorMatch = query.match(/^(tag|file|line):(.*)/i);
@@ -36,10 +38,13 @@ export function performSearch(query: string, nodes: INode[] | null): SearchResul
   if (!searchTerm && operator !== 'file') return [];
 
   if (operator) {
-    return handleOperatorSearch(operator, searchTerm, nodes);
+    results = handleOperatorSearch(operator, searchTerm, nodes);
   } else {
-    return handlePlainTextSearch(searchTerm, nodes);
+    results = handlePlainTextSearch(searchTerm, nodes);
   }
+
+  // Sort the final results alphabetically (A-Z) by title before returning
+  return results.sort((a, b) => a.title.localeCompare(b.title));
 }
 
 /**

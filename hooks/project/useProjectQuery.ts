@@ -33,3 +33,11 @@ export function useProjectPropertiesQuery(id: string) {
     enabled: !!id,
   });
 }
+
+export function useProjectTagsQuery(id: string) {
+  return useQuery({
+    queryKey: ['projectProperties', id],
+    queryFn: () => projectClient.getTags(id),
+    enabled: !!id,
+  });
+}
