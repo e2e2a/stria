@@ -29,7 +29,7 @@ export const PropertyTabItems = ({ sortMode, searchQuery }: IProps) => {
   };
 
   const propertyStats = useMemo(() => {
-    let stats = data && data.length > 0 ? data : [];
+    let stats = (data && data.length > 0 ? data : []).filter(item => item && typeof item.key === 'string');
 
     if (searchQuery.trim()) {
       const lowerQuery = searchQuery.toLowerCase();

@@ -30,7 +30,7 @@ const buildTagTree = (flatTags: ResponseFlatTag[]): TagNode[] => {
   const rootNodes: TagNode[] = [];
   const nodeMap: Record<string, TagNode> = {};
 
-  const sortedTags = [...flatTags].sort((a, b) => a.name.localeCompare(b.name));
+  const sortedTags = [...flatTags].filter(tag => tag && typeof tag.name === 'string').sort((a, b) => a.name.localeCompare(b.name));
 
   sortedTags.forEach(tag => {
     const parts = tag.name.split('/');
