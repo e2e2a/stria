@@ -1,10 +1,9 @@
-import React, { useMemo, useState, useEffect } from 'react';
+import { useMemo, useState, useEffect } from 'react';
 import { Virtuoso } from 'react-virtuoso';
-import { ChevronRight, Hash, Loader2 } from 'lucide-react';
+import { ChevronRight, Loader2 } from 'lucide-react';
 import { useParams } from 'next/navigation';
 import { useProjectTagsQuery } from '@/hooks/project/useProjectQuery';
-
-// Import your query hook
+import { useProjectUIStore } from '@/features/editor/stores/project-ui';
 
 export interface ResponseFlatTag {
   name: string;
@@ -92,7 +91,7 @@ const HighlightedText = ({ text, highlight }: { text: string; highlight: string 
 export const TagsTabContent = ({ searchQuery, defaultExpand, isNestedView }: { searchQuery: string; defaultExpand: boolean; isNestedView: boolean }) => {
   const params = useParams();
   const projectId = params.pid as string;
-
+  const { setSearchQuery, setLeftSidebarTab } = useProjectUIStore();
   const { data, isLoading, isError } = useProjectTagsQuery(projectId);
   const rawFlatData: ResponseFlatTag[] = data || EMPTY_DATA;
 
@@ -181,14 +180,10 @@ export const TagsTabContent = ({ searchQuery, defaultExpand, isNestedView }: { s
     });
   };
 
-  const handleNavigate = (tagFullName: string) => {
-    window.dispatchEvent(
-      new CustomEvent('editor:search-tag', {
-        detail: { tag: tagFullName },
-      })
-    );
+  const handleTagClick = (key: string) => {
+    setSearchQuery(`tag:#${key}`);
+    setLeftSidebarTab('search');
   };
-
   if (isLoading)
     return (
       <div className="flex items-center justify-center p-8 text-zinc-500">
@@ -210,7 +205,7 @@ export const TagsTabContent = ({ searchQuery, defaultExpand, isNestedView }: { s
         <div
           className="group flex items-center justify-between gap-2 px-2 py-1.5 hover:bg-white/5 cursor-pointer transition-colors w-full"
           style={{ paddingLeft: `${depth * 16 + 8}px` }}
-          onClick={() => handleNavigate(node.fullName)}
+          onClick={() => handleTagClick(node.fullName)}
         >
           <div className="flex items-center gap-1.5 overflow-hidden">
             <div
@@ -222,15 +217,13 @@ export const TagsTabContent = ({ searchQuery, defaultExpand, isNestedView }: { s
                 }
               }}
             >
-              {hasChildren && isNestedView ? (
+              {hasChildren && isNestedView && (
                 <button
                   className="hover:bg-white/10 p-0.5 rounded transition-transform"
                   style={{ transform: isExpanded ? 'rotate(90deg)' : 'rotate(0deg)' }}
                 >
-                  <ChevronRight className="w-3.5 h-3.5 text-zinc-500 group-hover:text-zinc-300" />
+                  <ChevronRight className="w-3.5 h-3.5 text-zinc-500 group-hover:text-zinc-300 -ml-1" />
                 </button>
-              ) : (
-                <Hash className="w-3 h-3 text-zinc-600 group-hover:text-primary transition-colors ml-1" />
               )}
             </div>
             <span className="text-[13px] text-zinc-400 group-hover:text-zinc-100 truncate font-medium tracking-tight">

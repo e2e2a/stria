@@ -6,7 +6,7 @@ import { useProjectPresence } from '@/features/editor/stores/project-pressence';
 import { useSession } from 'next-auth/react';
 import { NavUser } from '../../nav-user';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { List, Users, Link, ArrowDownLeft, Archive, Hash } from 'lucide-react';
+import { List, Users, Link, ArrowDownLeft, Archive, Tags } from 'lucide-react';
 import { useProjectUIStore } from '@/features/editor/stores/project-ui';
 import { IconTrident } from '@tabler/icons-react';
 import { OutlineTabItem } from './outline-tab-item';
@@ -162,11 +162,8 @@ const RightSidebarTemplate = ({ activeNodeId, activeNodeContent }: { activeNodeI
                   </TabsTrigger> */}
                   {/* Inside TabsList */}
                   <IconTooltip label={'Tags'}>
-                    <TabsTrigger
-                      className="grow-0 hover:bg-accent/50 data-[state=active]:bg-accent/50! data-[state=active]:border-accent!"
-                      value="tags" // <--- Make sure "tags" is in your onValueChange type signature
-                    >
-                      <Hash className="w-6! h-6!" />
+                    <TabsTrigger className="grow-0 hover:bg-accent/50 data-[state=active]:bg-accent/50! data-[state=active]:border-accent!" value="tags">
+                      <Tags className="w-6! h-6!" />
                     </TabsTrigger>
                   </IconTooltip>
                   <IconTooltip label={'All Properties'}>
