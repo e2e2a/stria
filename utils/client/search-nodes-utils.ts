@@ -67,56 +67,70 @@ function handleOperatorSearch(operator: string, searchTerm: string, nodes: INode
       const lines = content.split('\n');
       let absoluteIndex = 0;
       let inTagsBlock = false;
+      let inFencedCodeBlock = false;
 
       lines.forEach((line, i) => {
         const trimmed = line.trim();
         const lowerLine = line.toLowerCase();
         const lineMatchIndices: number[] = [];
 
-        const isHeader = trimmed.startsWith('tags:');
-        if (isHeader) {
-          inTagsBlock = true;
-        } else if (inTagsBlock && (trimmed.includes(':') || (trimmed === '' && line.length === 0))) {
-          inTagsBlock = false;
-        }
-        if (cleanTerm.length === 0) return results;
-        if (inTagsBlock) {
-          const searchStartIndex = isHeader ? lowerLine.indexOf('tags:') + 5 : 0;
+        if (trimmed.startsWith('```')) inFencedCodeBlock = !inFencedCodeBlock;
 
-          let pos = lowerLine.indexOf(cleanTerm, searchStartIndex);
-          console.log('pos', pos);
-          while (pos !== -1) {
-            lineMatchIndices.push(pos);
-            pos = lowerLine.indexOf(cleanTerm, pos + cleanTerm.length);
+        if (!inFencedCodeBlock && !trimmed.startsWith('```')) {
+          const isHeader = trimmed.startsWith('tags:');
+          if (isHeader) {
+            inTagsBlock = true;
+          } else if (inTagsBlock && (trimmed.includes(':') || trimmed === '---' || trimmed === '')) {
+            inTagsBlock = false;
           }
-        } else {
-          let m;
-          while ((m = tagRegex.exec(line)) !== null) {
-            const idx = m.index + m[1].length;
-            const charBefore = line[idx - 1];
-            const charAfter = line[idx + cleanTerm.length + 1];
-            if (!['(', '[', '{', '`'].includes(charBefore) && ![')', ']', '}', '`'].includes(charAfter)) {
-              lineMatchIndices.push(idx);
+
+          if (cleanTerm.length > 0) {
+            if (inTagsBlock) {
+              const searchStartIndex = isHeader ? lowerLine.indexOf('tags:') + 5 : 0;
+
+              let pos = lowerLine.indexOf(cleanTerm, searchStartIndex);
+              while (pos !== -1) {
+                lineMatchIndices.push(pos);
+                pos = lowerLine.indexOf(cleanTerm, pos + cleanTerm.length);
+              }
+            } else {
+              let m;
+              while ((m = tagRegex.exec(line)) !== null) {
+                const idx = m.index + m[1].length;
+                const charBefore = line[idx - 1];
+                const charAfter = line[idx + cleanTerm.length + 1];
+                if (!['(', '[', '{', '`'].includes(charBefore) && ![')', ']', '}', '`'].includes(charAfter)) {
+                  lineMatchIndices.push(idx);
+                }
+              }
+            }
+
+            if (lineMatchIndices.length > 0) {
+              const matchText = inTagsBlock ? cleanTerm : searchTerm.startsWith('#') ? searchTerm : `#${searchTerm}`;
+
+              let displayLineContent = line;
+              if (inTagsBlock && !lowerLine.includes('tags:')) {
+                const cleanLine = line.replace(/^-?\s*/, '');
+                displayLineContent = `tags: ${cleanLine}`;
+              }
+
+              matches.push({
+                text: matchText,
+                before: line.substring(0, lineMatchIndices[0]),
+                after: line.substring(lineMatchIndices[0] + matchText.length),
+                index: absoluteIndex,
+                lineNumber: i + 1,
+                lineContent: displayLineContent,
+                matchIndices: inTagsBlock ? [] : lineMatchIndices,
+              });
             }
           }
         }
 
-        if (lineMatchIndices.length > 0) {
-          const matchText = inTagsBlock ? cleanTerm : searchTerm.startsWith('#') ? searchTerm : `#${searchTerm}`;
-
-          matches.push({
-            text: matchText,
-            before: line.substring(0, lineMatchIndices[0]),
-            after: line.substring(lineMatchIndices[0] + matchText.length),
-            index: absoluteIndex,
-            lineNumber: i + 1,
-            lineContent: line,
-            matchIndices: lineMatchIndices,
-          });
-        }
-
         absoluteIndex += line.length + 1;
       });
+
+      if (cleanTerm.length === 0) return results;
     }
 
     if (matches.length > 0) {
@@ -125,6 +139,7 @@ function handleOperatorSearch(operator: string, searchTerm: string, nodes: INode
     return results;
   }, []);
 }
+
 /**
  * PATH B: Plain Text Search
  * Splits by line to provide "Children per line" search results.

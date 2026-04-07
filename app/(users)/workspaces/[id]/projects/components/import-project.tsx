@@ -31,8 +31,8 @@ const ImportProject = ({ workspaceId }: { workspaceId: string }) => {
         try {
           const file = await handle.getFile();
           const content = await file.text();
-
-          nodes.push({ name, path: fullPath, type: 'file', content });
+          const normalizedContent = content.replace(/\r\n/g, '\n').replace(/\r/g, '\n');
+          nodes.push({ name, path: fullPath, type: 'file', content: normalizedContent });
           setCount(prev => prev + 1);
         } catch (fileErr) {
           console.warn(`Access error: ${fullPath}`, fileErr);

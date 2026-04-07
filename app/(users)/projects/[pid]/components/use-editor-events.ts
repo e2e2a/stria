@@ -57,6 +57,16 @@ export const useEditorEvents = (
             userEvent: 'select.search',
           });
           setTimeout(() => view.focus(), 0);
+        } else {
+          view.dispatch({
+            selection: {
+              anchor: 3,
+              head: 3,
+            },
+            effects: [EditorView.scrollIntoView(3, { y: 'center' })],
+            userEvent: 'select.search',
+          });
+          setTimeout(() => view.focus(), 0);
         }
         window.__PENDING_JUMP__ = null;
       });

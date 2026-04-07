@@ -83,7 +83,8 @@ async function start() {
           let loadedSomething = false;
 
           if (node?.content && ytext.length === 0) {
-            ytext.insert(0, node.content);
+            const normalizedContent = node.content.replace(/\r\n/g, '\n').replace(/\r/g, '\n');
+            ytext.insert(0, normalizedContent);
             loadedSomething = true;
           }
 
