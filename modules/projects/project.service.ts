@@ -13,6 +13,7 @@ import { nodeService } from './nodes/node.service';
 import { performSearch } from '@/utils/client/search-nodes-utils';
 import { getAllPropertyStats } from '@/utils/client/get-property-stats';
 import { getProjectTagsCount } from '@/utils/client/get-tags-count';
+import { generateGraphData } from '@/utils/client/get-graph-view';
 
 export const projectService = {
   create: async (
@@ -77,13 +78,21 @@ export const projectService = {
     const project = await projectRepository.findOne({ _id: pid });
     if (!project) throw new HttpError('NOT_FOUND', 'No project to be updated');
 
-    await Promise.all([
-      ensureWorkspaceMember(project.workspaceId, email), // wCtx
-      ensureProjectMember(project._id, email), // pCtx
-    ]);
+    await Promise.all([ensureWorkspaceMember(project.workspaceId, email), ensureProjectMember(project._id, email)]);
 
     const flatNodes = await nodeService.getProjectFlatNode({ projectId: project._id, type: 'file' });
     const results = await getProjectTagsCount((flatNodes as unknown as INode[]) || []);
+    return results;
+  },
+
+  getGrapView: async (pid: string, email: string) => {
+    const project = await projectRepository.findOne({ _id: pid });
+    if (!project) throw new HttpError('NOT_FOUND', 'No project to be updated');
+
+    await Promise.all([ensureWorkspaceMember(project.workspaceId, email), ensureProjectMember(project._id, email)]);
+
+    const flatNodes = await nodeService.getProjectFlatNode({ projectId: project._id, type: 'file' });
+    const results = generateGraphData((flatNodes as unknown as INode[]) || []);
     return results;
   },
 

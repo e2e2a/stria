@@ -34,7 +34,7 @@ export const TabItem = ({ tab, isActive, draggedTabId, isDropBefore, pid, canEdi
           if (e.button !== 0) return;
           const targetId = tab.nodeId;
           setActiveTab(pid, targetId);
-
+          if (tab.nodeId === 'graph-view') return;
           const elNode = document.querySelector(`[data-node-id="${targetId}"]`);
           if (elNode) {
             setTimeout(() => {

@@ -7,6 +7,25 @@ export interface PropertyStat {
   key: string;
   count: number;
 }
+export type GraphNode = {
+  _id: string;
+  title: string;
+  path?: string;
+  content?: string | null;
+  type: 'file';
+  x: number;
+  y: number;
+  vx: number;
+  vy: number;
+  fx?: number | null;
+  fy?: number | null;
+  radius: number;
+  [key: string]: unknown;
+};
+export interface GraphViewResponse {
+  d3Nodes: GraphNode[];
+  d3Links: { source: string; target: string }[]; // API sends pure strings
+}
 
 export const projectClient = {
   async create(data: {
@@ -112,6 +131,12 @@ export const projectClient = {
 
   getTags: async (projectId: string): Promise<{ name: string; count: number }[]> => {
     const res = await fetch(`${BASE_URL_PROJECTS}/${projectId}/tags`);
+    if (!res.ok) throw new Error('Failed to fetch tags in project');
+    return res.json();
+  },
+
+  getGraphView: async (projectId: string): Promise<GraphViewResponse> => {
+    const res = await fetch(`${BASE_URL_PROJECTS}/${projectId}/graph-view`);
     if (!res.ok) throw new Error('Failed to fetch tags in project');
     return res.json();
   },

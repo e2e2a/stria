@@ -70,6 +70,13 @@ export const projectController = {
     return res;
   },
 
+  getGrapView: async (pid: string) => {
+    const session = await ensureAuthenticated();
+
+    const res = await projectService.getGrapView(pid, session.user.email);
+    return res;
+  },
+
   getProperties: async (pid: string) => {
     const session = await ensureAuthenticated();
 

@@ -1,128 +1,64 @@
 'use client';
 
-import React, { useEffect, useMemo, useRef, useDeferredValue } from 'react';
+import React, { useEffect, useMemo, useRef } from 'react';
 import { forceSimulation, forceLink, forceManyBody, forceCenter, forceCollide, Simulation } from 'd3-force';
 import * as d3Zoom from 'd3-zoom';
 import * as d3Drag from 'd3-drag';
 import { select } from 'd3-selection';
-import { useNodesProjectIdQuery } from '@/hooks/node/useNodeQuery';
-import { flattenNodeTree } from '@/utils/client/node-utils';
 import { useTabStore } from '@/features/editor/stores/tabs';
 import { useNodeStore } from '@/features/editor/stores/nodes';
-
-const getRandomPos = () => (Math.random() - 0.5) * 2000;
+import { GraphNode } from '@/lib/client/api/projectClient';
+import { INode } from '@/types';
 
 /* ===================== TYPES ===================== */
-type GraphNode = {
-  _id: string;
-  title: string;
-  path?: string;
-  content?: string | null;
-  type: 'file';
-  x: number;
-  y: number;
-  vx: number;
-  vy: number;
-  fx?: number | null;
-  fy?: number | null;
-  radius: number;
-  [key: string]: unknown;
-};
 
 type GraphLink = {
-  source: GraphNode;
-  target: GraphNode;
+  source: string | GraphNode;
+  target: string | GraphNode;
 };
 
-function GraphViewSection({ projectId }: { projectId: string; activeTabId: string | null }) {
+function GraphViewSection({
+  projectId,
+  data,
+  isLoading,
+}: {
+  isLoading: boolean;
+  data: { d3Nodes: GraphNode[]; d3Links: { source: string; target: string }[] } | undefined;
+  projectId: string;
+  activeTabId: string | null;
+}) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const transformRef = useRef(d3Zoom.zoomIdentity);
   const simRef = useRef<Simulation<GraphNode, GraphLink> | null>(null);
   const hoveredNodeIdRef = useRef<string | null>(null);
 
-  const { data, isLoading } = useNodesProjectIdQuery(projectId);
-  const deferredNodes = useDeferredValue(data?.nodes || []);
-  const flattened = flattenNodeTree(deferredNodes);
   const { d3Nodes, d3Links, adjacency } = useMemo(() => {
-    const LINK_REGEX = /\[\[([^\]]+)\]\]|\[([^\]]+)\]\(([^)]+)\)/g;
+    if (!data || !data.d3Nodes) return { d3Nodes: [], d3Links: [], adjacency: new Map<string, Set<string>>() };
 
-    const normalize = (p: string | undefined | null): string => {
-      if (!p) return '';
-      return decodeURIComponent(p).replace(/\\/g, '/').replace(/\.md$/i, '').toLowerCase().trim();
-    };
+    const nodesArr: GraphNode[] = data.d3Nodes.map(n => ({ ...n }));
 
-    const getBasename = (p: string) => p.split('/').pop() || '';
-
-    const resolveRelative = (basePath: string, linkPath: string) => {
-      const parts = basePath.replace(/\\/g, '/').split('/');
-      parts.pop();
-      const linkParts = linkPath.replace(/\\/g, '/').split('/');
-
-      for (const part of linkParts) {
-        if (part === '.') continue;
-        if (part === '..') parts.pop();
-        else parts.push(part);
-      }
-      return normalize(parts.join('/'));
-    };
-
-    const nodesArr: GraphNode[] = flattened
-      .filter(n => n.type === 'file')
-      .map(n => ({
-        ...n,
-        type: 'file' as const,
-        x: getRandomPos(),
-        y: getRandomPos(),
-        vx: 0,
-        vy: 0,
-        radius: 10,
-      }));
-
-    const fullPathMap = new Map<string, GraphNode>();
-    const nameMap = new Map<string, GraphNode>();
-
-    nodesArr.forEach(n => {
-      const full = normalize(n.path);
-      const name = getBasename(full);
-      fullPathMap.set(full, n);
-      nameMap.set(name, n);
-    });
+    const nodeMap = new Map<string, GraphNode>();
+    nodesArr.forEach(n => nodeMap.set(n._id, n));
 
     const linksArr: GraphLink[] = [];
     const adj = new Map<string, Set<string>>();
     nodesArr.forEach(n => adj.set(n._id, new Set<string>()));
 
-    nodesArr.forEach(node => {
-      if (!node.content) return;
+    if (data.d3Links) {
+      data.d3Links.forEach(l => {
+        const sourceNode = nodeMap.get(l.source);
+        const targetNode = nodeMap.get(l.target);
 
-      let match: RegExpExecArray | null;
-      LINK_REGEX.lastIndex = 0;
-
-      while ((match = LINK_REGEX.exec(node.content)) !== null) {
-        const rawLink = (match[1] || match[3] || '').split('|')[0].split('#')[0];
-        const normalizedPath = normalize(rawLink);
-        const resolvedPath = normalizedPath.startsWith('.') ? resolveRelative(node.path || '', normalizedPath) : normalizedPath;
-
-        const resolvedName = getBasename(resolvedPath);
-        const target = fullPathMap.get(resolvedPath) || nameMap.get(resolvedName);
-
-        if (target && target._id !== node._id) {
-          if (!adj.get(node._id)?.has(target._id)) {
-            linksArr.push({ source: node, target });
-            adj.get(node._id)?.add(target._id);
-            adj.get(target._id)?.add(node._id);
-          }
+        if (sourceNode && targetNode) {
+          linksArr.push({ source: sourceNode, target: targetNode });
+          adj.get(sourceNode._id)?.add(targetNode._id);
+          adj.get(targetNode._id)?.add(sourceNode._id);
         }
-      }
-    });
-
-    nodesArr.forEach(n => {
-      const connections = adj.get(n._id)?.size || 0;
-      n.radius = connections > 20 ? 25 : connections > 10 ? 18 : connections > 3 ? 14 : 10;
-    });
+      });
+    }
 
     return { d3Nodes: nodesArr, d3Links: linksArr, adjacency: adj };
-  }, [flattened]);
+  }, [data]);
 
   useEffect(() => {
     const canvas = canvasRef.current;
@@ -140,18 +76,25 @@ function GraphViewSection({ projectId }: { projectId: string; activeTabId: strin
     resize();
 
     const simulation = forceSimulation<GraphNode>(d3Nodes)
-      .alphaDecay(0.05)
-      .alphaMin(0.001)
-      .force('link', forceLink<GraphNode, GraphLink>(d3Links).distance(180).strength(0.1))
-      .force('charge', forceManyBody<GraphNode>().strength(-400).distanceMax(1000))
+      .alphaDecay(0.02)
+      .alphaMin(0.0001)
+      // ADDED: .id((d: any) => d._id) so D3 matches the API string IDs to the objects
+      .force(
+        'link',
+        forceLink<GraphNode, GraphLink>(d3Links)
+          .id(d => d._id)
+          .distance(80)
+          .strength(0.1)
+      )
+      .force('charge', forceManyBody<GraphNode>().strength(-600).distanceMax(500))
       .force(
         'collision',
         forceCollide<GraphNode>()
           .radius(d => d.radius * 1.5)
           .iterations(1)
       )
-      .force('center', forceCenter(canvas.width / 2, canvas.height / 2))
-      .velocityDecay(0.4);
+      .force('center', forceCenter(canvas.width / 4, canvas.height / 4))
+      .velocityDecay(0.8);
 
     simRef.current = simulation;
 
@@ -176,11 +119,8 @@ function GraphViewSection({ projectId }: { projectId: string; activeTabId: strin
       });
 
       if (hit) {
-        const node = flattened.find(n => n._id === hit._id);
-        if (!node) return;
-
-        useTabStore.getState().openTab(projectId, node, true);
-        useNodeStore.getState().setActiveNode(node._id);
+        useTabStore.getState().openTab(projectId, hit as unknown as INode, true);
+        useNodeStore.getState().setActiveNode(hit._id);
       }
     };
 
@@ -270,15 +210,19 @@ function GraphViewSection({ projectId }: { projectId: string; activeTabId: strin
 
       // Draw Links
       for (const l of d3Links) {
-        const isRelated = hoverId && (l.source._id === hoverId || l.target._id === hoverId);
+        const sourceNode = l.source as GraphNode;
+        const targetNode = l.target as GraphNode;
+
+        const isRelated = hoverId && (sourceNode._id === hoverId || targetNode._id === hoverId);
+
         ctx.beginPath();
-        ctx.moveTo(l.source.x, l.source.y);
-        ctx.lineTo(l.target.x, l.target.y);
+        ctx.moveTo(sourceNode.x, sourceNode.y);
+        ctx.lineTo(targetNode.x, targetNode.y);
+
         ctx.strokeStyle = hoverId ? (isRelated ? COLOR_NEIGHBOR : 'rgba(255, 255, 255, 0.01)') : 'rgba(255, 255, 255, 0.1)';
         ctx.lineWidth = isRelated ? 2 / t.k : 0.8 / t.k;
         ctx.stroke();
       }
-
       // Draw Nodes
       for (const n of d3Nodes) {
         const isMain = hoverId === n._id;
@@ -326,7 +270,7 @@ function GraphViewSection({ projectId }: { projectId: string; activeTabId: strin
       simulation.stop();
       window.removeEventListener('resize', resize);
     };
-  }, [d3Nodes, d3Links, adjacency, projectId, flattened]);
+  }, [d3Nodes, d3Links, adjacency, projectId]);
 
   if (isLoading)
     return (

@@ -41,3 +41,11 @@ export function useProjectTagsQuery(id: string) {
     enabled: !!id,
   });
 }
+
+export function useProjectGraphViewQuery(id: string) {
+  return useQuery({
+    queryKey: ['projectGraphView', id],
+    queryFn: () => projectClient.getGraphView(id),
+    enabled: !!id,
+  });
+}
