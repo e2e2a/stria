@@ -26,9 +26,9 @@ export function ProjectPresence({ projectId, children }: ProjectPresenceProps) {
     if (!projectId || !session?.user?._id) return;
 
     const ydoc = new Y.Doc();
-
+    const WS_URL = process.env.NEXT_PUBLIC_WS_URL || 'ws://localhost:1234';
     const provider = new HocuspocusProvider({
-      url: 'ws://localhost:1234',
+      url: WS_URL,
       name: `project-presence-${projectId}`,
       document: ydoc,
     });

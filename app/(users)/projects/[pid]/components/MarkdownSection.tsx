@@ -99,8 +99,9 @@ function MarkdownSection({ node, isDirty, canEditNode, canEditChunk }: { node: I
     }
 
     const ydoc = new Y.Doc();
+    const WS_URL = process.env.NEXT_PUBLIC_WS_URL || 'ws://localhost:1234';
     const provider = new HocuspocusProvider({
-      url: 'ws://localhost:1234',
+      url: WS_URL,
       name: node._id,
       document: ydoc,
       onSynced: () => {
