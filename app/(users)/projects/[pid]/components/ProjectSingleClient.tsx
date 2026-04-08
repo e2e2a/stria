@@ -47,9 +47,28 @@ export function ProjectSingleClient() {
             const isActive = tab.nodeId === activeTabId;
             const hasBeenVisited = visitedTabs.has(tab.nodeId);
 
-            // KISS: If it's not active and we haven't visited it yet, don't even put the div in the DOM.
             // This stops the initial refresh lag when history has 10 tabs.
             if (!isActive && !hasBeenVisited) return null;
+
+            const lowerTitle = tab.node?.title?.toLowerCase() || '';
+            const isMarkdown = lowerTitle.endsWith('.md') || lowerTitle.endsWith('.mdx');
+            if (!isMarkdown) {
+              return (
+                <div
+                  key={tab.nodeId}
+                  className={isActive ? 'flex flex-col items-center justify-center h-full text-muted-foreground/40 select-none' : 'hidden'}
+                >
+                  <div className="border-2 border-dashed border-muted/50 bg-muted/10 rounded-xl p-8 flex flex-col items-center max-w-sm text-center">
+                    <p className="text-sm font-medium text-foreground/70">Unsupported file format</p>
+                    <p className="text-xs mt-2">
+                      This editor is highly optimized for plain text. Currently, only Markdown (<code className="bg-background px-1 rounded">.md</code>,{' '}
+                      <code className="bg-background px-1 rounded">.mdx</code>) files can be opened here.
+                    </p>
+                  </div>
+                </div>
+              );
+            }
+
             return (
               <div key={tab.nodeId} className={tab.nodeId === activeTabId ? 'h-full w-full block' : 'hidden'}>
                 {tab.nodeId === 'graph-view' ? (

@@ -3,7 +3,7 @@ import { ProjectPermissions } from '@/utils/server/permissions';
 
 const BASE_URL_PROJECT = `${process.env.NEXT_PUBLIC_BASE_URL}/api/projects`;
 
-type IResponse = {
+export type IMyMembership = {
   canLeave: boolean;
   membership: IWorkspaceMember;
   permissions: ProjectPermissions;
@@ -12,7 +12,7 @@ type IResponse = {
 };
 
 export const projectMemberClient = {
-  async getMyProjectMembership(projectId: string): Promise<IResponse> {
+  async getMyProjectMembership(projectId: string): Promise<IMyMembership> {
     const res = await fetch(`${BASE_URL_PROJECT}/${projectId}/members/me`);
     if (!res.ok) throw new Error('Failed to fetch workspace');
     if (res.status !== 200) throw new Error('Opps Error Occured.');

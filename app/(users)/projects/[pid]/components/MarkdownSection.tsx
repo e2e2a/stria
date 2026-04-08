@@ -79,7 +79,7 @@ function MarkdownSection({ node, isDirty, canEditNode, canEditChunk }: { node: I
   const setActiveNode = useNodeStore(state => state.setActiveNode);
   const pid = useParams().pid as string;
   const [editorReady, setEditorReady] = useState(false);
-
+  console.log('running');
   const [contextType, setContextType] = useState<'general' | 'callout'>('general');
   const [isReadOnly, setIsReadOnly] = useState(false);
   const [isChunkActive, setIsChunkActive] = useState(false);
@@ -159,9 +159,7 @@ function MarkdownSection({ node, isDirty, canEditNode, canEditChunk }: { node: I
     return [
       EditorView.domEventHandlers({
         mousedown: event => {
-          React.startTransition(() => {
-            setActiveNode(node._id);
-          });
+          React.startTransition(() => setActiveNode(node._id));
           const target = event.target as HTMLElement;
 
           if (target.classList.contains('cm-hashtag')) {
@@ -173,9 +171,7 @@ function MarkdownSection({ node, isDirty, canEditNode, canEditChunk }: { node: I
           }
         },
         focus: () => {
-          React.startTransition(() => {
-            setActiveNode(node._id);
-          });
+          React.startTransition(() => setActiveNode(node._id));
         },
         contextmenu: (event, view) => {
           const pos = view.posAtCoords({ x: event.clientX, y: event.clientY });

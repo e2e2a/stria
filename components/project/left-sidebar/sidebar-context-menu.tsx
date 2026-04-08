@@ -5,24 +5,21 @@ import { memo, ReactNode } from 'react';
 import { DangerConfirmDialog } from '../../danger-confirm-dialog';
 import { useNodeStore } from '@/features/editor/stores/nodes';
 import { cn } from '@/lib/utils';
-import { useGetMyProjectMembership } from '@/hooks/projectMember/useQueries';
-import { useParams } from 'next/navigation';
+import { IMyMembership } from '@/lib/client/api/projectMemberClient';
 
 interface ContainerProps {
   children: ReactNode;
   node: INode | null;
+  mData: IMyMembership | undefined;
 }
 
-function SidebarContextMenuComponent({ children, node }: ContainerProps) {
-  const params = useParams();
-  const projectId = params.pid as string;
-  const { data: mData } = useGetMyProjectMembership(projectId);
-
+function SidebarContextMenuComponent({ children, node, mData }: ContainerProps) {
   const isUpdatingNode = useNodeStore(state => state.isUpdatingNode);
   const selectedNode = useNodeStore(state => state.selectedNode);
   const setIsUpdatingNode = useNodeStore(state => state.setIsUpdatingNode);
   const setSelectedNode = useNodeStore(state => state.setSelectedNode);
   const setIsCreating = useNodeStore(state => state.setIsCreating);
+
   const isUpdatingSelf = !!isUpdatingNode && isUpdatingNode._id === node?._id;
   if (isUpdatingSelf) {
     return (

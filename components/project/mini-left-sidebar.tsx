@@ -9,7 +9,7 @@ import { useTabStore } from '@/features/editor/stores/tabs';
 import { useParams } from 'next/navigation';
 import { IconTooltip } from './icon-tooltip';
 import { flattenNodeTree } from '@/utils/client/node-utils';
-import { useDeferredValue, useMemo, useRef } from 'react';
+import React, { useDeferredValue, useMemo, useRef } from 'react';
 import { useNodeStore } from '@/features/editor/stores/nodes';
 import { useGetMyProjectMembership } from '@/hooks/projectMember/useQueries';
 
@@ -124,4 +124,10 @@ const MiniSidebarTemplate = ({ LeftSidebarRef, isLeftCollapsed, RightSidebarRef 
   );
 };
 
-export default MiniSidebarTemplate;
+export default React.memo(MiniSidebarTemplate, (prevProps, nextProps) => {
+  return (
+    prevProps.isLeftCollapsed === nextProps.isLeftCollapsed &&
+    prevProps.LeftSidebarRef === nextProps.LeftSidebarRef &&
+    prevProps.RightSidebarRef === nextProps.RightSidebarRef
+  );
+});

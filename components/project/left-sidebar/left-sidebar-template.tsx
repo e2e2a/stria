@@ -125,7 +125,7 @@ function LeftSidebarTemplate({ projectData }: { projectData: IProject }) {
     openTab(projectData._id, node, true);
     setActiveNode(node._id);
   };
-
+  if (!mData) return;
   return (
     <Sidebar
       id="sidebar-tree-nodes"
@@ -224,9 +224,16 @@ function LeftSidebarTemplate({ projectData }: { projectData: IProject }) {
             </SidebarHeader>
             <div className="min-h-0 flex-1 overflow-hidden!">
               <SidebarContent className="ml-0 p-0! space-y-0! h-full flex">
-                <SidebarContextMenu node={null}>
-                  <TabsContent className="h-full min-h-0 p-0! gap-0! space-x-0 space-y-0! m-0! font-(family-name:--font-IBM)" value="nodes">
-                    <NavMain canMoveNode={!!mData?.permissions.canMoveNode} />
+                <SidebarContextMenu node={null} mData={mData}>
+                  <TabsContent
+                    forceMount
+                    className={cn(
+                      'h-full min-h-0 p-0! gap-0! space-x-0 space-y-0! m-0! font-(family-name:--font-IBM)',
+                      leftSidebarTab !== 'nodes' && 'hidden'
+                    )}
+                    value="nodes"
+                  >
+                    <NavMain canMoveNode={!!mData?.permissions.canMoveNode} mData={mData} />
                   </TabsContent>
                 </SidebarContextMenu>
 
