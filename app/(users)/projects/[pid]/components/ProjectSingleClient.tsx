@@ -50,10 +50,10 @@ export function ProjectSingleClient() {
 
             // This stops the initial refresh lag when history has 10 tabs.
             if (!isActive && !hasBeenVisited) return null;
-
             const lowerTitle = tab.node?.title?.toLowerCase() || '';
+            const isPlaintext = !lowerTitle.includes('.');
             const isMarkdown = lowerTitle.endsWith('.md') || lowerTitle.endsWith('.mdx') || lowerTitle.endsWith('.mdc');
-            if (!isMarkdown && tab.nodeId !== 'graph-view') {
+            if (!isMarkdown && tab.nodeId !== 'graph-view' && !isPlaintext) {
               return (
                 <div
                   key={tab.nodeId}
