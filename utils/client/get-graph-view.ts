@@ -22,7 +22,6 @@ export function generateGraphData(flatNodes: INode[]) {
     return normalize(parts.join('/'));
   };
 
-  // 1. Create nodes with all metadata intact for the click handler
   const nodesArr = flatNodes.map(n => {
     const { content, ...rest } = n;
     return {
@@ -52,7 +51,6 @@ export function generateGraphData(flatNodes: INode[]) {
   const adjCounts = new Map<string, number>();
   const seenLinks = new Set<string>();
 
-  // 2. Map links with "Local First" priority
   flatNodes.forEach(node => {
     if (!node.content) return;
 
@@ -68,17 +66,14 @@ export function generateGraphData(flatNodes: INode[]) {
 
       let target;
 
-      // PRIORITY 1: Check if it's a sibling (same directory)
       const siblingPath = currentDir ? `${currentDir}/${linkName}` : linkName;
       target = fullPathMap.get(siblingPath);
 
-      // PRIORITY 2: If it's an explicit relative link (./ or ../)
       if (!target && rawLink.startsWith('.')) {
         const resolvedPath = resolveRelative(node.path || '', linkName);
         target = fullPathMap.get(resolvedPath);
       }
 
-      // PRIORITY 3: Global fallback (search by name anywhere)
       if (!target) {
         const potentials = nameMap.get(linkName);
         if (potentials) target = potentials[0];

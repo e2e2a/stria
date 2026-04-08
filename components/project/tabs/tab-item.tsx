@@ -17,7 +17,7 @@ interface TabItemProps {
   onDragStart: (e: React.DragEvent, tabId: string) => void;
 }
 
-export const TabItem = ({ tab, isActive, draggedTabId, isDropBefore, pid, canEditChunk, onDragStart }: TabItemProps) => {
+export const TabItem = ({ tab, isActive, isDropBefore, pid, canEditChunk, onDragStart }: TabItemProps) => {
   const activeNode = useNodeStore(state => state.activeNode);
   const setActiveTab = useTabStore(state => state.setActiveTab);
   const pinTab = useTabStore(state => state.pinTab);
