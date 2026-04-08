@@ -356,7 +356,7 @@ function MarkdownSection({ node, isDirty, canEditNode, canEditChunk }: { node: I
             {editorReady ? (
               <CodeMirror
                 key={node._id}
-                editable={!isReadOnly && canEditNode}
+                editable={!isReadOnly && canEditNode && synced}
                 onCreateEditor={view => {
                   editorViewRef.current = view;
 

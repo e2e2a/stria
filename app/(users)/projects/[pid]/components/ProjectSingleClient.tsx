@@ -51,8 +51,8 @@ export function ProjectSingleClient() {
             if (!isActive && !hasBeenVisited) return null;
 
             const lowerTitle = tab.node?.title?.toLowerCase() || '';
-            const isMarkdown = lowerTitle.endsWith('.md') || lowerTitle.endsWith('.mdx');
-            if (!isMarkdown) {
+            const isMarkdown = lowerTitle.endsWith('.md') || lowerTitle.endsWith('.mdx') || lowerTitle.endsWith('.mdc');
+            if (!isMarkdown && tab.nodeId !== 'graph-view') {
               return (
                 <div
                   key={tab.nodeId}
