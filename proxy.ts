@@ -4,7 +4,7 @@ import { getToken } from 'next-auth/jwt';
 
 const SECRET = process.env.NEXTAUTH_SECRET;
 
-export async function middleware(request: NextRequest) {
+export default async function proxy(request: NextRequest) {
   const pathname = request.nextUrl.pathname;
 
   if (
@@ -27,7 +27,7 @@ export async function middleware(request: NextRequest) {
 }
 
 export const config = {
-  runtime: 'nodejs',
+  // runtime: 'nodejs',
   matcher: [
     '/((?!api|_next/static|_next/image|favicon.ico).*)',
     '/projects/:path*',
