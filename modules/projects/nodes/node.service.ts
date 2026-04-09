@@ -373,10 +373,16 @@ export const nodeService = {
 
     const [, pCtx] = await Promise.all([ensureWorkspaceMember(node.workspaceId, email), ensureProjectMember(node.projectId, email)]);
     if (!pCtx.permissions.canEditNode) throw new HttpError('FORBIDDEN');
+    const updatePayload: { title?: string; content?: string; path?: string } = { ...data };
 
-    if (data.title) await checkNodeExistence({ ...node, title: data.title });
+    if (data.title && data.title !== node.title) {
+      await checkNodeExistence({ ...node, title: data.title });
+      const pathParts = node.path.split('/');
+      pathParts.pop();
+      updatePayload.path = pathParts.length > 0 ? `${pathParts.join('/')}/${data.title}` : data.title;
+    }
 
-    return await nodeRepository.updateOne({ _id: data._id }, data);
+    return await nodeRepository.updateOne({ _id: data._id }, updatePayload);
   },
 
   move: async (email: string, data: { _id: string; parentId: string | null }) => {
