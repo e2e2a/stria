@@ -23,14 +23,18 @@ interface IProps {
 }
 export function DangerConfirmDialog({ triggerTitle, title, description, node }: IProps) {
   const [isOpen, setIsOpen] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
+
   const mutation = useNodeMutations();
   const onTrash = async () => {
+    setIsLoading(true);
     mutation.trash.mutate(
       { _id: node._id as string, pid: node.projectId },
       {
         onSuccess: () => {
           useNodeStore.getState().deleteNodeWithUndo(node._id);
           setIsOpen(false);
+          setIsLoading(false);
           return;
         },
         onError: err => {
@@ -39,6 +43,7 @@ export function DangerConfirmDialog({ triggerTitle, title, description, node }: 
         },
         onSettled: () => {
           setIsOpen(false);
+          setIsLoading(false);
         },
       }
     );
@@ -58,9 +63,10 @@ export function DangerConfirmDialog({ triggerTitle, title, description, node }: 
           <AlertDialogDescription>{description}</AlertDialogDescription>
         </AlertDialogHeader>
         <AlertDialogFooter>
-          <AlertDialogCancel>Cancel</AlertDialogCancel>
+          <AlertDialogCancel className="cursor-pointer">Cancel</AlertDialogCancel>
           <AlertDialogAction
-            className="bg-blue-600 hover:bg-blue-500/90"
+            className="bg-destructive text-foreground hover:bg-destructive/80 cursor-pointer"
+            disabled={isLoading}
             onClick={e => {
               e.preventDefault();
               onTrash();
