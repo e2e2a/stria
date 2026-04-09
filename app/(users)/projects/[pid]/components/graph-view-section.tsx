@@ -60,7 +60,7 @@ function GraphViewSection({ projectId }: { projectId: string; activeTabId: strin
     setLinkDistance(50);
   };
 
-  const categories = ['Filters', 'Groups', 'Display', 'Forces'];
+  const categories = ['Filters', 'Forces'];
 
   const { filteredNodes, filteredLinks, adjacency } = useMemo(() => {
     if (!data || !data.d3Nodes) return { filteredNodes: [], filteredLinks: [], adjacency: new Map() };
