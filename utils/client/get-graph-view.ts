@@ -1,11 +1,21 @@
 import { INode } from '@/types';
 
 export function generateGraphData(flatNodes: INode[]) {
-  const LINK_REGEX = /\[\[([^\]]+)\]\]|\[([^\]]+)\]\(([^)]+)\)/g;
+  const LINK_REGEX = /\[\[([^\]]+)\]\]|\[([^\]]+)\]\(((?:[^()]+|\([^()]*\))+)\)/g;
 
   const normalize = (p: string | undefined | null): string => {
     if (!p) return '';
-    return decodeURIComponent(p).replace(/\\/g, '/').replace(/\.md$/i, '').toLowerCase().trim();
+    let cleanPath = p;
+
+    cleanPath = cleanPath.replace(/[<>]/g, '').replace(/\+/g, ' ');
+
+    try {
+      cleanPath = decodeURIComponent(cleanPath);
+    } catch {
+      cleanPath = cleanPath.replace(/%20/g, ' ').replace(/%28/g, '(').replace(/%29/g, ')');
+    }
+
+    return cleanPath.replace(/\\/g, '/').replace(/\.md$/i, '').toLowerCase().trim();
   };
 
   const getBasename = (p: string) => p.split('/').pop() || '';
@@ -61,7 +71,9 @@ export function generateGraphData(flatNodes: INode[]) {
     const currentDir = normalizedNodePath.split('/').slice(0, -1).join('/');
 
     while ((match = LINK_REGEX.exec(node.content)) !== null) {
-      const rawLink = (match[1] || match[3] || '').split('|')[0].split('#')[0];
+      let rawLink = (match[1] || match[3] || '').split('|')[0].split('#')[0];
+      rawLink = rawLink.replace(/\s+["'].*?["']$/, '').trim();
+
       const linkName = normalize(rawLink);
 
       let target;

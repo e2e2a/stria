@@ -76,7 +76,7 @@ function GraphViewSection({
     resize();
 
     const simulation = forceSimulation<GraphNode>(d3Nodes)
-      .alphaDecay(0.02)
+      .alphaDecay(0.03)
       .alphaMin(0.0001)
       // ADDED: .id((d: any) => d._id) so D3 matches the API string IDs to the objects
       .force(
@@ -84,17 +84,17 @@ function GraphViewSection({
         forceLink<GraphNode, GraphLink>(d3Links)
           .id(d => d._id)
           .distance(80)
-          .strength(0.1)
+          .strength(0.2)
       )
-      .force('charge', forceManyBody<GraphNode>().strength(-600).distanceMax(500))
+      .force('charge', forceManyBody<GraphNode>().strength(-500).distanceMax(500))
       .force(
         'collision',
         forceCollide<GraphNode>()
           .radius(d => d.radius * 1.5)
           .iterations(1)
       )
-      .force('center', forceCenter(canvas.width / 4, canvas.height / 4))
-      .velocityDecay(0.8);
+      .force('center', forceCenter(canvas.width / 2, canvas.height / 2))
+      .velocityDecay(0.5);
 
     simRef.current = simulation;
 

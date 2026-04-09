@@ -8,8 +8,7 @@ import { UnitOfWork } from '@/common/UnitOfWork';
 import { User } from 'next-auth';
 import Node from '@/modules/projects/nodes/node.model';
 import { Types } from 'mongoose';
-import { normalizeFilePath, parseLink, resolveRelativePath } from '@/helpers/server/link-helpers';
-import path from 'path';
+import { parseLink } from '@/helpers/server/link-helpers';
 
 export interface Mention {
   excerpt: string;
@@ -129,22 +128,82 @@ export const nodeService = {
     const targetNode = await nodeRepository.findOne({ _id: targetId });
     if (!targetNode) return { linked: [], unlinked: [] };
 
-    if (user.role !== 'admin') {
+    if (user.role !== 'admin')
       await Promise.all([ensureWorkspaceMember(targetNode.workspaceId, user.email), ensureProjectMember(targetNode.projectId, user.email)]);
-    }
 
-    const targetFullPath = normalizeFilePath(targetNode.path);
-    const targetName = path.basename(targetFullPath);
+    const allNodes = await nodeRepository.findMany({ projectId: targetNode.projectId });
+
+    const normalize = (p: string | undefined | null): string => {
+      if (!p) return '';
+      let cleanPath = p;
+
+      cleanPath = cleanPath.replace(/[<>]/g, '').replace(/\+/g, ' ');
+
+      try {
+        cleanPath = decodeURIComponent(cleanPath);
+      } catch {
+        cleanPath = cleanPath.replace(/%20/g, ' ').replace(/%28/g, '(').replace(/%29/g, ')');
+      }
+
+      return cleanPath.replace(/\\/g, '/').replace(/\.md$/i, '').toLowerCase().trim();
+    };
+
+    const resolveRelative = (basePath: string, linkPath: string) => {
+      const parts = basePath.replace(/\\/g, '/').split('/');
+      parts.pop();
+      const linkParts = linkPath.replace(/\\/g, '/').split('/');
+      for (const part of linkParts) {
+        if (part === '.') continue;
+        if (part === '..') parts.pop();
+        else parts.push(part);
+      }
+      return normalize(parts.join('/'));
+    };
+
+    const fullPathMap = new Map<string, (typeof allNodes)[0]>();
+    const nameMap = new Map<string, (typeof allNodes)[0][]>();
+
+    allNodes.forEach(n => {
+      const full = normalize(n.path);
+      const name = full.split('/').pop() || '';
+      fullPathMap.set(full, n);
+      if (!nameMap.has(name)) nameMap.set(name, []);
+      nameMap.get(name)!.push(n);
+    });
+
+    const resolveGraphTarget = (sourcePath: string, rawLink: string) => {
+      const linkName = normalize(rawLink);
+      const currentDir = normalize(sourcePath).split('/').slice(0, -1).join('/');
+
+      let target = fullPathMap.get(currentDir ? `${currentDir}/${linkName}` : linkName);
+      if (!target && rawLink.startsWith('.')) target = fullPathMap.get(resolveRelative(sourcePath, linkName));
+
+      if (!target) {
+        const potentials = nameMap.get(linkName);
+        if (potentials) target = potentials[0];
+      }
+      return target;
+    };
 
     const targetTitle = targetNode.title || '';
-
     const cleanTitle = targetTitle.replace(/\s+/g, '');
     const shouldSearchUnlinked = cleanTitle.length >= 3;
-
     const escapedTitle = targetTitle.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
     const unlinkedRegex = shouldSearchUnlinked ? new RegExp(`\\b${escapedTitle}\\b`, 'gi') : null;
 
-    const allNodes = await nodeRepository.findMany({ projectId: targetNode.projectId });
+    const extractMentionData = (content: string, index: number, length: number) => {
+      const lineIndex = content.substring(0, index).split('\n').length;
+      const lineStart = content.lastIndexOf('\n', index) + 1;
+      const lineEnd = content.indexOf('\n', index);
+      const excerptEnd = lineEnd === -1 ? content.length : lineEnd;
+      return {
+        excerpt: content.substring(lineStart, excerptEnd).trim(),
+        line: lineIndex,
+        index,
+        length,
+      };
+    };
+
     const linkedBacklinks: BacklinkResponse[] = [];
     const unlinkedMentions: BacklinkResponse[] = [];
 
@@ -154,37 +213,27 @@ export const nodeService = {
       const content = otherNode.content.replace(/\r/g, '');
       const linkedInThisFile: Mention[] = [];
       const unlinkedInThisFile: Mention[] = [];
-
       const linkedIndices = new Set<number>();
 
-      const linkRegex = /\[\[([^\]]+)\]\]|\[([^\]]+)\]\(([^)]+)\)/g;
+      const linkRegex = /\[\[([^\]]+)\]\]|\[([^\]]+)\]\(((?:[^()]+|\([^()]*\))+)\)/g;
       let match: RegExpExecArray | null;
 
-      // 1. SCAN FOR LINKED BACKLINKS (Always runs)
       while ((match = linkRegex.exec(content)) !== null) {
-        const rawLink: string = match[1] || match[3];
+        let rawLink: string = (match[1] || match[3] || '').split('|')[0].split('#')[0];
+        rawLink = rawLink.replace(/\s+["'].*?["']$/, '').trim();
+
         const alias: string | undefined = match[2];
 
         const parsed = parseLink(rawLink);
-        const resolvedPath = parsed.path.startsWith('.') ? resolveRelativePath(otherNode.path, parsed.path) : parsed.path;
+        const resolvedTarget = resolveGraphTarget(otherNode.path, parsed.path);
 
-        const isMatch = resolvedPath === targetFullPath || path.basename(resolvedPath).toLowerCase() === targetName.toLowerCase();
-
-        if (isMatch) {
+        if (resolvedTarget && resolvedTarget._id.toString() === targetId) {
           for (let i = match.index; i < match.index + match[0].length; i++) {
             linkedIndices.add(i);
           }
 
-          const lineIndex = content.substring(0, match.index).split('\n').length;
-          const lineStart = content.lastIndexOf('\n', match.index) + 1;
-          const lineEnd = content.indexOf('\n', match.index);
-          const excerptEnd = lineEnd === -1 ? content.length : lineEnd;
-
           linkedInThisFile.push({
-            excerpt: content.substring(lineStart, excerptEnd).trim(),
-            line: lineIndex,
-            index: match.index,
-            length: match[0].length,
+            ...extractMentionData(content, match.index, match[0].length),
             heading: parsed.heading,
             alias: alias || parsed.alias,
           });
@@ -192,21 +241,10 @@ export const nodeService = {
       }
 
       if (unlinkedRegex) {
+        unlinkedRegex.lastIndex = 0;
         let uMatch: RegExpExecArray | null;
         while ((uMatch = unlinkedRegex.exec(content)) !== null) {
-          if (!linkedIndices.has(uMatch.index)) {
-            const lineIndex = content.substring(0, uMatch.index).split('\n').length;
-            const lineStart = content.lastIndexOf('\n', uMatch.index) + 1;
-            const lineEnd = content.indexOf('\n', uMatch.index);
-            const excerptEnd = lineEnd === -1 ? content.length : lineEnd;
-
-            unlinkedInThisFile.push({
-              excerpt: content.substring(lineStart, excerptEnd).trim(),
-              line: lineIndex,
-              length: uMatch[0].length,
-              index: uMatch.index,
-            });
-          }
+          if (!linkedIndices.has(uMatch.index)) unlinkedInThisFile.push(extractMentionData(content, uMatch.index, uMatch[0].length));
         }
       }
 
