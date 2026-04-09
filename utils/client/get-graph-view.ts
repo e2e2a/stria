@@ -1,7 +1,23 @@
 import { INode } from '@/types';
 
-export function generateGraphData(flatNodes: INode[]) {
-  const LINK_REGEX = /\[\[([^\]]+)\]\]|\[([^\]]+)\]\(((?:[^()]+|\([^()]*\))+)\)/g;
+// 1. THE SAFE REGEX (Prevents Catastrophic Backtracking/Freezing)
+const LINK_REGEX = /\[\[([^\]]+)\]\]|\[([^\]]+)\]\(((?:[^()]+|\([^()]*\))+)\)/g;
+// 2. THE GATEKEEPER: Checks the TITLE for markdown extensions or empty extensions
+const isMarkdownFile = (title: string | undefined | null): boolean => {
+  if (!title) return false;
+  const lower = title.toLowerCase();
+
+  // Accept standard markdown extensions
+  if (lower.endsWith('.md') || lower.endsWith('.mdx') || lower.endsWith('.mdc') || lower.endsWith('.view')) {
+    return true;
+  }
+
+  // If there is no dot in the title at all, we treat it as an extension-less markdown file
+  return !lower.includes('.');
+};
+
+export async function generateGraphData(flatNodes: INode[]) {
+  console.log(`\n🚀 [Batch Mode] Starting graph generation for ${flatNodes?.length || 0} files...`);
 
   const normalize = (p: string | undefined | null): string => {
     if (!p) return '';
@@ -12,7 +28,12 @@ export function generateGraphData(flatNodes: INode[]) {
     } catch {
       cleanPath = cleanPath.replace(/%20/g, ' ').replace(/%28/g, '(').replace(/%29/g, ')');
     }
-    return cleanPath.replace(/\\/g, '/').replace(/\.md$/i, '').toLowerCase().trim();
+    // Updated to strip mdx and mdc just in case they sneak in
+    return cleanPath
+      .replace(/\\/g, '/')
+      .replace(/\.(md|mdx|mdc)$/i, '')
+      .toLowerCase()
+      .trim();
   };
 
   const getBasename = (p: string) => p.split('/').pop() || '';
@@ -101,6 +122,7 @@ export function generateGraphData(flatNodes: INode[]) {
     return Array.from(tags);
   };
 
+  // Map ALL files into the graph (CSS, JSON, etc. will still be dots)
   const nodesArr = flatNodes.map(n => {
     const { content, ...rest } = n;
     return {
@@ -131,8 +153,25 @@ export function generateGraphData(flatNodes: INode[]) {
   const seenLinks = new Set<string>();
   const tagNodesMap = new Map<string, (typeof nodesArr)[0]>();
 
-  flatNodes.forEach(node => {
-    if (!node.content) return;
+  console.log(`[Batch Mode] Maps prepared. Starting Regex parsing...`);
+
+  // 🚨 THE CHUNKED LOOP FOR PERFORMANCE 🚨
+  for (let i = 0; i < flatNodes.length; i++) {
+    const node = flatNodes[i];
+
+    // Yield to the Node.js Event loop every 50 files
+    if (i > 0 && i % 50 === 0) {
+      await new Promise(resolve => setTimeout(resolve, 10)); // Bumped to 10ms for safer yielding
+    }
+
+    // Skip if there's no content
+    if (!node.content) continue;
+
+    // 🚨 GATEKEEPER: Check the TITLE. If it's not markdown, skip content parsing!
+    if (!isMarkdownFile(node.title)) {
+      continue;
+    }
+
     const sourceId = node._id.toString();
 
     let match;
@@ -197,7 +236,9 @@ export function generateGraphData(flatNodes: INode[]) {
         adjCounts.set(tagId, (adjCounts.get(tagId) || 0) + 1);
       }
     });
-  });
+  }
+
+  console.log(`✅ [Batch Mode] All ${flatNodes.length} files parsed! Finalizing arrays...`);
 
   nodesArr.push(...Array.from(tagNodesMap.values()));
 

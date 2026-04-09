@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useEffect, useMemo, useRef, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import {
   forceSimulation,
   forceLink,
@@ -18,13 +18,14 @@ import {
 import * as d3Zoom from 'd3-zoom';
 import * as d3Drag from 'd3-drag';
 import { select } from 'd3-selection';
-import { Search, X, Settings, RotateCcw, ChevronRight } from 'lucide-react';
 import { useTabStore } from '@/features/editor/stores/tabs';
 import { useNodeStore } from '@/features/editor/stores/nodes';
 import { GraphNode } from '@/lib/client/api/projectClient';
 import { INode } from '@/types';
-import { Slider } from '@/components/ui/slider';
 import { useProjectGraphViewQuery } from '@/hooks/project/useProjectQuery';
+import { GraphSettings } from './graph-settings';
+import { useFilteredGraph } from '@/utils/client/use-filtered-graph';
+import { normalizeGraphPath } from '@/utils/client/graph-helpers';
 
 type GraphLink = {
   source: string | GraphNode;
@@ -40,7 +41,7 @@ function GraphViewSection({ projectId }: { projectId: string; activeTabId: strin
 
   const [searchQuery, setSearchQuery] = useState('');
   const [showSettings, setShowSettings] = useState(false);
-  const [expandedCategory, setExpandedCategory] = useState<string | null>('Filters');
+  // const [expandedCategory, setExpandedCategory] = useState<string | null>('Filters');
 
   const [showOrphans, setShowOrphans] = useState(true);
   const [showTags, setShowTags] = useState(false);
@@ -60,75 +61,7 @@ function GraphViewSection({ projectId }: { projectId: string; activeTabId: strin
     setLinkDistance(50);
   };
 
-  const categories = ['Filters', 'Forces'];
-
-  const { filteredNodes, filteredLinks, adjacency } = useMemo(() => {
-    if (!data || !data.d3Nodes) return { filteredNodes: [], filteredLinks: [], adjacency: new Map() };
-
-    const query = searchQuery.toLowerCase().trim();
-    const cleanTagQuery = query.replace(/^#/, '');
-    const fullAdj = new Map<string, Set<string>>();
-
-    data.d3Nodes.forEach(n => fullAdj.set(n._id, new Set<string>()));
-
-    const validLinks = data.d3Links || [];
-    validLinks.forEach(l => {
-      fullAdj.get(l.source)?.add(l.target);
-      fullAdj.get(l.target)?.add(l.source);
-    });
-
-    const visibleNodeIds = new Set<string>();
-
-    data.d3Nodes.forEach(n => {
-      if (n.type === 'tag' && !showTags) return;
-
-      const isOrphan = fullAdj.get(n._id)?.size === 0;
-      if (!showOrphans && isOrphan) return;
-
-      if (!query) {
-        visibleNodeIds.add(n._id);
-      } else {
-        const isMatch = showTags
-          ? n.type === 'tag' && n.title.toLowerCase().includes(cleanTagQuery)
-          : n.type !== 'tag' && n.title.toLowerCase().includes(query);
-
-        if (isMatch) {
-          visibleNodeIds.add(n._id);
-          const neighbors = fullAdj.get(n._id);
-          if (neighbors) {
-            neighbors.forEach(neighborId => visibleNodeIds.add(neighborId));
-          }
-        }
-      }
-    });
-
-    const nodesArr = data.d3Nodes
-      .filter(n => {
-        if (!showTags && n.type === 'tag') return false;
-        return visibleNodeIds.has(n._id);
-      })
-      .map(n => ({ ...n }));
-
-    const nodeMap = new Map<string, GraphNode>();
-    nodesArr.forEach(n => nodeMap.set(n._id, n));
-
-    const linksArr: GraphLink[] = [];
-    const adj = new Map<string, Set<string>>();
-    nodesArr.forEach(n => adj.set(n._id, new Set<string>()));
-
-    validLinks.forEach(l => {
-      const sourceNode = nodeMap.get(l.source);
-      const targetNode = nodeMap.get(l.target);
-
-      if (sourceNode && targetNode) {
-        linksArr.push({ source: sourceNode, target: targetNode });
-        adj.get(sourceNode._id)?.add(targetNode._id);
-        adj.get(targetNode._id)?.add(sourceNode._id);
-      }
-    });
-
-    return { filteredNodes: nodesArr, filteredLinks: linksArr, adjacency: adj };
-  }, [data, searchQuery, showOrphans, showTags]);
+  const { filteredNodes, filteredLinks, adjacency } = useFilteredGraph(data, searchQuery, showOrphans, showTags);
 
   useEffect(() => {
     const canvas = canvasRef.current;
@@ -396,137 +329,139 @@ function GraphViewSection({ projectId }: { projectId: string; activeTabId: strin
     sim.alpha(0.3).restart();
   }, [centerForce, repelForce, linkForce, linkDistance]);
 
-  useEffect(() => {
-    const handlePing = (e: CustomEvent) => {
-      const { nodeId, content } = e.detail;
-      const safeNodeId = String(nodeId);
+  // useEffect(() => {
+  //   const handlePing = (e: CustomEvent) => {
+  //     const { nodeId } = e.detail;
+  //     // 🚨 ALL REGEX AND NODE UPDATES REMOVED FOR QA TESTING 🚨
+  //     console.log(`Ping received for file: ${nodeId}. Regex parsing is disabled.`);
+  //   };
 
-      if (!simRef.current || !data || !data.d3Nodes) {
-        return;
-      }
+  //   window.addEventListener('ping-graph-update', handlePing as EventListener);
+  //   return () => {
+  //     window.removeEventListener('ping-graph-update', handlePing as EventListener);
+  //   };
+  // }, [data]);
 
-      const sim = simRef.current;
-      const currentNodes = sim.nodes();
+  // useEffect(() => {
+  //   const handlePing = (e: CustomEvent) => {
+  //     const { nodeId, content } = e.detail;
+  //     const safeNodeId = String(nodeId);
 
-      const normalize = (p: string) => {
-        if (!p) return '';
-        let cleanPath = p.replace(/[<>]/g, '').replace(/\+/g, ' ');
-        try {
-          cleanPath = decodeURIComponent(cleanPath);
-        } catch {
-          cleanPath = cleanPath.replace(/%20/g, ' ').replace(/%28/g, '(').replace(/%29/g, ')');
-        }
-        return cleanPath.replace(/\\/g, '/').replace(/\.md$/i, '').toLowerCase().trim();
-      };
+  //     if (!simRef.current || !data || !data.d3Nodes) {
+  //       return;
+  //     }
 
-      const allFilesMap = new Map<string, GraphNode>();
-      data.d3Nodes.forEach(n => allFilesMap.set(normalize(n.title), n));
+  //     const sim = simRef.current;
+  //     const currentNodes = sim.nodes();
 
-      const activeNodeMap = new Map<string, GraphNode>();
-      currentNodes.forEach(n => activeNodeMap.set(String(n._id), n as GraphNode));
+  //     const allFilesMap = new Map<string, GraphNode>();
+  //     data.d3Nodes.forEach(n => allFilesMap.set(normalizeGraphPath(n.title), n));
 
-      const tags = new Set<string>();
-      const linkTargets = new Set<string>();
-      const LINK_REGEX = /\[\[([^\]]+)\]\]|\[([^\]]+)\]\(((?:[^()]+|\([^()]*\))+)\)/g;
+  //     const activeNodeMap = new Map<string, GraphNode>();
+  //     currentNodes.forEach(n => activeNodeMap.set(String(n._id), n as GraphNode));
 
-      const lines = content.replace(/\r/g, '').split('\n');
-      lines.forEach((line: string) => {
-        const tagRegex = /(^|\s)#([a-zA-Z0-9_\-\/]+)/g;
-        let match;
-        while ((match = tagRegex.exec(line)) !== null) {
-          tags.add(`tag-${match[2].toLowerCase()}`);
-        }
-      });
+  //     const tags = new Set<string>();
+  //     const linkTargets = new Set<string>();
+  //     const LINK_REGEX = /\[\[([^\]]+)\]\]|\[([^\]]+)\]\(((?:[^()]+|\([^()]*\))+)\)/g;
 
-      LINK_REGEX.lastIndex = 0;
-      let match;
-      while ((match = LINK_REGEX.exec(content)) !== null) {
-        let rawLink = (match[1] || match[3] || '').split('|')[0].split('#')[0];
-        rawLink = normalize(rawLink.replace(/\s+["'].*?["']$/, ''));
+  //     const lines = content.replace(/\r/g, '').split('\n');
+  //     lines.forEach((line: string) => {
+  //       const tagRegex = /(^|\s)#([a-zA-Z0-9_\-\/]+)/g;
+  //       let match;
+  //       while ((match = tagRegex.exec(line)) !== null) {
+  //         tags.add(`tag-${match[2].toLowerCase()}`);
+  //       }
+  //     });
 
-        if (allFilesMap.has(rawLink)) {
-          const targetId = String(allFilesMap.get(rawLink)!._id);
-          linkTargets.add(targetId);
-        }
-      }
+  //     LINK_REGEX.lastIndex = 0;
+  //     let match;
+  //     while ((match = LINK_REGEX.exec(content)) !== null) {
+  //       let rawLink = (match[1] || match[3] || '').split('|')[0].split('#')[0];
+  //       rawLink = normalizeGraphPath(rawLink.replace(/\s+["'].*?["']$/, ''));
 
-      const allTargetIds = [...Array.from(tags), ...Array.from(linkTargets)];
+  //       if (allFilesMap.has(rawLink)) {
+  //         const targetId = String(allFilesMap.get(rawLink)!._id);
+  //         linkTargets.add(targetId);
+  //       }
+  //     }
 
-      let nodesChanged = false;
+  //     const allTargetIds = [...Array.from(tags), ...Array.from(linkTargets)];
 
-      allTargetIds.forEach(targetId => {
-        if (!activeNodeMap.has(targetId)) {
-          if (targetId.startsWith('tag-')) {
-            const newTagNode = {
-              _id: targetId,
-              title: '#' + targetId.replace('tag-', ''),
-              type: 'tag',
-              x: (Math.random() - 0.5) * 200,
-              y: (Math.random() - 0.5) * 200,
-              vx: 0,
-              vy: 0,
-              radius: 10,
-            } as unknown as GraphNode;
+  //     let nodesChanged = false;
 
-            currentNodes.push(newTagNode);
-            activeNodeMap.set(targetId, newTagNode);
-            nodesChanged = true;
-          } else {
-            const missingFile = data.d3Nodes.find(n => String(n._id) === targetId);
-            if (missingFile) {
-              const newFileNode = { ...missingFile, x: 0, y: 0, vx: 0, vy: 0, radius: 10 };
-              currentNodes.push(newFileNode as GraphNode);
-              activeNodeMap.set(targetId, newFileNode as GraphNode);
-              nodesChanged = true;
-            }
-          }
-        }
-      });
+  //     allTargetIds.forEach(targetId => {
+  //       if (!activeNodeMap.has(targetId)) {
+  //         if (targetId.startsWith('tag-')) {
+  //           const newTagNode = {
+  //             _id: targetId,
+  //             title: '#' + targetId.replace('tag-', ''),
+  //             type: 'tag',
+  //             x: (Math.random() - 0.5) * 200,
+  //             y: (Math.random() - 0.5) * 200,
+  //             vx: 0,
+  //             vy: 0,
+  //             radius: 10,
+  //           } as unknown as GraphNode;
 
-      if (nodesChanged) {
-        sim.nodes(currentNodes);
-      }
+  //           currentNodes.push(newTagNode);
+  //           activeNodeMap.set(targetId, newTagNode);
+  //           nodesChanged = true;
+  //         } else {
+  //           const missingFile = data.d3Nodes.find(n => String(n._id) === targetId);
+  //           if (missingFile) {
+  //             const newFileNode = { ...missingFile, x: 0, y: 0, vx: 0, vy: 0, radius: 10 };
+  //             currentNodes.push(newFileNode as GraphNode);
+  //             activeNodeMap.set(targetId, newFileNode as GraphNode);
+  //             nodesChanged = true;
+  //           }
+  //         }
+  //       }
+  //     });
 
-      const newLinks: GraphLink[] = [];
-      const seenLinks = new Set<string>();
+  //     if (nodesChanged) {
+  //       sim.nodes(currentNodes);
+  //     }
 
-      const linkForce = sim.force('link') as ForceLink<GraphNode, GraphLink> | undefined;
-      if (linkForce) {
-        const existingLinks = linkForce.links();
-        existingLinks.forEach(l => {
-          const sourceId = String(typeof l.source === 'object' ? l.source._id : l.source);
-          const targetId = String(typeof l.target === 'object' ? l.target._id : l.target);
+  //     const newLinks: GraphLink[] = [];
+  //     const seenLinks = new Set<string>();
 
-          if (sourceId !== safeNodeId && targetId !== safeNodeId) {
-            const key = [sourceId, targetId].sort().join('-');
-            if (!seenLinks.has(key)) {
-              seenLinks.add(key);
-              newLinks.push({ source: sourceId, target: targetId });
-            }
-          }
-        });
-      }
+  //     const linkForce = sim.force('link') as ForceLink<GraphNode, GraphLink> | undefined;
+  //     if (linkForce) {
+  //       const existingLinks = linkForce.links();
+  //       existingLinks.forEach(l => {
+  //         const sourceId = String(typeof l.source === 'object' ? l.source._id : l.source);
+  //         const targetId = String(typeof l.target === 'object' ? l.target._id : l.target);
 
-      allTargetIds.forEach(targetId => {
-        const key = [safeNodeId, targetId].sort().join('-');
-        if (!seenLinks.has(key)) {
-          seenLinks.add(key);
-          newLinks.push({ source: safeNodeId, target: targetId });
-        }
-      });
+  //         if (sourceId !== safeNodeId && targetId !== safeNodeId) {
+  //           const key = [sourceId, targetId].sort().join('-');
+  //           if (!seenLinks.has(key)) {
+  //             seenLinks.add(key);
+  //             newLinks.push({ source: sourceId, target: targetId });
+  //           }
+  //         }
+  //       });
+  //     }
 
-      if (linkForce) {
-        linkForce.links(newLinks);
-      }
+  //     allTargetIds.forEach(targetId => {
+  //       const key = [safeNodeId, targetId].sort().join('-');
+  //       if (!seenLinks.has(key)) {
+  //         seenLinks.add(key);
+  //         newLinks.push({ source: safeNodeId, target: targetId });
+  //       }
+  //     });
 
-      sim.alpha(0.3).restart();
-    };
+  //     if (linkForce) {
+  //       linkForce.links(newLinks);
+  //     }
 
-    window.addEventListener('ping-graph-update', handlePing as EventListener);
-    return () => {
-      window.removeEventListener('ping-graph-update', handlePing as EventListener);
-    };
-  }, [data]);
+  //     sim.alpha(0.3).restart();
+  //   };
+
+  //   window.addEventListener('ping-graph-update', handlePing as EventListener);
+  //   return () => {
+  //     window.removeEventListener('ping-graph-update', handlePing as EventListener);
+  //   };
+  // }, [data]);
 
   if (isLoading)
     return (
@@ -540,154 +475,25 @@ function GraphViewSection({ projectId }: { projectId: string; activeTabId: strin
 
   return (
     <div className="relative h-full w-full overflow-hidden select-none">
-      <div className="absolute top-6 left-6 z-20 flex flex-col items-start gap-2">
-        <button
-          onClick={() => setShowSettings(!showSettings)}
-          className="p-2 bg-white/5 border border-white/10 rounded-lg hover:bg-white/10 transition-colors text-white/70"
-        >
-          <Settings className={`w-5 h-5 ${showSettings ? 'rotate-90' : ''} transition-transform duration-300`} />
-        </button>
-
-        {showSettings && (
-          <div className="w-64 bg-background/90 backdrop-blur-xl border border-white/10 rounded-lg overflow-hidden shadow-2xl animate-in fade-in zoom-in-95 duration-200">
-            <div className="flex items-center justify-between p-3 border-b border-white/5">
-              <span className="text-[11px] font-bold uppercase tracking-widest text-white/50">Graph Settings</span>
-              <div className="flex gap-2">
-                <button onClick={handleReset} className="p-1 hover:text-blue-400 text-white/30 transition-colors">
-                  <RotateCcw className="w-3.5 h-3.5" />
-                </button>
-                <button onClick={() => setShowSettings(false)} className="p-1 hover:text-red-400 text-white/30 transition-colors">
-                  <X className="w-3.5 h-3.5" />
-                </button>
-              </div>
-            </div>
-
-            <div className="flex flex-col">
-              {categories.map(cat => (
-                <div key={cat} className="border-b border-white/5 last:border-0">
-                  <button
-                    onClick={() => setExpandedCategory(expandedCategory === cat ? null : cat)}
-                    className="w-full flex items-center justify-between p-3 hover:bg-white/5 text-left group"
-                  >
-                    <div className="flex items-center gap-3">
-                      <ChevronRight
-                        className={`w-3 h-3 text-white/20 group-hover:text-blue-500 transition-transform duration-200 ${expandedCategory === cat ? 'rotate-90' : ''}`}
-                      />
-                      <span className="text-xs font-medium text-white/70 group-hover:text-white transition-colors tracking-wide">{cat}</span>
-                    </div>
-                  </button>
-
-                  {/* Filters Category */}
-                  {expandedCategory === cat && cat === 'Filters' && (
-                    <div className="p-3 pt-0 animate-in fade-in slide-in-from-top-2 duration-200 flex flex-col gap-4">
-                      <div className="relative group mt-2">
-                        <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-                        <input
-                          type="text"
-                          value={searchQuery}
-                          onChange={e => setSearchQuery(e.target.value)}
-                          placeholder={showTags ? 'Search tags...' : 'Search files...'}
-                          className="w-full bg-white/5 border border-white/10 rounded py-1.5 pl-9 pr-8 text-xs text-white outline-none focus:border-accent focus:ring-1 focus:ring-accent/70 transition-all"
-                        />
-                        {searchQuery && (
-                          <button onClick={() => setSearchQuery('')} className="absolute right-2 top-1/2 -translate-y-1/2 text-white/30">
-                            <X className="w-3.5 h-3.5" />
-                          </button>
-                        )}
-                      </div>
-
-                      <div className="flex flex-col gap-3">
-                        <div className="flex items-center justify-between px-1">
-                          <span className="text-xs font-medium text-white/70">Tags</span>
-                          <button
-                            onClick={() => {
-                              setShowTags(!showTags);
-                              setSearchQuery('');
-                            }}
-                            className={`relative inline-flex h-4 w-8 items-center rounded-full transition-colors focus:outline-none ${
-                              showTags ? 'bg-blue-500' : 'bg-white/10'
-                            }`}
-                          >
-                            <span
-                              className={`inline-block h-3 w-3 transform rounded-full bg-white transition-transform ${
-                                showTags ? 'translate-x-4' : 'translate-x-1'
-                              }`}
-                            />
-                          </button>
-                        </div>
-
-                        <div className="flex items-center justify-between px-1">
-                          <span className="text-xs font-medium text-white/70">Orphans</span>
-                          <button
-                            onClick={() => setShowOrphans(!showOrphans)}
-                            className={`relative inline-flex h-4 w-8 items-center rounded-full transition-colors focus:outline-none ${
-                              showOrphans ? 'bg-blue-500' : 'bg-white/10'
-                            }`}
-                          >
-                            <span
-                              className={`inline-block h-3 w-3 transform rounded-full bg-white transition-transform ${
-                                showOrphans ? 'translate-x-4' : 'translate-x-1'
-                              }`}
-                            />
-                          </button>
-                        </div>
-                      </div>
-                    </div>
-                  )}
-
-                  {expandedCategory === cat && cat === 'Forces' && (
-                    <div className="p-3 pt-0 animate-in fade-in slide-in-from-top-2 duration-200 flex flex-col gap-5 mt-2">
-                      {/* Center Force */}
-                      <div className="flex flex-col gap-3 group/slider">
-                        <div className="flex items-center justify-between">
-                          <span className="text-[10px] font-mono text-white/50 uppercase tracking-wider">Center force</span>
-                          <span className="text-[10px] font-mono text-blue-400 opacity-0 group-hover/slider:opacity-100 transition-opacity">
-                            {centerForce.toFixed(2)}
-                          </span>
-                        </div>
-                        <Slider value={[centerForce]} onValueChange={v => setCenterForce(v[0])} min={0} max={2} step={0.01} />
-                      </div>
-
-                      {/* Repel Force */}
-                      <div className="flex flex-col gap-3 group/slider">
-                        <div className="flex items-center justify-between">
-                          <span className="text-[10px] font-mono text-white/50 uppercase tracking-wider">Repel force</span>
-                          <span className="text-[10px] font-mono text-blue-400 opacity-0 group-hover/slider:opacity-100 transition-opacity">
-                            {repelForce}
-                          </span>
-                        </div>
-                        <Slider value={[repelForce]} onValueChange={v => setRepelForce(v[0])} max={200} step={1} />
-                      </div>
-
-                      {/* Link Force */}
-                      <div className="flex flex-col gap-3 group/slider">
-                        <div className="flex items-center justify-between">
-                          <span className="text-[10px] font-mono text-white/50 uppercase tracking-wider">Link force</span>
-                          <span className="text-[10px] font-mono text-blue-400 opacity-0 group-hover/slider:opacity-100 transition-opacity">
-                            {linkForce.toFixed(2)}
-                          </span>
-                        </div>
-                        <Slider value={[linkForce]} onValueChange={v => setLinkForce(v[0])} max={1} step={0.05} />
-                      </div>
-
-                      {/* Link Distance */}
-                      <div className="flex flex-col gap-3 group/slider">
-                        <div className="flex items-center justify-between">
-                          <span className="text-[10px] font-mono text-white/50 uppercase tracking-wider">Link distance</span>
-                          <span className="text-[10px] font-mono text-blue-400 opacity-0 group-hover/slider:opacity-100 transition-opacity">
-                            {linkDistance}
-                          </span>
-                        </div>
-                        <Slider value={[linkDistance]} onValueChange={v => setLinkDistance(v[0])} min={30} max={500} step={1} />
-                      </div>
-                    </div>
-                  )}
-                </div>
-              ))}
-            </div>
-          </div>
-        )}
-      </div>
+      <GraphSettings
+        showSettings={showSettings}
+        setShowSettings={setShowSettings}
+        searchQuery={searchQuery}
+        setSearchQuery={setSearchQuery}
+        showTags={showTags}
+        setShowTags={setShowTags}
+        showOrphans={showOrphans}
+        setShowOrphans={setShowOrphans}
+        centerForce={centerForce}
+        setCenterForce={setCenterForce}
+        repelForce={repelForce}
+        setRepelForce={setRepelForce}
+        linkForce={linkForce}
+        setLinkForce={setLinkForce}
+        linkDistance={linkDistance}
+        setLinkDistance={setLinkDistance}
+        handleReset={handleReset}
+      />
 
       <canvas ref={canvasRef} className="block cursor-crosshair outline-none" />
 

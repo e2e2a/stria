@@ -123,6 +123,17 @@ async function checkNodeExistence(params: { projectId: string; path: string; typ
   if (existingNode) throw new HttpError('CONFLICT', `A ${type} named "${path}" already exists`);
 }
 
+const isMarkdownFile = (title: string | undefined | null): boolean => {
+  if (!title) return false;
+  const lower = title.toLowerCase();
+
+  if (lower.endsWith('.md') || lower.endsWith('.mdx') || lower.endsWith('.mdc')) {
+    return true;
+  }
+
+  return !lower.includes('.');
+};
+
 export const nodeService = {
   getBacklink: async (targetId: string, user: User): Promise<{ linked: BacklinkResponse[]; unlinked: BacklinkResponse[] }> => {
     const targetNode = await nodeRepository.findOne({ _id: targetId });
@@ -209,7 +220,7 @@ export const nodeService = {
 
     for (const otherNode of allNodes) {
       if (otherNode._id.toString() === targetId || !otherNode.content) continue;
-
+      if (!isMarkdownFile(otherNode.title)) continue;
       const content = otherNode.content.replace(/\r/g, '');
       const linkedInThisFile: Mention[] = [];
       const unlinkedInThisFile: Mention[] = [];

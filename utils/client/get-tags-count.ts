@@ -1,6 +1,17 @@
 import { INode } from '@/types';
 import { getMarkdownNodes } from './markdown-nodes';
 
+const isMarkdownFile = (title: string | undefined | null): boolean => {
+  if (!title) return false;
+  const lower = title.toLowerCase();
+
+  if (lower.endsWith('.md') || lower.endsWith('.mdx') || lower.endsWith('.mdc')) {
+    return true;
+  }
+
+  return !lower.includes('.');
+};
+
 /**
  * Helper to count tags while preserving their original casing for the UI.
  */
@@ -34,6 +45,8 @@ export const getProjectTagsCount = async (flatNodes: INode[]) => {
   const markdownNodes = getMarkdownNodes(flatNodes);
 
   markdownNodes.forEach(node => {
+    if (!isMarkdownFile(node.title)) return;
+
     const content = (node.content || '').replace(/\r/g, '');
     const lines = content.split('\n');
 

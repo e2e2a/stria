@@ -92,7 +92,7 @@ export const projectService = {
     await Promise.all([ensureWorkspaceMember(project.workspaceId, email), ensureProjectMember(project._id, email)]);
 
     const flatNodes = await nodeService.getProjectFlatNode({ projectId: project._id, type: 'file' });
-    const results = generateGraphData((flatNodes as unknown as INode[]) || []);
+    const results = await generateGraphData((flatNodes as unknown as INode[]) || []);
     return results;
   },
 

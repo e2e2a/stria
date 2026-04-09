@@ -223,23 +223,23 @@ function MarkdownSection({ node, isDirty, canEditNode, canEditChunk }: { node: I
     const observer = () => {
       const currentContent = ytext.toString();
       if (currentContent === '' && !synced) return;
-      window.dispatchEvent(
-        new CustomEvent('ping-graph-update', {
-          detail: {
-            nodeId: String(node._id),
-            content: currentContent,
-          },
-        })
-      );
-      window.dispatchEvent(
-        new CustomEvent('editor-content-changed', {
-          detail: {
-            nodeId: node._id,
-            title: node.title,
-            content: currentContent,
-          },
-        })
-      );
+      // window.dispatchEvent(
+      //   new CustomEvent('ping-graph-update', {
+      //     detail: {
+      //       nodeId: String(node._id),
+      //       content: currentContent,
+      //     },
+      //   })
+      // );
+      // window.dispatchEvent(
+      //   new CustomEvent('editor-content-changed', {
+      //     detail: {
+      //       nodeId: node._id,
+      //       title: node.title,
+      //       content: currentContent,
+      //     },
+      //   })
+      // );
 
       clearTimeout(timer);
       timer = setTimeout(() => {
