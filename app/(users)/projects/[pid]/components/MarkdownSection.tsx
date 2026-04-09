@@ -79,7 +79,6 @@ function MarkdownSection({ node, isDirty, canEditNode, canEditChunk }: { node: I
   const setActiveNode = useNodeStore(state => state.setActiveNode);
   const pid = useParams().pid as string;
   const [editorReady, setEditorReady] = useState(false);
-  console.log('running');
   const [contextType, setContextType] = useState<'general' | 'callout'>('general');
   const [isReadOnly, setIsReadOnly] = useState(false);
   const [isChunkActive, setIsChunkActive] = useState(false);
@@ -225,6 +224,14 @@ function MarkdownSection({ node, isDirty, canEditNode, canEditChunk }: { node: I
       const currentContent = ytext.toString();
       if (currentContent === '' && !synced) return;
       window.dispatchEvent(
+        new CustomEvent('ping-graph-update', {
+          detail: {
+            nodeId: String(node._id),
+            content: currentContent,
+          },
+        })
+      );
+      window.dispatchEvent(
         new CustomEvent('editor-content-changed', {
           detail: {
             nodeId: node._id,
@@ -233,6 +240,7 @@ function MarkdownSection({ node, isDirty, canEditNode, canEditChunk }: { node: I
           },
         })
       );
+
       clearTimeout(timer);
       timer = setTimeout(() => {
         useNodeStore.getState().updateNode(node._id, { content: currentContent });

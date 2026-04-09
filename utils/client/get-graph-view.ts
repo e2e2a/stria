@@ -6,15 +6,12 @@ export function generateGraphData(flatNodes: INode[]) {
   const normalize = (p: string | undefined | null): string => {
     if (!p) return '';
     let cleanPath = p;
-
     cleanPath = cleanPath.replace(/[<>]/g, '').replace(/\+/g, ' ');
-
     try {
       cleanPath = decodeURIComponent(cleanPath);
     } catch {
       cleanPath = cleanPath.replace(/%20/g, ' ').replace(/%28/g, '(').replace(/%29/g, ')');
     }
-
     return cleanPath.replace(/\\/g, '/').replace(/\.md$/i, '').toLowerCase().trim();
   };
 
@@ -30,6 +27,78 @@ export function generateGraphData(flatNodes: INode[]) {
       else parts.push(part);
     }
     return normalize(parts.join('/'));
+  };
+
+  const extractTags = (content: string): string[] => {
+    const tags = new Set<string>();
+
+    const addTag = (rawTag: string) => {
+      const cleaned = rawTag.replace(/^#/, '').trim();
+      if (!cleaned) return;
+
+      const partsLower = cleaned.toLowerCase().split('/');
+      let currentPathLower = '';
+
+      partsLower.forEach((part, index) => {
+        currentPathLower += (index === 0 ? '' : '/') + part;
+        tags.add(currentPathLower);
+      });
+    };
+
+    const lines = content.replace(/\r/g, '').split('\n');
+    let inTagsBlock = false;
+    let inFencedCodeBlock = false;
+
+    lines.forEach(line => {
+      const trimmed = line.trim();
+
+      if (trimmed.startsWith('```')) {
+        inFencedCodeBlock = !inFencedCodeBlock;
+        return;
+      }
+
+      if (!inFencedCodeBlock) {
+        const isHeaderTags = trimmed.startsWith('tags:');
+        const isHeaderTag = trimmed.startsWith('tag:');
+        const isHeader = isHeaderTags || isHeaderTag;
+
+        if (isHeader) {
+          inTagsBlock = true;
+          const rest = trimmed.substring(isHeaderTags ? 5 : 4).trim();
+
+          if (rest) {
+            rest
+              .replace(/[\[\]]/g, '')
+              .split(',')
+              .forEach(t => addTag(t));
+          }
+        } else if (inTagsBlock) {
+          if (trimmed.includes(':') || trimmed === '---' || trimmed === '') {
+            inTagsBlock = false;
+          } else {
+            if (trimmed.startsWith('-')) {
+              addTag(trimmed.substring(1));
+            } else {
+              trimmed.split(',').forEach(t => addTag(t));
+            }
+          }
+        }
+
+        if (!inTagsBlock) {
+          const tagRegex = /(^|\s)#([a-zA-Z0-9_\-\/]+)/g;
+          let match;
+          while ((match = tagRegex.exec(line)) !== null) {
+            const before = line.substring(0, match.index);
+            const backticksBefore = (before.match(/`/g) || []).length;
+            if (backticksBefore % 2 === 0) {
+              addTag(match[2]);
+            }
+          }
+        }
+      }
+    });
+
+    return Array.from(tags);
   };
 
   const nodesArr = flatNodes.map(n => {
@@ -60,22 +129,21 @@ export function generateGraphData(flatNodes: INode[]) {
   const linksArr: { source: string; target: string }[] = [];
   const adjCounts = new Map<string, number>();
   const seenLinks = new Set<string>();
+  const tagNodesMap = new Map<string, (typeof nodesArr)[0]>();
 
   flatNodes.forEach(node => {
     if (!node.content) return;
+    const sourceId = node._id.toString();
 
     let match;
     LINK_REGEX.lastIndex = 0;
-
     const normalizedNodePath = normalize(node.path);
     const currentDir = normalizedNodePath.split('/').slice(0, -1).join('/');
 
     while ((match = LINK_REGEX.exec(node.content)) !== null) {
       let rawLink = (match[1] || match[3] || '').split('|')[0].split('#')[0];
       rawLink = rawLink.replace(/\s+["'].*?["']$/, '').trim();
-
       const linkName = normalize(rawLink);
-
       let target;
 
       const siblingPath = currentDir ? `${currentDir}/${linkName}` : linkName;
@@ -85,14 +153,12 @@ export function generateGraphData(flatNodes: INode[]) {
         const resolvedPath = resolveRelative(node.path || '', linkName);
         target = fullPathMap.get(resolvedPath);
       }
-
       if (!target) {
         const potentials = nameMap.get(linkName);
         if (potentials) target = potentials[0];
       }
 
-      if (target && target._id !== node._id.toString()) {
-        const sourceId = node._id.toString();
+      if (target && target._id !== sourceId) {
         const targetId = target._id.toString();
         const linkKey = [sourceId, targetId].sort().join('-');
 
@@ -104,7 +170,36 @@ export function generateGraphData(flatNodes: INode[]) {
         }
       }
     }
+
+    const allTags = extractTags(node.content);
+
+    allTags.forEach(tagName => {
+      const tagId = `tag-${tagName}`;
+
+      if (!tagNodesMap.has(tagId)) {
+        tagNodesMap.set(tagId, {
+          _id: tagId,
+          title: '#' + tagName,
+          type: 'tag',
+          x: (Math.random() - 0.5) * 2000,
+          y: (Math.random() - 0.5) * 2000,
+          vx: 0,
+          vy: 0,
+          radius: 10,
+        } as (typeof nodesArr)[0]);
+      }
+
+      const linkKey = [sourceId, tagId].sort().join('-');
+      if (!seenLinks.has(linkKey)) {
+        seenLinks.add(linkKey);
+        linksArr.push({ source: sourceId, target: tagId });
+        adjCounts.set(sourceId, (adjCounts.get(sourceId) || 0) + 1);
+        adjCounts.set(tagId, (adjCounts.get(tagId) || 0) + 1);
+      }
+    });
   });
+
+  nodesArr.push(...Array.from(tagNodesMap.values()));
 
   nodesArr.forEach(n => {
     const connections = adjCounts.get(n._id) || 0;

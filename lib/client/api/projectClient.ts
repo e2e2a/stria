@@ -12,7 +12,7 @@ export type GraphNode = {
   title: string;
   path?: string;
   content?: string | null;
-  type: 'file';
+  type: 'file' | 'tag';
   x: number;
   y: number;
   vx: number;

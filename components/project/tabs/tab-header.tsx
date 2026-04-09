@@ -97,10 +97,8 @@ export const TabsHeader = ({ pid }: TabsHeaderProps) => {
 
   const handleWheel = (e: React.WheelEvent) => {
     if (!headerRef.current) return;
-    // Only horizontal scroll
     if (e.deltaY !== 0) {
-      e.preventDefault(); // prevent vertical scroll
-      headerRef.current.scrollLeft += e.deltaY; // move horizontally
+      headerRef.current.scrollLeft += e.deltaY;
     }
   };
   return (

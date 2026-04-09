@@ -8,7 +8,6 @@ import { ProjectPresence } from './project-presence';
 import GraphViewSection from './graph-view-section';
 import { useEffect, useState } from 'react';
 import { useGetMyProjectMembership } from '@/hooks/projectMember/useQueries';
-import { useProjectGraphViewQuery } from '@/hooks/project/useProjectQuery';
 
 export function ProjectSingleClient() {
   const params = useParams();
@@ -19,7 +18,6 @@ export function ProjectSingleClient() {
   const activeTabId = activeTabs[pid];
 
   const [visitedTabs, setVisitedTabs] = useState<Set<string>>(new Set());
-  const { data, isLoading } = useProjectGraphViewQuery(pid);
   useEffect(() => {
     if (activeTabId) {
       // eslint-disable-next-line react-hooks/set-state-in-effect
@@ -73,7 +71,7 @@ export function ProjectSingleClient() {
             return (
               <div key={tab.nodeId} className={tab.nodeId === activeTabId ? 'h-full w-full block' : 'hidden'}>
                 {tab.nodeId === 'graph-view' ? (
-                  <GraphViewSection projectId={pid} data={data} isLoading={isLoading} activeTabId={activeTabId} />
+                  <GraphViewSection projectId={pid} activeTabId={activeTabId} />
                 ) : (
                   <MarkdownSection node={tab.node as INode} isDirty={tab.isDirty} canEditChunk={canEditChunk} canEditNode={canEditNode} />
                 )}

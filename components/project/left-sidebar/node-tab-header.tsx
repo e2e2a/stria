@@ -9,7 +9,6 @@ import { useGetMyProjectMembership } from '@/hooks/projectMember/useQueries';
 
 const NodeTabHeader = ({ projectData }: { projectData: IProject }) => {
   const { data: mData } = useGetMyProjectMembership(projectData._id.toString());
-  console.log('rerendering');
   const setCollapseAll = useNodeStore(state => state.setCollapseAll);
   const selectedNode = useNodeStore(state => state.selectedNode);
   const activeNode = useNodeStore(state => state.activeNode);
