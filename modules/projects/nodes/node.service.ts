@@ -10,6 +10,12 @@ import Node from '@/modules/projects/nodes/node.model';
 import { Types } from 'mongoose';
 import { parseLink } from '@/helpers/server/link-helpers';
 
+interface OutlineNode {
+  text: string;
+  level: number;
+  children: OutlineNode[];
+}
+
 export interface Mention {
   excerpt: string;
   line: number;
@@ -134,7 +140,46 @@ const isMarkdownFile = (title: string | undefined | null): boolean => {
   return !lower.includes('.');
 };
 
+const buildOutlineTree = (headings: { level: number; text: string }[]): OutlineNode[] => {
+  const root: OutlineNode[] = [];
+  const stack: OutlineNode[] = [];
+
+  headings.forEach(heading => {
+    const node: OutlineNode = { ...heading, children: [] };
+    while (stack.length > 0 && stack[stack.length - 1].level >= node.level) {
+      stack.pop();
+    }
+    if (stack.length === 0) {
+      root.push(node);
+    } else {
+      stack[stack.length - 1].children.push(node);
+    }
+    stack.push(node);
+  });
+  return root;
+};
+
 export const nodeService = {
+  getOutlines: async (targetId: string, user: User) => {
+    const node = await nodeRepository.findOne({ _id: targetId });
+    console.log('run', targetId);
+    if (!node) return [];
+    if (user.role !== 'admin') await Promise.all([ensureWorkspaceMember(node.workspaceId, user.email), ensureProjectMember(node.projectId, user.email)]);
+
+    if (!isMarkdownFile(node.title)) return [];
+
+    const content = node.content || '';
+    if (!content) return [];
+
+    const headingRegex = /^#{1,6}\s+(.*)/gm;
+
+    const matches = (Array.from(content.matchAll(headingRegex)) as RegExpMatchArray[]).map(match => ({
+      level: match[0].split(' ')[0].length,
+      text: match[1],
+    }));
+    return buildOutlineTree(matches);
+  },
+
   getBacklink: async (targetId: string, user: User): Promise<{ linked: BacklinkResponse[]; unlinked: BacklinkResponse[] }> => {
     const targetNode = await nodeRepository.findOne({ _id: targetId });
     if (!targetNode) return { linked: [], unlinked: [] };

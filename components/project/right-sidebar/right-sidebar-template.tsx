@@ -21,12 +21,7 @@ import { useParams } from 'next/navigation';
 import { useGetMyProjectMembership } from '@/hooks/projectMember/useQueries';
 import { TagsTabHeader } from './tags-tab-header';
 import { TagsTabContent } from './tags-tab-content';
-
-interface OutlineNode {
-  text: string;
-  level: number;
-  children: OutlineNode[];
-}
+import { useNodeOutlinesQuery } from '@/hooks/node/useNodeQuery';
 
 const InboundLinkIcon = ({ className }: { className?: string }) => (
   <div className="relative inline-flex items-center justify-center">
@@ -42,28 +37,9 @@ const InboundLinkIcon = ({ className }: { className?: string }) => (
 //   </div>
 // );
 
-const buildOutlineTree = (headings: { level: number; text: string }[]): OutlineNode[] => {
-  const root: OutlineNode[] = [];
-  const stack: OutlineNode[] = [];
-
-  headings.forEach(heading => {
-    const node: OutlineNode = { ...heading, children: [] };
-    while (stack.length > 0 && stack[stack.length - 1].level >= node.level) {
-      stack.pop();
-    }
-    if (stack.length === 0) {
-      root.push(node);
-    } else {
-      stack[stack.length - 1].children.push(node);
-    }
-    stack.push(node);
-  });
-  return root;
-};
-
 type ISortMode = 'name-asc' | 'name-desc' | 'freq-high' | 'freq-low';
 
-const RightSidebarTemplate = ({ activeNodeId, activeNodeContent }: { activeNodeId: string; activeNodeType: string; activeNodeContent: string }) => {
+const RightSidebarTemplate = ({ activeNodeId }: { activeNodeId: string; activeNodeType: string }) => {
   const { data } = useSession();
 
   const rightSidebarTab = useProjectUIStore(state => state.rightSidebarTab);
@@ -73,6 +49,7 @@ const RightSidebarTemplate = ({ activeNodeId, activeNodeContent }: { activeNodeI
   const params = useParams();
   const projectId = params.pid as string;
   const { data: mData } = useGetMyProjectMembership(projectId);
+  const { data: tData } = useNodeOutlinesQuery(activeNodeId);
 
   // --- TAG STATES ---
   const [isSearchingInTags, setIsSearchingInTags] = useState(false);
@@ -98,32 +75,6 @@ const RightSidebarTemplate = ({ activeNodeId, activeNodeContent }: { activeNodeI
   // --- OUTLINE STATES ---
   const [defaultExpand, setDefaultExpand] = useState(true);
   const [refreshKey, setRefreshKey] = useState(0);
-  // const linkedMentions = bData?.linked || [];
-  // const unlinkedMentions = bData?.unlinked || [];
-
-  const tree = useMemo(() => {
-    if (!activeNodeContent) return [];
-    const headingRegex = /^#{1,6}\s+(.*)/gm;
-    const matches = Array.from(activeNodeContent.matchAll(headingRegex)).map(match => ({
-      level: match[0].split(' ')[0].length,
-      text: match[1],
-    }));
-
-    const fullTree = buildOutlineTree(matches);
-    if (!searchQueryInOutline.trim()) return fullTree;
-
-    const filterNodes = (nodes: OutlineNode[]): OutlineNode[] => {
-      return nodes.reduce((acc: OutlineNode[], node) => {
-        const matchesSearch = node.text.toLowerCase().includes(searchQueryInOutline.toLowerCase());
-        const filteredChildren = filterNodes(node.children);
-        if (matchesSearch || filteredChildren.length > 0) {
-          acc.push({ ...node, children: filteredChildren });
-        }
-        return acc;
-      }, []);
-    };
-    return filterNodes(fullTree);
-  }, [activeNodeContent, searchQueryInOutline]);
 
   const handleToggleExpand = (val: boolean) => {
     setDefaultExpand(val);
@@ -306,8 +257,8 @@ const RightSidebarTemplate = ({ activeNodeId, activeNodeContent }: { activeNodeI
           >
             <div className="p-2">
               <div className="space-y-0.5">
-                {tree.length > 0 ? (
-                  tree.map((node, idx) => (
+                {tData && tData.length > 0 ? (
+                  tData.map((node, idx) => (
                     <OutlineTabItem key={`${idx}-${refreshKey}`} node={node} defaultOpen={defaultExpand} searchQuery={searchQueryInOutline} />
                   ))
                 ) : (

@@ -16,3 +16,11 @@ export function useNodeBacklinksQuery(id: string) {
     enabled: !!id,
   });
 }
+
+export function useNodeOutlinesQuery(id: string) {
+  return useQuery({
+    queryKey: ['nodeOutlines', id],
+    queryFn: () => nodeClient.getOutlines(id),
+    enabled: !!id,
+  });
+}

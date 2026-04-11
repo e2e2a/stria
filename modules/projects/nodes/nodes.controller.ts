@@ -5,6 +5,13 @@ import { ensureAuthenticated } from '@/lib/server/auth-utils';
 import { INode } from '@/types';
 
 export const nodeController = {
+  getOutlines: async (id: string) => {
+    const session = await ensureAuthenticated();
+    if (!id) throw new HttpError('BAD_INPUT');
+    const res = await nodeService.getOutlines(id, session.user);
+    return res;
+  },
+
   getBacklink: async (id: string) => {
     const session = await ensureAuthenticated();
     if (!id) throw new HttpError('BAD_INPUT');

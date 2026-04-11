@@ -21,6 +21,12 @@ interface IBacklinkResponse {
   unlinked: IBacklink[];
 }
 
+interface OutlineNode {
+  text: string;
+  level: number;
+  children: OutlineNode[];
+}
+
 export const nodeClient = {
   async getNodes(projectId: string) {
     const res = await fetch(`${BASE_URL_PROJECT}/${projectId}/nodes?exclude=content,updatedAt`);
@@ -36,7 +42,13 @@ export const nodeClient = {
 
   async getBacklinks(id: string): Promise<IBacklinkResponse> {
     const res = await fetch(`${BASE_URL}/${id}/backlinks`);
-    if (!res.ok) throw new Error(`Failed to fetch node with id ${id}`);
+    if (!res.ok) throw new Error(`Failed to fetch node with backlinks id ${id}`);
+    return res.json();
+  },
+
+  async getOutlines(id: string): Promise<OutlineNode[]> {
+    const res = await fetch(`${BASE_URL}/${id}/outlines`);
+    if (!res.ok) throw new Error(`Failed to fetch node outline with id ${id}`);
     return res.json();
   },
 
