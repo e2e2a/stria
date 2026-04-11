@@ -20,20 +20,26 @@ import * as d3Drag from 'd3-drag';
 import { select } from 'd3-selection';
 import { useTabStore } from '@/features/editor/stores/tabs';
 import { useNodeStore } from '@/features/editor/stores/nodes';
-import { GraphNode } from '@/lib/client/api/projectClient';
+import { GraphNode, GraphViewResponse } from '@/lib/client/api/projectClient';
 import { INode } from '@/types';
-import { useProjectGraphViewQuery } from '@/hooks/project/useProjectQuery';
 import { GraphSettings } from './graph-settings';
 import { useFilteredGraph } from '@/utils/client/use-filtered-graph';
-import { normalizeGraphPath } from '@/utils/client/graph-helpers';
 
 type GraphLink = {
   source: string | GraphNode;
   target: string | GraphNode;
 };
 
-function GraphViewSection({ projectId }: { projectId: string; activeTabId: string | null }) {
-  const { data, isLoading } = useProjectGraphViewQuery(projectId);
+function GraphViewSection({
+  projectId,
+  data,
+  isLoading,
+}: {
+  projectId: string;
+  data: GraphViewResponse | undefined;
+  isLoading: boolean;
+  activeTabId: string | null;
+}) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const transformRef = useRef(d3Zoom.zoomIdentity);
   const simRef = useRef<Simulation<GraphNode, GraphLink> | null>(null);
@@ -41,7 +47,6 @@ function GraphViewSection({ projectId }: { projectId: string; activeTabId: strin
 
   const [searchQuery, setSearchQuery] = useState('');
   const [showSettings, setShowSettings] = useState(false);
-  // const [expandedCategory, setExpandedCategory] = useState<string | null>('Filters');
 
   const [showOrphans, setShowOrphans] = useState(true);
   const [showTags, setShowTags] = useState(false);
