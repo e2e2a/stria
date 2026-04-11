@@ -16,6 +16,15 @@ export interface SearchResult {
   matches: SearchMatch[];
 }
 
+const isMarkdownFile = (title: string | undefined | null): boolean => {
+  if (!title) return false;
+  const lower = title.toLowerCase();
+
+  if (lower.endsWith('.md') || lower.endsWith('.mdx') || lower.endsWith('.mdc') || lower.endsWith('.view')) return true;
+
+  return !lower.includes('.');
+};
+
 /**
  * Main entry point for search.
  * Splits between specialized operators and standard text search.
@@ -29,6 +38,7 @@ export function performSearch(query: string, nodes: INode[] | null): SearchResul
   if (trimmed.startsWith('["') && trimmed.endsWith('"]')) {
     const propertyTerm = trimmed.substring(2, trimmed.length - 2).trim();
     results = handlePropertySearch(propertyTerm, nodes);
+    return results.sort((a, b) => a.title.localeCompare(b.title));
   }
 
   const operatorMatch = query.match(/^(tag|file|line):(.*)/i);
@@ -66,6 +76,8 @@ function handleOperatorSearch(operator: string, searchTerm: string, nodes: INode
     }
 
     if (operator === 'tag') {
+      if (!isMarkdownFile(node.title)) return results;
+
       const cleanTerm = searchTerm.replace(/^#/, '').toLowerCase();
       const tagRegex = new RegExp(`(^|\\s)#${cleanTerm}\\b`, 'gi');
 
@@ -203,7 +215,9 @@ export function searchSingleNode(query: string, node: INode): SearchMatch[] {
 
 function handlePropertySearch(searchTerm: string, nodes: INode[]): SearchResult[] {
   return nodes.reduce((results: SearchResult[], node) => {
-    const content = node.content || '';
+    if (!isMarkdownFile(node.title)) return results;
+
+    const content = (node.content || '').replace(/\r/g, '');
     if (!content.startsWith('---')) return results;
 
     const lines = content.split('\n');
@@ -213,8 +227,8 @@ function handlePropertySearch(searchTerm: string, nodes: INode[]): SearchResult[
     let currentPropertyKey = '';
     let currentPropertyValues: string[] = [];
     let startLineIdx = -1;
-    let absoluteIndex = 0; // Tracks position from start of file
-    let currentPropertyStartIdx = 0; // Tracks start of current key
+    let absoluteIndex = 0;
+    let currentPropertyStartIdx = 0;
 
     for (let i = 0; i < lines.length; i++) {
       const line = lines[i];
@@ -227,7 +241,6 @@ function handlePropertySearch(searchTerm: string, nodes: INode[]): SearchResult[
       }
 
       if (inFrontmatter && i > 0 && trimmed === '---') {
-        // Final property processing
         processProperty(currentPropertyKey, currentPropertyValues, startLineIdx, currentPropertyStartIdx, matches, searchTerm);
         break;
       }
@@ -236,7 +249,6 @@ function handlePropertySearch(searchTerm: string, nodes: INode[]): SearchResult[
         const keyMatch = line.match(/^([a-zA-Z0-9_-]+):\s*(.*)/);
 
         if (keyMatch) {
-          // Process the PREVIOUS property before moving to the next
           processProperty(currentPropertyKey, currentPropertyValues, startLineIdx, currentPropertyStartIdx, matches, searchTerm);
 
           currentPropertyKey = keyMatch[1];
