@@ -24,6 +24,7 @@ import { GraphNode, GraphViewResponse } from '@/lib/client/api/projectClient';
 import { INode } from '@/types';
 import { GraphSettings } from './graph-settings';
 import { useFilteredGraph } from '@/utils/client/use-filtered-graph';
+import { normalizeGraphPath } from '@/utils/client/graph-helpers';
 
 type GraphLink = {
   source: string | GraphNode;
@@ -334,139 +335,122 @@ function GraphViewSection({
     sim.alpha(0.3).restart();
   }, [centerForce, repelForce, linkForce, linkDistance]);
 
-  // useEffect(() => {
-  //   const handlePing = (e: CustomEvent) => {
-  //     const { nodeId } = e.detail;
-  //     // 🚨 ALL REGEX AND NODE UPDATES REMOVED FOR QA TESTING 🚨
-  //     console.log(`Ping received for file: ${nodeId}. Regex parsing is disabled.`);
-  //   };
+  useEffect(() => {
+    const handlePing = (e: CustomEvent) => {
+      const { nodeId, content } = e.detail;
+      const safeNodeId = String(nodeId);
 
-  //   window.addEventListener('ping-graph-update', handlePing as EventListener);
-  //   return () => {
-  //     window.removeEventListener('ping-graph-update', handlePing as EventListener);
-  //   };
-  // }, [data]);
+      if (!simRef.current || !data || !data.d3Nodes) return;
 
-  // useEffect(() => {
-  //   const handlePing = (e: CustomEvent) => {
-  //     const { nodeId, content } = e.detail;
-  //     const safeNodeId = String(nodeId);
+      const sim = simRef.current;
+      const currentNodes = sim.nodes();
 
-  //     if (!simRef.current || !data || !data.d3Nodes) {
-  //       return;
-  //     }
+      const allFilesMap = new Map<string, GraphNode>();
+      data.d3Nodes.forEach(n => allFilesMap.set(normalizeGraphPath(n.title), n));
 
-  //     const sim = simRef.current;
-  //     const currentNodes = sim.nodes();
+      const activeNodeMap = new Map<string, GraphNode>();
+      currentNodes.forEach(n => activeNodeMap.set(String(n._id), n as GraphNode));
 
-  //     const allFilesMap = new Map<string, GraphNode>();
-  //     data.d3Nodes.forEach(n => allFilesMap.set(normalizeGraphPath(n.title), n));
+      const tags = new Set<string>();
+      const linkTargets = new Set<string>();
+      const LINK_REGEX = /\[\[([^\]]+)\]\]|\[([^\]]+)\]\(((?:[^()]+|\([^()]*\))+)\)/g;
 
-  //     const activeNodeMap = new Map<string, GraphNode>();
-  //     currentNodes.forEach(n => activeNodeMap.set(String(n._id), n as GraphNode));
+      const lines = content.replace(/\r/g, '').split('\n');
+      lines.forEach((line: string) => {
+        const tagRegex = /(^|\s)#([a-zA-Z0-9_\-\/]+)/g;
+        let match;
+        while ((match = tagRegex.exec(line)) !== null) {
+          tags.add(`tag-${match[2].toLowerCase()}`);
+        }
+      });
 
-  //     const tags = new Set<string>();
-  //     const linkTargets = new Set<string>();
-  //     const LINK_REGEX = /\[\[([^\]]+)\]\]|\[([^\]]+)\]\(((?:[^()]+|\([^()]*\))+)\)/g;
+      LINK_REGEX.lastIndex = 0;
+      let match;
+      while ((match = LINK_REGEX.exec(content)) !== null) {
+        let rawLink = (match[1] || match[3] || '').split('|')[0].split('#')[0];
+        rawLink = normalizeGraphPath(rawLink.replace(/\s+["'].*?["']$/, ''));
 
-  //     const lines = content.replace(/\r/g, '').split('\n');
-  //     lines.forEach((line: string) => {
-  //       const tagRegex = /(^|\s)#([a-zA-Z0-9_\-\/]+)/g;
-  //       let match;
-  //       while ((match = tagRegex.exec(line)) !== null) {
-  //         tags.add(`tag-${match[2].toLowerCase()}`);
-  //       }
-  //     });
+        if (allFilesMap.has(rawLink)) {
+          const targetId = String(allFilesMap.get(rawLink)!._id);
+          linkTargets.add(targetId);
+        }
+      }
 
-  //     LINK_REGEX.lastIndex = 0;
-  //     let match;
-  //     while ((match = LINK_REGEX.exec(content)) !== null) {
-  //       let rawLink = (match[1] || match[3] || '').split('|')[0].split('#')[0];
-  //       rawLink = normalizeGraphPath(rawLink.replace(/\s+["'].*?["']$/, ''));
+      const allTargetIds = [...Array.from(tags), ...Array.from(linkTargets)];
 
-  //       if (allFilesMap.has(rawLink)) {
-  //         const targetId = String(allFilesMap.get(rawLink)!._id);
-  //         linkTargets.add(targetId);
-  //       }
-  //     }
+      let nodesChanged = false;
 
-  //     const allTargetIds = [...Array.from(tags), ...Array.from(linkTargets)];
+      allTargetIds.forEach(targetId => {
+        if (!activeNodeMap.has(targetId)) {
+          if (targetId.startsWith('tag-')) {
+            const newTagNode = {
+              _id: targetId,
+              title: '#' + targetId.replace('tag-', ''),
+              type: 'tag',
+              x: (Math.random() - 0.5) * 200,
+              y: (Math.random() - 0.5) * 200,
+              vx: 0,
+              vy: 0,
+              radius: 10,
+            } as unknown as GraphNode;
 
-  //     let nodesChanged = false;
+            currentNodes.push(newTagNode);
+            activeNodeMap.set(targetId, newTagNode);
+            nodesChanged = true;
+          } else {
+            const missingFile = data.d3Nodes.find(n => String(n._id) === targetId);
+            if (missingFile) {
+              const newFileNode = { ...missingFile, x: 0, y: 0, vx: 0, vy: 0, radius: 10 };
+              currentNodes.push(newFileNode as GraphNode);
+              activeNodeMap.set(targetId, newFileNode as GraphNode);
+              nodesChanged = true;
+            }
+          }
+        }
+      });
 
-  //     allTargetIds.forEach(targetId => {
-  //       if (!activeNodeMap.has(targetId)) {
-  //         if (targetId.startsWith('tag-')) {
-  //           const newTagNode = {
-  //             _id: targetId,
-  //             title: '#' + targetId.replace('tag-', ''),
-  //             type: 'tag',
-  //             x: (Math.random() - 0.5) * 200,
-  //             y: (Math.random() - 0.5) * 200,
-  //             vx: 0,
-  //             vy: 0,
-  //             radius: 10,
-  //           } as unknown as GraphNode;
+      if (nodesChanged) sim.nodes(currentNodes);
 
-  //           currentNodes.push(newTagNode);
-  //           activeNodeMap.set(targetId, newTagNode);
-  //           nodesChanged = true;
-  //         } else {
-  //           const missingFile = data.d3Nodes.find(n => String(n._id) === targetId);
-  //           if (missingFile) {
-  //             const newFileNode = { ...missingFile, x: 0, y: 0, vx: 0, vy: 0, radius: 10 };
-  //             currentNodes.push(newFileNode as GraphNode);
-  //             activeNodeMap.set(targetId, newFileNode as GraphNode);
-  //             nodesChanged = true;
-  //           }
-  //         }
-  //       }
-  //     });
+      const newLinks: GraphLink[] = [];
+      const seenLinks = new Set<string>();
 
-  //     if (nodesChanged) {
-  //       sim.nodes(currentNodes);
-  //     }
+      const linkForce = sim.force('link') as ForceLink<GraphNode, GraphLink> | undefined;
+      if (linkForce) {
+        const existingLinks = linkForce.links();
+        existingLinks.forEach(l => {
+          const sourceId = String(typeof l.source === 'object' ? l.source._id : l.source);
+          const targetId = String(typeof l.target === 'object' ? l.target._id : l.target);
 
-  //     const newLinks: GraphLink[] = [];
-  //     const seenLinks = new Set<string>();
+          if (sourceId !== safeNodeId && targetId !== safeNodeId) {
+            const key = [sourceId, targetId].sort().join('-');
+            if (!seenLinks.has(key)) {
+              seenLinks.add(key);
+              newLinks.push({ source: sourceId, target: targetId });
+            }
+          }
+        });
+      }
 
-  //     const linkForce = sim.force('link') as ForceLink<GraphNode, GraphLink> | undefined;
-  //     if (linkForce) {
-  //       const existingLinks = linkForce.links();
-  //       existingLinks.forEach(l => {
-  //         const sourceId = String(typeof l.source === 'object' ? l.source._id : l.source);
-  //         const targetId = String(typeof l.target === 'object' ? l.target._id : l.target);
+      allTargetIds.forEach(targetId => {
+        const key = [safeNodeId, targetId].sort().join('-');
+        if (!seenLinks.has(key)) {
+          seenLinks.add(key);
+          newLinks.push({ source: safeNodeId, target: targetId });
+        }
+      });
 
-  //         if (sourceId !== safeNodeId && targetId !== safeNodeId) {
-  //           const key = [sourceId, targetId].sort().join('-');
-  //           if (!seenLinks.has(key)) {
-  //             seenLinks.add(key);
-  //             newLinks.push({ source: sourceId, target: targetId });
-  //           }
-  //         }
-  //       });
-  //     }
+      if (linkForce) {
+        linkForce.links(newLinks);
+      }
 
-  //     allTargetIds.forEach(targetId => {
-  //       const key = [safeNodeId, targetId].sort().join('-');
-  //       if (!seenLinks.has(key)) {
-  //         seenLinks.add(key);
-  //         newLinks.push({ source: safeNodeId, target: targetId });
-  //       }
-  //     });
+      sim.alpha(0.3).restart();
+    };
 
-  //     if (linkForce) {
-  //       linkForce.links(newLinks);
-  //     }
-
-  //     sim.alpha(0.3).restart();
-  //   };
-
-  //   window.addEventListener('ping-graph-update', handlePing as EventListener);
-  //   return () => {
-  //     window.removeEventListener('ping-graph-update', handlePing as EventListener);
-  //   };
-  // }, [data]);
+    window.addEventListener('ping-graph-update', handlePing as EventListener);
+    return () => {
+      window.removeEventListener('ping-graph-update', handlePing as EventListener);
+    };
+  }, [data]);
 
   if (isLoading)
     return (

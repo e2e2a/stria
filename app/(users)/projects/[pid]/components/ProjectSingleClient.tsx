@@ -8,6 +8,7 @@ import { ProjectPresence } from './project-presence';
 import GraphViewSection from './graph-view-section';
 import { useEffect, useState } from 'react';
 import { useGetMyProjectMembership } from '@/hooks/projectMember/useQueries';
+import { useProjectGraphViewQuery } from '@/hooks/project/useProjectQuery';
 
 export function ProjectSingleClient() {
   const params = useParams();
@@ -16,6 +17,8 @@ export function ProjectSingleClient() {
   const activeTabs = useTabStore(state => state.activeTabs);
   const tabs = projectTabs[pid] || [];
   const activeTabId = activeTabs[pid];
+
+  const { data, isLoading } = useProjectGraphViewQuery(pid);
 
   const [visitedTabs, setVisitedTabs] = useState<Set<string>>(new Set());
   useEffect(() => {
@@ -71,7 +74,7 @@ export function ProjectSingleClient() {
             return (
               <div key={tab.nodeId} className={tab.nodeId === activeTabId ? 'h-full w-full block' : 'hidden'}>
                 {tab.nodeId === 'graph-view' ? (
-                  <GraphViewSection projectId={pid} activeTabId={activeTabId} />
+                  <GraphViewSection projectId={pid} data={data} isLoading={isLoading} activeTabId={activeTabId} />
                 ) : (
                   <MarkdownSection node={tab.node as INode} isDirty={tab.isDirty} canEditChunk={canEditChunk} canEditNode={canEditNode} />
                 )}
