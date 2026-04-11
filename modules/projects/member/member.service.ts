@@ -26,7 +26,7 @@ export const projectMemberService = {
           ...member,
           ...baseMemberData,
           status: 'pending' as const,
-          invitedBy: user.email,
+          invitedBy: user._id!,
           role: 'viewer' as const,
         }));
         const projectMembersDataToCreate = data.members.map(member => ({
