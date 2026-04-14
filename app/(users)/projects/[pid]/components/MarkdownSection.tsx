@@ -44,6 +44,7 @@ import { EditorStatusBar } from './editor-status-bar';
 import { useEditorEvents } from './use-editor-events';
 import { ChunkEditor } from './chunk-editor';
 import { cn } from '@/lib/utils';
+import { useQueryClient } from '@tanstack/react-query';
 
 const myOwnDarkTheme = createTheme({
   theme: 'dark',
@@ -214,11 +215,12 @@ function MarkdownSection({ node, isDirty, canEditNode, canEditChunk }: { node: I
       createEditorStatsPlugin(node._id),
     ];
   }, [instance, ytext, onDocChange, setActiveNode, node._id, undoManager, isReadOnly, isChunkActive, canEditNode]);
-
+  const queryClient = useQueryClient();
   useEffect(() => {
     if (!ytext) return;
 
     let timer: NodeJS.Timeout;
+    let timer2: NodeJS.Timeout;
 
     const observer = () => {
       const currentContent = ytext.toString();
@@ -244,15 +246,22 @@ function MarkdownSection({ node, isDirty, canEditNode, canEditChunk }: { node: I
       clearTimeout(timer);
       timer = setTimeout(() => {
         useNodeStore.getState().updateNode(node._id, { content: currentContent });
-      }, 1000);
+      }, 1200);
+      clearTimeout(timer2);
+      timer2 = setTimeout(() => {
+        queryClient.invalidateQueries({ queryKey: ['projectTags', pid] });
+        queryClient.invalidateQueries({ queryKey: ['projectProperties', pid] });
+        queryClient.invalidateQueries({ queryKey: ['nodeOutlines', node._id] });
+      }, 3000);
     };
 
     ytext.observe(observer);
     return () => {
       ytext.unobserve(observer);
       clearTimeout(timer);
+      clearTimeout(timer2);
     };
-  }, [ytext, node._id, node.title, synced]);
+  }, [ytext, node._id, node.title, synced, queryClient, pid]);
 
   useEffect(() => {
     if (instance && ytext) {

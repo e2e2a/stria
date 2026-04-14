@@ -14,6 +14,7 @@ export function useNodeBacklinksQuery(id: string) {
     queryKey: ['nodeBacklinks', id],
     queryFn: () => nodeClient.getBacklinks(id),
     enabled: !!id,
+    staleTime: 3 * 1000,
   });
 }
 
@@ -22,5 +23,6 @@ export function useNodeOutlinesQuery(id: string) {
     queryKey: ['nodeOutlines', id],
     queryFn: () => nodeClient.getOutlines(id),
     enabled: !!id,
+    staleTime: 60 * 60 * 1000,
   });
 }

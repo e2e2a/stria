@@ -31,14 +31,16 @@ export function useProjectPropertiesQuery(id: string) {
     queryKey: ['projectProperties', id],
     queryFn: () => projectClient.getProperties(id),
     enabled: !!id,
+    staleTime: 60 * 60 * 1000,
   });
 }
 
 export function useProjectTagsQuery(id: string) {
   return useQuery({
-    queryKey: ['projectProperties', id],
+    queryKey: ['projectTags', id],
     queryFn: () => projectClient.getTags(id),
     enabled: !!id,
+    staleTime: 60 * 60 * 1000,
   });
 }
 

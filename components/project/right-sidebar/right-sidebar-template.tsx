@@ -9,7 +9,6 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { List, Users, Link, ArrowDownLeft, Archive, Tags } from 'lucide-react';
 import { useProjectUIStore } from '@/features/editor/stores/project-ui';
 import { IconTrident } from '@tabler/icons-react';
-import { OutlineTabItem } from './outline-tab-item';
 import { PropertyTabItems } from './property-tab-items';
 import { PropertyTabHeader } from './property-tab-header';
 import { OutlineTabHeader } from './outline-tab-header';
@@ -21,7 +20,7 @@ import { useParams } from 'next/navigation';
 import { useGetMyProjectMembership } from '@/hooks/projectMember/useQueries';
 import { TagsTabHeader } from './tags-tab-header';
 import { TagsTabContent } from './tags-tab-content';
-import { useNodeOutlinesQuery } from '@/hooks/node/useNodeQuery';
+import OutlineTabContent from './outline-tab-content';
 
 const InboundLinkIcon = ({ className }: { className?: string }) => (
   <div className="relative inline-flex items-center justify-center">
@@ -49,7 +48,6 @@ const RightSidebarTemplate = ({ activeNodeId }: { activeNodeId: string; activeNo
   const params = useParams();
   const projectId = params.pid as string;
   const { data: mData } = useGetMyProjectMembership(projectId);
-  const { data: tData } = useNodeOutlinesQuery(activeNodeId);
 
   // --- TAG STATES ---
   const [isSearchingInTags, setIsSearchingInTags] = useState(false);
@@ -255,17 +253,7 @@ const RightSidebarTemplate = ({ activeNodeId }: { activeNodeId: string; activeNo
             value="outline"
             className="m-0 flex-1 overflow-y-auto bg-sidebar/80 [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden"
           >
-            <div className="p-2">
-              <div className="space-y-0.5">
-                {tData && tData.length > 0 ? (
-                  tData.map((node, idx) => (
-                    <OutlineTabItem key={`${idx}-${refreshKey}`} node={node} defaultOpen={defaultExpand} searchQuery={searchQueryInOutline} />
-                  ))
-                ) : (
-                  <p className="text-xs text-zinc-500 italic mt-2 px-2">{searchQueryInOutline ? 'No matches' : 'No headings'}</p>
-                )}
-              </div>
-            </div>
+            <OutlineTabContent activeNodeId={activeNodeId} refreshKey={refreshKey} defaultOpen={defaultExpand} searchQuery={searchQueryInOutline} />
           </TabsContent>
 
           <TabsContent value="pressence" className="m-0 flex-1 overflow-y-auto bg-sidebar/80">
