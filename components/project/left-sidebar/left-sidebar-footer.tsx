@@ -1,10 +1,10 @@
 'use client';
-
 import { DropdownMenu, DropdownMenuContent, DropdownMenuGroup, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 import { SidebarMenu, SidebarMenuButton, SidebarMenuItem, useSidebar } from '@/components/ui/sidebar';
-import { ChevronsUpDown, CircleQuestionMark, DoorOpenIcon, Settings } from 'lucide-react';
+import { ChevronsUpDown, CircleQuestionMark, DoorOpenIcon } from 'lucide-react';
 import { IProject } from '@/types';
 import { useRouter } from 'next/navigation';
+import SettingsFooter from './settings-footer';
 
 export function LeftSidebarFooter({ projectData }: { projectData: IProject }) {
   const { isMobile } = useSidebar();
@@ -28,7 +28,6 @@ export function LeftSidebarFooter({ projectData }: { projectData: IProject }) {
             align="end"
             sideOffset={4}
           >
-            {/* <DropdownMenuSeparator /> */}
             <DropdownMenuGroup>
               <DropdownMenuItem onClick={() => router.push(`/workspaces/${projectData.workspaceId}/projects`)}>
                 <DoorOpenIcon />
@@ -39,7 +38,7 @@ export function LeftSidebarFooter({ projectData }: { projectData: IProject }) {
         </DropdownMenu>
         <div className="flex flex-row gap-x-2">
           <CircleQuestionMark />
-          <Settings />
+          <SettingsFooter />
         </div>
       </SidebarMenuItem>
     </SidebarMenu>

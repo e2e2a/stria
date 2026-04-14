@@ -1,18 +1,20 @@
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
+import { cn } from '@/lib/utils';
 
 interface IconTooltipProps {
   children: React.ReactNode;
   label: string;
   side?: 'top' | 'bottom' | 'left' | 'right';
   disabled?: boolean;
+  className?: string;
 }
 
-export const IconTooltip = ({ children, label, side = 'bottom', disabled = false }: IconTooltipProps) => {
+export const IconTooltip = ({ children, label, side = 'bottom', disabled = false, className = '' }: IconTooltipProps) => {
   return (
     <TooltipProvider>
       <Tooltip open={disabled ? false : undefined}>
         <TooltipTrigger asChild>
-          <div className="w-fit h-fit ">{children}</div>
+          <div className={cn('w-fit h-fit ', className)}>{children}</div>
         </TooltipTrigger>
         <TooltipContent
           side={side}
