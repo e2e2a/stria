@@ -135,25 +135,6 @@ export const markdownLivePreviewField = StateField.define<RangeSet<Decoration>>(
   provide: f => EditorView.decorations.from(f),
 });
 
-export const geometryTrackerPlugin = ViewPlugin.fromClass(
-  class {
-    update(update: ViewUpdate) {
-      // This triggers on window resize, browser zoom, or font-size changes
-      if (update.geometryChanged) {
-        console.log('update');
-        // We must defer the dispatch slightly to avoid CodeMirror update loops
-        requestAnimationFrame(() => {
-          update.view.requestMeasure();
-          update.view.dispatch({
-            // Reuse your existing effect to trigger the recalculation!
-            effects: rebuildDecorationsEffect.of(null),
-          });
-        });
-      }
-    }
-  }
-);
-
 // export const chunkLivePreviewPlugin = ViewPlugin.fromClass(
 //   class {
 //     decorations: DecorationSet;
