@@ -68,6 +68,7 @@ export default function SettingsFooter() {
     return (
       <IconTooltip key={tab.id} label={tab.id} side={mobile ? 'bottom' : 'right'} className={'w-fit sm:w-full'}>
         <button
+          tabIndex={-1}
           onClick={() => setActiveTab(tab.id)}
           className={`inline-flex items-center w-full gap-2 px-3  py-1.5 text-sm rounded-md transition-colors ${
             isActive ? 'bg-accent text-foreground font-medium' : 'text-zinc-400 hover:bg-accent/50 hover:text-foreground'

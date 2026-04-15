@@ -336,7 +336,7 @@ body {
     height: auto !important;
     overflow: visible !important;
     min-height: 290px !important;
-    @apply pt-16 cursor-text w-full max-w-full! min-w-0;
+    @apply cursor-text w-full max-w-full! min-w-0;
   }
 
   .cm-content::selection,

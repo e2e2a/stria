@@ -44,7 +44,8 @@ import { useEditorEvents } from './use-editor-events';
 import { ChunkEditor } from './chunk-editor';
 import { cn } from '@/lib/utils';
 import { useQueryClient } from '@tanstack/react-query';
-import EditorTabTitleBar from './options/appearance/editor-tab-title-bar';
+import EditorTabTitleBar from './options/appearance/tab-title-bar';
+import EditorInlineTitle from './options/appearance/inline-title';
 
 const myOwnDarkTheme = createTheme({
   theme: 'dark',
@@ -340,6 +341,9 @@ function MarkdownSection({ node, isDirty, canEditNode, canEditChunk }: { node: I
           isChunkActive ? 'hidden' : ''
         )}
       >
+        <div className="w-full min-w-0">
+          <EditorInlineTitle node={node} />
+        </div>
         <ContextMenuClient editorViewRef={editorViewRef} contextType={contextType} setContextType={setContextType} synced={synced}>
           <div
             className={cn('w-full h-auto pb-4 flex flex-col', isChunkActive ? 'hidden' : 'w-full h-auto')}

@@ -6,6 +6,8 @@ import { useEditorSettings } from '@/features/editor/stores/setting';
 export default function AppearanceTabContent() {
   const tabTitleBar = useEditorSettings(state => state.tabTitleBar);
   const setTabTitleBar = useEditorSettings(state => state.setTabTitleBar);
+  const inlineTitle = useEditorSettings(state => state.inlineTitle);
+  const setInlineTitle = useEditorSettings(state => state.setInlineTitle);
 
   return (
     <div className="flex-1 bg-background flex flex-col w-full h-full overflow-y-auto hoverable-scrollbar p-6 sm:p-10">
@@ -36,7 +38,7 @@ export default function AppearanceTabContent() {
 
           <SettingsCard title="Interface Layout" description="Toggle structural elements of the application.">
             <SettingRow title="Inline Title" description="Display the filename as an editable title inline with the file contents.">
-              <Switch checked={false} onCheckedChange={() => {}} />
+              <Switch checked={inlineTitle} onCheckedChange={setInlineTitle} />
             </SettingRow>
 
             <SettingRow title="Show Tab Title Bar" description="Display the header at the top of every tab.">
