@@ -89,7 +89,7 @@ export default function SettingsFooter() {
 
       <DialogContent
         tabIndex={-1}
-        className="w-[90%]! max-w-[90%]! min-w-[90%] h-[95vh] sm:h-[80vh] p-0 gap-0 bg-sidebar flex flex-col sm:flex-row overflow-hidden z-51"
+        className="w-[90%]! max-w-[90%]! min-w-[90%] h-[95vh] sm:h-[92vh] p-0 gap-0 bg-sidebar flex flex-col sm:flex-row overflow-hidden z-51"
       >
         <DialogTitle className="sr-only">Settings</DialogTitle>
         <DialogDescription className="sr-only">Manage application settings and preferences</DialogDescription>
