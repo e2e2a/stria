@@ -203,7 +203,7 @@ export default function AppSidebarLayout({ children }: { children: React.ReactNo
             withHandle={isLeftCollapsed}
           />
 
-          <ResizablePanel className="flex-1 h-full max-h-full p-0" minSize={8} defaultSize={60}>
+          <ResizablePanel className="flex-1 h-full max-h-full p-0" minSize={8} defaultSize={70}>
             <MainContentArea RightSidebarRef={RightSidebarRef} isRightCollapsed={isRightCollapsed}>
               {children}
             </MainContentArea>
