@@ -23,8 +23,9 @@ import {
   FileCheck,
   LucideIcon,
 } from 'lucide-react';
-import { IconTooltip } from '../icon-tooltip';
 import { useIsMobileSM } from '@/hooks/use-mobile';
+import { IconTooltip } from '../../icon-tooltip';
+import AppearanceTabContent from './options/appearance';
 
 const OPTIONS_TABS = [
   { id: 'general', label: 'General', icon: Settings },
@@ -65,16 +66,16 @@ export default function SettingsFooter() {
     const isActive = activeTab === tab.id;
 
     return (
-      <IconTooltip label={tab.id} side={mobile ? 'bottom' : 'right'} className={'w-fit sm:w-full'}>
+      <IconTooltip key={tab.id} label={tab.id} side={mobile ? 'bottom' : 'right'} className={'w-fit sm:w-full'}>
         <button
-          key={tab.id}
           onClick={() => setActiveTab(tab.id)}
-          className={`inline-flex items-center w-full gap-2 px-3 py-1.5 text-sm rounded-md transition-colors ${
+          className={`inline-flex items-center w-full gap-2 px-3  py-1.5 text-sm rounded-md transition-colors ${
             isActive ? 'bg-accent text-foreground font-medium' : 'text-zinc-400 hover:bg-accent/50 hover:text-foreground'
           }`}
         >
           <Icon className="w-4 h-4" />
-          <span className="sm:flex hidden">{tab.label}</span>
+
+          <span className="sm:flex hidden w-full! line-clamp-1">{tab.label}</span>
         </button>
       </IconTooltip>
     );
@@ -88,27 +89,27 @@ export default function SettingsFooter() {
 
       <DialogContent
         tabIndex={-1}
-        className="w-[90%]! max-w-[90%]! min-w-[90%] h-[80vh] p-0 gap-0 bg-sidebar border-border flex flex-col sm:flex-row overflow-hidden"
+        className="w-[90%]! max-w-[90%]! min-w-[90%] h-[95vh] sm:h-[80vh] p-0 gap-0 bg-sidebar flex flex-col sm:flex-row overflow-hidden z-51"
       >
         <DialogTitle className="sr-only">Settings</DialogTitle>
         <DialogDescription className="sr-only">Manage application settings and preferences</DialogDescription>
-        <div className="w-auto h-auto bg-sidebar border-r border-border flex flex-row sm:flex-col overflow-auto pt-5">
+        <div className="w-auto min-h-20! bg-sidebar sm:border-r sm:border-border flex flex-row sm:flex-col sm:overflow-y-auto overflow-y-hidden pt-5">
           <div className="sm:mb-6">
             <h3 className="px-3 mb-2 text-xs font-semibold text-accent uppercase tracking-wider">Options</h3>
-            <div className="flex flex-row sm:flex-col w-full gap-0.5">{OPTIONS_TABS.map(renderTabButton)}</div>
+            <div className="flex flex-row sm:flex-col w-full! gap-0.5">{OPTIONS_TABS.map(renderTabButton)}</div>
           </div>
 
           <div className="mb-2 sm:mb-6">
             <h3 className="px-3 mb-2 text-xs font-semibold text-accent uppercase tracking-wider">Core plugins</h3>
-            <div className="flex flex-row sm:flex-col gap-0.5">{CORE_PLUGINS_TABS.map(renderTabButton)}</div>
+            <div className="flex flex-row sm:flex-col w-full gap-0.5">{CORE_PLUGINS_TABS.map(renderTabButton)}</div>
           </div>
         </div>
-
-        <div className="flex-1 bg-background flex flex-col w-auto p-5">
+        {activeTab === 'appearance' && <AppearanceTabContent />}
+        {/* <div className="flex-1 bg-background flex flex-col w-auto p-5">
           <h2 className="text-2xl font-semibold text-foreground capitalize mb-6">{activeTab.replace('-', ' ')}</h2>
 
           <div className="text-accent">Content for {activeTab} goes here.</div>
-        </div>
+        </div> */}
       </DialogContent>
     </Dialog>
   );

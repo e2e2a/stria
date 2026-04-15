@@ -12,6 +12,7 @@ import {
   columnSelectionField,
   createEditorStatsPlugin,
   dragStatusField,
+  geometryTrackerPlugin,
   lineLimitGuard,
   markdownLivePreviewField,
   permissionGuard,
@@ -192,6 +193,7 @@ function MarkdownSection({ node, isDirty, canEditNode, canEditChunk }: { node: I
       lineLimitGuard,
       permissionGuard(canEditNode),
       markdownLivePreviewField,
+      geometryTrackerPlugin,
       onDocChange,
       tableBackspace,
       sourceModeField,
@@ -321,8 +323,8 @@ function MarkdownSection({ node, isDirty, canEditNode, canEditChunk }: { node: I
         <div
           tabIndex={-1}
           className={cn(
-            'absolute inset-0 z-30 bg-background',
-            'h-full! grid grid-cols-1 max-h-full w-full px-10 overflow-y-auto overflow-x-hidden relative [&::-webkit-scrollbar-track]:mt-[56px] [&::-webkit-scrollbar-track]:mb-[20px]'
+            'absolute inset-0 z-30 bg-background hoverable-scrollbar',
+            'h-full! grid grid-cols-1 max-h-full w-full overflow-y-auto overflow-x-hidden relative [&::-webkit-scrollbar-track]:mt-14 [&::-webkit-scrollbar-track]:mb-5'
           )}
         >
           <div className="w-full h-auto pb-4 flex flex-col" tabIndex={-1}>
@@ -334,7 +336,9 @@ function MarkdownSection({ node, isDirty, canEditNode, canEditChunk }: { node: I
       <div
         tabIndex={-1}
         className={cn(
-          'h-full! grid grid-cols-1 max-h-full w-full px-10 overflow-y-auto overflow-x-hidden relative [&::-webkit-scrollbar-track]:mt-[56px] [&::-webkit-scrollbar-track]:mb-[20px]',
+          'hoverable-scrollbar',
+          'h-full! grid grid-cols-1 max-h-full min-w-0! max-w-full w-full px-10 overflow-y-auto overflow-x-auto relative',
+          '[&::-webkit-scrollbar-track]:mt-14 [&::-webkit-scrollbar-track]:mb-5',
           isChunkActive ? 'hidden' : ''
         )}
       >
@@ -357,7 +361,7 @@ function MarkdownSection({ node, isDirty, canEditNode, canEditChunk }: { node: I
 
                 view.dispatch({
                   selection: { anchor: endPos, head: endPos },
-                  scrollIntoView: true,
+                  // scrollIntoView: true,
                   userEvent: 'select',
                 });
               }
@@ -398,7 +402,7 @@ function MarkdownSection({ node, isDirty, canEditNode, canEditChunk }: { node: I
                   });
                 }, 0);
               }}
-              className="cursor-text flex-1  h-full"
+              className="cursor-text flex-1 h-full"
             />
           </div>
         </ContextMenuClient>

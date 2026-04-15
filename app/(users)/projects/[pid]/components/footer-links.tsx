@@ -82,7 +82,7 @@ const FooterLinks = ({ activeNodeId }: FooterLinksProps) => {
           if (parent) setScrollParent(parent);
         }
       }}
-      className="pb-20 mt-10 w-full"
+      className="pb-30 px-10 mt-10 w-full"
     >
       <Separator className="w-full bg-white/5 mb-4" />
 
@@ -185,6 +185,9 @@ const FooterLinks = ({ activeNodeId }: FooterLinksProps) => {
                 customScrollParent={scrollParent || undefined}
                 increaseViewportBy={200}
                 totalCount={unlinkedMentions.length}
+                components={{
+                  Footer: () => <div className="h-10 shrink-0" />,
+                }}
                 itemContent={index => {
                   const file = unlinkedMentions[index];
                   return <LinkItems key={file._id} file={file} defaultOpen={false} searchQuery={searchQuery} />;

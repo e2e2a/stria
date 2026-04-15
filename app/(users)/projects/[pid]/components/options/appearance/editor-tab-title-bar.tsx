@@ -2,6 +2,7 @@ import React from 'react';
 import { EditorOptions } from '../../editor-options';
 import { EditorView } from '@uiw/react-codemirror';
 import { INode } from '@/types';
+import { useEditorSettings } from '@/features/editor/stores/setting';
 
 const EditorTabTitleBar = ({
   node,
@@ -20,6 +21,9 @@ const EditorTabTitleBar = ({
   setIsChunkActive: (val: boolean | ((prev: boolean) => boolean)) => void;
   canEditChunk: boolean;
 }) => {
+  const tabTitleBar = useEditorSettings(state => state.tabTitleBar);
+  if (!tabTitleBar) return null;
+
   return (
     <>
       <div className="absolute top-12 left-0 right-0 h-1 z-51 w-full bg-background" />

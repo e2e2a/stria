@@ -968,6 +968,7 @@ export function getFrontmatterDecos(state: EditorState, activeLineNum: number): 
 }
 
 export function buildDecorations(state: EditorState, from: number, to: number): RangeSet<Decoration> {
+  console.log('recaculating in build deco');
   from = Math.max(1, Math.min(from, state.doc.lines));
   to = Math.max(1, Math.min(to, state.doc.lines));
   const allDecos: StateRange<Decoration>[] = [];

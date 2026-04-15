@@ -4,7 +4,7 @@ import { SidebarMenu, SidebarMenuButton, SidebarMenuItem, useSidebar } from '@/c
 import { ChevronsUpDown, CircleQuestionMark, DoorOpenIcon } from 'lucide-react';
 import { IProject } from '@/types';
 import { useRouter } from 'next/navigation';
-import SettingsFooter from './settings-footer';
+import SettingsFooter from './settings/settings-footer';
 
 export function LeftSidebarFooter({ projectData }: { projectData: IProject }) {
   const { isMobile } = useSidebar();

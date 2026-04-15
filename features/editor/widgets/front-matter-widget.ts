@@ -59,7 +59,8 @@ export class FrontmatterWidget extends WidgetType {
       });
     }
     const container = document.createElement('div');
-    container.className = 'p-2 mt-5 bg-sidebar track border border-border flex flex-col gap-1 font-sans! select-none rounded-sm';
+    container.className =
+      'p-2 mt-5 max-w-full w-full min-w-full bg-sidebar track border border-border flex flex-col gap-1 font-sans! select-none rounded-sm';
 
     container.onclick = e => {
       if ((e.target as HTMLElement).closest('button')) return;
