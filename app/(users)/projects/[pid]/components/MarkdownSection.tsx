@@ -416,5 +416,5 @@ function MarkdownSection({ node, isDirty, canEditNode, canEditChunk }: { node: I
 }
 
 export default React.memo(MarkdownSection, (prevProps, nextProps) => {
-  return prevProps.node._id === nextProps.node._id && prevProps.isDirty === nextProps.isDirty;
+  return prevProps.node._id === nextProps.node._id && prevProps.isDirty === nextProps.isDirty && prevProps.node.title === nextProps.node.title;
 });

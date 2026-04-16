@@ -14,12 +14,7 @@ const EditorInlineTitle = ({ node }: { node: INode }) => {
 
   const update = () => {
     const trimmed = title.trim();
-    console.log('Updating title to:', trimmed);
-    console.log('node.title:', node.title);
-    if (!trimmed || node.title === trimmed) {
-      setIsUpdatingNode(null);
-      return;
-    }
+    if (!trimmed || node.title === trimmed) return setIsUpdatingNode(null);
     try {
       useNodeStore.getState().updateNode(node._id, { title: trimmed });
       useTabStore.getState().updateTabNode(node.projectId, node._id, { title: trimmed });
@@ -29,15 +24,15 @@ const EditorInlineTitle = ({ node }: { node: INode }) => {
         pid: node.projectId,
         title: title as string,
       };
-      // mutation.update.mutate(payload, {
-      //   onError: err => {
-      //     makeToastError(err.message);
-      //     return;
-      //   },
-      //   onSettled: () => {
-      //     setIsUpdatingNode(null);
-      //   },
-      // });
+      mutation.update.mutate(payload, {
+        onError: err => {
+          makeToastError(err.message);
+          return;
+        },
+        onSettled: () => {
+          setIsUpdatingNode(null);
+        },
+      });
     } catch (err) {
       console.log('err', err);
       let message = 'Unknown Error';
@@ -48,6 +43,7 @@ const EditorInlineTitle = ({ node }: { node: INode }) => {
         message = err as string;
         console.log('Unknown error', err);
       }
+      setTitle(node.title);
       makeToastError(message);
     } finally {
       setIsUpdatingNode(null);
