@@ -12,6 +12,10 @@ const EditorInlineTitle = ({ node }: { node: INode }) => {
   const setIsUpdatingNode = useNodeStore(state => state.setIsUpdatingNode);
   const mutation = useNodeMutations();
 
+  React.useEffect(() => {
+    setTitle(node.title);
+  }, [node.title]);
+
   const update = () => {
     const trimmed = title.trim();
     if (!trimmed || node.title === trimmed) return setIsUpdatingNode(null);
