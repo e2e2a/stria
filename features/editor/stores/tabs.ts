@@ -18,6 +18,7 @@ interface TabsState {
   activeTabs: Record<string, string | null>;
 
   // Actions
+  updateTabNode: (projectId: string, nodeId: string, partial: Partial<INode>) => void;
   openTab: (projectId: string, node: INode | string, isPreview?: boolean, insertIndex?: number) => void;
   closeTab: (projectId: string, nodeId: string) => void;
   setActiveTab: (projectId: string, nodeId: string) => void;
@@ -32,6 +33,33 @@ export const useTabStore = create<TabsState>()(
     (set, get) => ({
       projectTabs: {},
       activeTabs: {},
+
+      updateTabNode: (projectId, nodeId, partial) =>
+        set(state => {
+          const tabs = state.projectTabs[projectId] || [];
+
+          const updatedTabs = tabs.map(tab => {
+            if (tab.nodeId !== nodeId) return tab;
+
+            const updatedNode = {
+              ...tab.node,
+              ...partial,
+            };
+
+            return {
+              ...tab,
+              node: updatedNode,
+              title: partial.title ?? tab.title, // keep tab label in sync
+            };
+          });
+
+          return {
+            projectTabs: {
+              ...state.projectTabs,
+              [projectId]: updatedTabs,
+            },
+          };
+        }),
 
       openTab(projectId: string, node: INode | string, isPreview = false, insertIndex?: number) {
         // if (node.type !== 'file') return;

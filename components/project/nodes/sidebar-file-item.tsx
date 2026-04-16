@@ -42,6 +42,7 @@ const SidebarFileItemComponent = ({ item, depth }: IProps) => {
     }
     try {
       useNodeStore.getState().updateNode(item._id, { title: trimmed });
+      useTabStore.getState().updateTabNode(item.projectId, item._id, { title: trimmed });
       setIsUpdatingNode(null);
       const payload = {
         _id: item._id,
