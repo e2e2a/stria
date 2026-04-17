@@ -343,71 +343,72 @@ function MarkdownSection({ node, isDirty, canEditNode, canEditChunk }: { node: I
       >
         <div className="w-full min-w-0">
           <EditorInlineTitle node={node} />
-        </div>
-        <ContextMenuClient editorViewRef={editorViewRef} contextType={contextType} setContextType={setContextType} synced={synced}>
-          <div
-            className={cn('w-full h-auto pb-4 flex flex-col', isChunkActive ? 'hidden' : 'w-full h-auto')}
-            onMouseDown={e => {
-              const target = e.target as HTMLElement;
 
-              if (target.classList.contains('cm-scroller')) {
-                e.preventDefault();
-                setActiveNode(node._id);
-                const view = editorViewRef.current;
-                if (!view) return;
-                const isEditable = view.state.facet(EditorView.editable);
-                if (!isEditable) return;
-
-                view.focus();
-                const endPos = view.state.doc.length;
-
-                view.dispatch({
-                  selection: { anchor: endPos, head: endPos },
-                  // scrollIntoView: true,
-                  userEvent: 'select',
-                });
-              }
-            }}
-          >
-            {editorReady ? (
-              <CodeMirror
-                key={node._id}
-                editable={!isReadOnly && canEditNode && synced}
-                onCreateEditor={view => {
-                  editorViewRef.current = view;
-
-                  setTimeout(() => {
-                    setupDragTracking(view);
-                  }, 0);
-                }}
-                theme={myOwnDarkTheme}
-                basicSetup={false}
-                extensions={editorExtensions}
-                className="h-auto!"
-              />
-            ) : (
-              <div className="min-h-[30vh] flex items-center justify-center text-5xl leading-1 w-full">Syncing Document...</div>
-            )}
+          <ContextMenuClient editorViewRef={editorViewRef} contextType={contextType} setContextType={setContextType} synced={synced}>
             <div
-              onMouseDown={() => {
-                setActiveNode(node._id);
-                const view = editorViewRef.current;
-                if (!view) return;
-                setTimeout(() => {
+              className={cn('w-full h-auto pb-4 flex flex-col', isChunkActive ? 'hidden' : 'w-full h-auto')}
+              onMouseDown={e => {
+                const target = e.target as HTMLElement;
+
+                if (target.classList.contains('cm-scroller')) {
+                  e.preventDefault();
+                  setActiveNode(node._id);
+                  const view = editorViewRef.current;
+                  if (!view) return;
+                  const isEditable = view.state.facet(EditorView.editable);
+                  if (!isEditable) return;
+
                   view.focus();
                   const endPos = view.state.doc.length;
 
                   view.dispatch({
                     selection: { anchor: endPos, head: endPos },
-                    scrollIntoView: true,
+                    // scrollIntoView: true,
                     userEvent: 'select',
                   });
-                }, 0);
+                }
               }}
-              className="cursor-text flex-1 h-full"
-            />
-          </div>
-        </ContextMenuClient>
+            >
+              {editorReady ? (
+                <CodeMirror
+                  key={node._id}
+                  editable={!isReadOnly && canEditNode && synced}
+                  onCreateEditor={view => {
+                    editorViewRef.current = view;
+
+                    setTimeout(() => {
+                      setupDragTracking(view);
+                    }, 0);
+                  }}
+                  theme={myOwnDarkTheme}
+                  basicSetup={false}
+                  extensions={editorExtensions}
+                  className="h-auto!"
+                />
+              ) : (
+                <div className="min-h-[30vh] flex items-center justify-center text-5xl leading-1 w-full">Syncing Document...</div>
+              )}
+              <div
+                onMouseDown={() => {
+                  setActiveNode(node._id);
+                  const view = editorViewRef.current;
+                  if (!view) return;
+                  setTimeout(() => {
+                    view.focus();
+                    const endPos = view.state.doc.length;
+
+                    view.dispatch({
+                      selection: { anchor: endPos, head: endPos },
+                      scrollIntoView: true,
+                      userEvent: 'select',
+                    });
+                  }, 0);
+                }}
+                className="cursor-text flex-1 h-full"
+              />
+            </div>
+          </ContextMenuClient>
+        </div>
         <FooterLinks activeNodeId={node._id} />
       </div>
       <EditorStatusBar nodeId={node._id} />

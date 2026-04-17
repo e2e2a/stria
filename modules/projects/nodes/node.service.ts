@@ -501,6 +501,14 @@ export const nodeService = {
     });
   },
 
+  getSingleNodeById: async (id: string, email: string) => {
+    const node = await nodeRepository.findOne({ _id: id });
+    if (!node) throw new HttpError('NOT_FOUND', 'Node not found');
+
+    await Promise.all([ensureWorkspaceMember(node.workspaceId, email), ensureProjectMember(node.projectId, email)]);
+    return node;
+  },
+
   bulkCreate: async (
     nodes: {
       _id: string;

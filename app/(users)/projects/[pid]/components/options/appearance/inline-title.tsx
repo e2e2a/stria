@@ -62,7 +62,7 @@ const EditorInlineTitle = ({ node }: { node: INode }) => {
           rows={1}
           onBlur={() => update()}
           style={{ fieldSizing: 'content' } as React.CSSProperties}
-          className="w-full text-5xl font-bold tracking-tighter text-foreground resize-none bg-transparent border-none outline-none focus:outline-none focus:ring-0 p-0 m-0 overflow-hidden"
+          className="w-full text-5xl mb-5 font-bold tracking-tighter text-foreground resize-none bg-transparent border-none outline-none focus:outline-none focus:ring-0 p-0 m-0 overflow-hidden"
         />
       )}
     </div>

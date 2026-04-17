@@ -26,6 +26,13 @@ export const nodeController = {
     return nodes;
   },
 
+  getSingleNode: async (id: string) => {
+    const session = await ensureAuthenticated();
+    if (!id) throw new HttpError('BAD_INPUT');
+    const nodes = await nodeService.getSingleNodeById(id, session.user.email);
+    return nodes;
+  },
+
   update: async (nid: string, rawBody: { title?: string; content?: string }) => {
     const session = await ensureAuthenticated();
     if (!nid) throw new HttpError('BAD_INPUT');

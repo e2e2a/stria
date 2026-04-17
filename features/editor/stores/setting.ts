@@ -1,17 +1,22 @@
 import { create } from 'zustand';
 
-interface EditorSettingsState {
-  // Appearance
-  inlineTitle: boolean;
-  tabTitleBar: boolean;
-  setInlineTitle(flag: boolean): void;
-  setTabTitleBar(flag: boolean): void;
+export const DEFAULT_APPEARANCE = {
+  theme: 'dark',
+  accentColor: 'green',
+  inlineTitle: false,
+  tabTitleBar: false,
+  globalRibbon: true,
+};
+
+export type AppearanceSettings = typeof DEFAULT_APPEARANCE;
+
+export interface EditorSettingsState extends AppearanceSettings {
+  initSettings: (settings: Partial<AppearanceSettings>) => void;
+  updateSetting: <K extends keyof AppearanceSettings>(key: K, value: AppearanceSettings[K]) => void;
 }
 
 export const useEditorSettings = create<EditorSettingsState>(set => ({
-  // Appearance
-  inlineTitle: false,
-  tabTitleBar: false,
-  setInlineTitle: flag => set({ inlineTitle: flag }),
-  setTabTitleBar: flag => set({ tabTitleBar: flag }),
+  ...DEFAULT_APPEARANCE,
+  initSettings: settings => set(state => ({ ...state, ...settings })),
+  updateSetting: (key, value) => set({ [key]: value }),
 }));

@@ -15,6 +15,9 @@ import { useNodesProjectIdQuery } from '@/hooks/node/useNodeQuery';
 import { Button } from '../ui/button';
 import { PanelRightCloseIcon, PanelRightOpenIcon } from 'lucide-react';
 import { IconTooltip } from './icon-tooltip';
+import { useSettingsSync } from '@/hooks/client/useAppearanceSync';
+import { ProjectLoadingScreen } from './project-loading-screen';
+import { useProjectLoader } from './use-project-loader';
 
 interface MainContentAreaProps {
   children: React.ReactNode;
@@ -79,6 +82,9 @@ export default function AppSidebarLayout({ children }: { children: React.ReactNo
 
   const LeftSidebarRef = useRef<ImperativePanelHandle>(null);
   const RightSidebarRef = useRef<ImperativePanelHandle>(null);
+
+  const { isSettingsLoading } = useSettingsSync({ projectId: pid, nData });
+  const { steps, pct, isReady: projectLoadingReady } = useProjectLoader({ pLoading, nLoading, isSettingsLoading, pData, nData });
 
   useEffect(() => {
     if (!pid) return;
@@ -152,11 +158,10 @@ export default function AppSidebarLayout({ children }: { children: React.ReactNo
     };
   }, [updatePanelConstraints]);
 
-  const isReady = !pLoading && !nLoading && pData?.project && nData?.nodes;
-  if (!isReady) return <div className="flex items-center justify-center h-screen bg-background text-muted-foreground">Loading workspace...</div>;
   if (pError) return notFound();
   return (
     <div ref={containerRef} className="h-full w-full overflow-hidden">
+      {!projectLoadingReady && <ProjectLoadingScreen steps={steps} pct={pct} />}
       <AppShell variant="sidebar">
         <ResizablePanelGroup
           direction="horizontal"
@@ -185,7 +190,7 @@ export default function AppSidebarLayout({ children }: { children: React.ReactNo
             }}
             className="text-muted-foreground flex h-full flex-row p-0"
           >
-            <LeftSidebarTemplate projectData={pData?.project} />
+            {pData && !nLoading && <LeftSidebarTemplate projectData={pData.project} />}
           </ResizablePanel>
 
           <ResizableHandle

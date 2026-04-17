@@ -52,6 +52,12 @@ export const nodeClient = {
     return res.json();
   },
 
+  async getSingleNode(id: string): Promise<INode> {
+    const res = await fetch(`${BASE_URL}/${id}`);
+    if (!res.ok) throw new Error(`Failed to fetch Single node ${id}`);
+    return res.json();
+  },
+
   async create(data: { projectId: string; parentId: string | null; type: 'file' | 'folder'; title: string }) {
     const res = await fetch(BASE_URL, {
       method: 'POST',

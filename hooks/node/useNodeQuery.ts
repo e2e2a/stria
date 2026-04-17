@@ -26,3 +26,12 @@ export function useNodeOutlinesQuery(id: string) {
     staleTime: 60 * 60 * 1000,
   });
 }
+
+export function useNodeByIdQuery(id: string) {
+  return useQuery({
+    queryKey: ['nodeById', id],
+    queryFn: () => nodeClient.getSingleNode(id),
+    enabled: !!id,
+    staleTime: 60 * 60 * 1000,
+  });
+}

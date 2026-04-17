@@ -60,7 +60,6 @@ interface TabItem {
 export default function SettingsFooter() {
   const [activeTab, setActiveTab] = useState('general');
   const mobile = useIsMobileSM();
-
   const renderTabButton = (tab: TabItem) => {
     const Icon = tab.icon;
     const isActive = activeTab === tab.id;

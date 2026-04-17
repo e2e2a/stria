@@ -110,7 +110,7 @@ const MiniSidebarTemplate = ({ LeftSidebarRef, isLeftCollapsed, RightSidebarRef 
                 >
                   <IconTooltip label={'Mermaid'} side="right">
                     <Button type="button" tabIndex={-1} variant={'ghost'} className="cursor-pointer py-1 hover:bg-transparent!">
-                      <IconTrident className="w-6! h-6! rotate-45 -ml-1 mt-[4px] stroke-[1px]" />
+                      <IconTrident className="w-6! h-6! rotate-45 -ml-1 mt-1 stroke-[1px]" />
                     </Button>
                   </IconTooltip>
                 </SidebarMenuItem>
