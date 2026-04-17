@@ -4,9 +4,7 @@ import { drawSelection, dropCursor, EditorView, keymap } from '@codemirror/view'
 import CodeMirror, { EditorState } from '@uiw/react-codemirror';
 import { yCollab, yUndoManagerKeymap } from 'y-codemirror.next';
 import { markdown, markdownLanguage } from '@codemirror/lang-markdown';
-import { createTheme } from '@uiw/codemirror-themes';
 import { INode } from '@/types';
-import { tags as t } from '@lezer/highlight';
 import {
   chunkModeFacet,
   columnSelectionField,
@@ -46,31 +44,8 @@ import { cn } from '@/lib/utils';
 import { useQueryClient } from '@tanstack/react-query';
 import EditorTabTitleBar from './options/appearance/tab-title-bar';
 import EditorInlineTitle from './options/appearance/inline-title';
-
-const myOwnDarkTheme = createTheme({
-  theme: 'dark',
-  settings: {
-    background: '#191d24',
-    foreground: '#d4d4d4',
-    caret: '#ffffff',
-    selectionMatch: '#3a3a3a',
-    gutterBackground: '#191d24',
-    lineHighlight: '#ffffff0f',
-  },
-  styles: [
-    { tag: [t.keyword], color: '#569cd6' },
-    { tag: [t.string], color: '#ce9178' },
-    { tag: [t.comment], color: '#6a9955', fontStyle: 'italic' },
-    { tag: [t.variableName], color: '#9cdcfe' },
-    { tag: [t.function(t.variableName), t.propertyName], color: '#dcdcaa' },
-    { tag: [t.typeName, t.className], color: '#4ec9b0' },
-    { tag: [t.number, t.bool, t.null, t.atom], color: '#b5cea8' },
-    { tag: t.operator, color: '#d4d4d4' },
-    { tag: [t.typeName], color: '#4ec9b0' },
-    { tag: [t.heading], color: '#dcdcaa', fontWeight: 'bold' },
-    { tag: [t.atom, t.bool, t.number], color: '#b5cea8' },
-  ],
-});
+import { useEditorSettings } from '@/features/editor/stores/setting';
+import { getEditorCustomTheme } from '@/features/editor/themes/editor-custom-theme';
 
 function MarkdownSection({ node, isDirty, canEditNode, canEditChunk }: { node: INode; isDirty: boolean; canEditNode: boolean; canEditChunk: boolean }) {
   const { data } = useSession();
@@ -84,7 +59,7 @@ function MarkdownSection({ node, isDirty, canEditNode, canEditChunk }: { node: I
   const [contextType, setContextType] = useState<'general' | 'callout'>('general');
   const [isReadOnly, setIsReadOnly] = useState(false);
   const [isChunkActive, setIsChunkActive] = useState(false);
-
+  const accentColor = useEditorSettings(state => state.accentColor);
   useEditorEvents(node._id, synced, editorViewRef, setIsReadOnly, setIsChunkActive);
 
   const providerRef = useRef<HocuspocusProvider | null>(null);
@@ -108,7 +83,7 @@ function MarkdownSection({ node, isDirty, canEditNode, canEditChunk }: { node: I
       onSynced: () => {
         setSynced(true);
         provider.awareness?.setLocalState({
-          user: { id: userId, name: data.user.email, color: '#ffffff' },
+          user: { id: userId, name: data.user.email, color: '#000000' },
         });
       },
     });
@@ -155,6 +130,10 @@ function MarkdownSection({ node, isDirty, canEditNode, canEditChunk }: { node: I
     });
   }, [markDirty, pid, node._id, isDirty]);
 
+  const themeExtensions = useMemo(() => {
+    return [...getEditorCustomTheme(accentColor)];
+  }, [accentColor]);
+
   const editorExtensions = useMemo(() => {
     if (!instance || !ytext || !undoManager) return [];
 
@@ -199,7 +178,6 @@ function MarkdownSection({ node, isDirty, canEditNode, canEditChunk }: { node: I
       tableSelectionHighlighter,
       tableKeyboardHandler,
       keymap.of([{ key: 'Mod-a', run: selectAllToTop }, ...yUndoManagerKeymap]),
-      myOwnDarkTheme,
       drawSelection(),
       dropCursor(),
       markdown({
@@ -380,9 +358,9 @@ function MarkdownSection({ node, isDirty, canEditNode, canEditChunk }: { node: I
                       setupDragTracking(view);
                     }, 0);
                   }}
-                  theme={myOwnDarkTheme}
+                  theme="none"
                   basicSetup={false}
-                  extensions={editorExtensions}
+                  extensions={[...themeExtensions, ...editorExtensions]}
                   className="h-auto!"
                 />
               ) : (

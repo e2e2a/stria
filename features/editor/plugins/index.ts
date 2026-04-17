@@ -178,7 +178,8 @@ export const tableSelectionHighlighter = ViewPlugin.fromClass(
     }
     update(update: ViewUpdate) {
       if (update.selectionSet || update.docChanged || update.viewportChanged) {
-        requestAnimationFrame(() => this.sync());
+        // requestAnimationFrame(() => this.sync());
+        Promise.resolve().then(() => this.sync());
       }
     }
     sync() {

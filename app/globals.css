@@ -209,6 +209,38 @@ body {
     @apply bg-accent! text-accent-foreground whitespace-nowrap shrink-0 text-sm font-medium! rounded-md cursor-pointer hover:ring-secondary ring-offset-secondary hover:ring-offset-1 hover:ring-1 hover:bg-accent/50! border border-border;
   }
 
+  .custom-resize-handle {
+    background-color: transparent;
+    transition: background-color 0.2s ease;
+  }
+
+  .custom-resize-handle[data-panel-resize-handle-hover],
+  .custom-resize-handle[data-active],
+  .custom-resize-handle:hover,
+  .custom-resize-handle[data-resize-handle-state='drag'] {
+    background-color: var(--primary) !important;
+  }
+
+  [data-slot='resizable-handle']::after {
+    content: '';
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    /* We extend the hit area 4px to the left and 4px to the right */
+    left: -1px !important;
+    right: -1.5px !important;
+
+    width: auto !important;
+    cursor: col-resize !important;
+    pointer-events: auto;
+    z-index: 10;
+  }
+
+  .is-dragging-panels,
+  .is-dragging-panels * {
+    cursor: col-resize !important;
+  }
+
   *::-webkit-scrollbar {
     width: 10px;
     height: 10px;
@@ -291,38 +323,6 @@ body {
     caret-color: transparent !important;
   }
 
-  .custom-resize-handle {
-    background-color: transparent;
-    transition: background-color 0.2s ease;
-  }
-
-  .custom-resize-handle[data-panel-resize-handle-hover],
-  .custom-resize-handle[data-active],
-  .custom-resize-handle:hover,
-  .custom-resize-handle[data-resize-handle-state='drag'] {
-    background-color: var(--primary) !important;
-  }
-
-  [data-slot='resizable-handle']::after {
-    content: '';
-    position: absolute;
-    top: 0;
-    bottom: 0;
-    /* We extend the hit area 4px to the left and 4px to the right */
-    left: -1px !important;
-    right: -1.5px !important;
-
-    width: auto !important;
-    cursor: col-resize !important;
-    pointer-events: auto;
-    z-index: 10;
-  }
-
-  .is-dragging-panels,
-  .is-dragging-panels * {
-    cursor: col-resize !important;
-  }
-
   .CodeMirror-scroll {
     overflow: visible !important;
     height: auto !important;
@@ -341,7 +341,7 @@ body {
 
   .cm-content::selection,
   .cm-content *::selection {
-    background-color: var(--primary) !important;
+    background-color: color-mix(in srgb, var(--editor-accent-color), transparent 60%) !important;
   }
 
   .cm-line {
@@ -350,7 +350,6 @@ body {
     padding: 0 !important;
 
     /* Add these for 1M+ character performance */
-    content-visibility: auto;
     contain-intrinsic-size: auto 1.5em; /* Match your inherit line-height roughly */
     contain: layout style;
   }
@@ -436,21 +435,18 @@ body {
   }
 
   /** Start Table preview **/
-  /* 1. Target the line and kill the 'Ghost' cursor rendering area */
   .cm-line:has(.cm-table-widget-container) {
     height: 0 !important;
     line-height: 0 !important;
     font-size: 0 !important;
     margin: 0 !important;
     padding: 0 !important;
-    /* Hide the native browser caret on the raw markdown line */
     caret-color: transparent !important;
-    /* Make the text 'behind' the table invisible instantly */
     color: transparent !important;
     overflow: visible !important;
     user-select: none !important;
   }
-  /* 2. Nuclear Strike: Completely hide CM6 synthetic layers for this line */
+
   .cm-line:has(.cm-table-widget-container) .cm-cursorLayer,
   .cm-line:has(.cm-table-widget-container) .cm-selectionLayer {
     display: none !important;
@@ -500,6 +496,7 @@ body {
     margin: 5px;
     isolation: isolate;
     line-height: 0;
+    outline: 1px solid transparent !important;
   }
 
   .cm-table-inner {
@@ -510,7 +507,8 @@ body {
   }
   .cm-interactive-table th.cm-table-col-selected,
   .cm-interactive-table td.cm-table-col-selected {
-    background-color: rgba(93, 0, 255, 0.1) !important;
+    background-color: color-mix(in srgb, var(--editor-accent-color), transparent 60%) !important;
+    border-color: var(--editor-accent-color) !important;
   }
   .cm-interactive-table th,
   .cm-interactive-table td {
@@ -519,12 +517,12 @@ body {
     min-width: 50px;
   }
 
-  .cm-table-col-selected {
+  /* .cm-table-col-selected {
     background-color: rgba(93, 0, 255, 0.1) !important;
     border-top-color: transparent !important;
     border-bottom-color: transparent !important;
     position: relative;
-  }
+  } */
 
   .cm-table-col-selected::after {
     content: '';
@@ -535,25 +533,26 @@ body {
     left: -1px;
     right: -1px;
     /* Draw the side borders here */
-    border-left: 2px solid #5d00ff;
-    border-right: 2px solid #5d00ff;
+    border-left: 2px solid var(--editor-accent-color);
+    border-right: 2px solid var(--editor-accent-color);
     pointer-events: none;
     z-index: 10;
   }
 
   tr:first-child .cm-table-col-selected::after {
     top: -2;
-    border-top: 2px solid #5d00ff;
+    border-top: 2px solid var(--editor-accent-color);
   }
 
   tr:last-child .cm-table-col-selected::after {
     bottom: -2;
-    border-bottom: 2px solid #5d00ff;
+    border-bottom: 2px solid var(--editor-accent-color);
   }
 
   .cm-editor:has(.cm-table-cell-editor:focus) .cm-cursorLayer {
     display: none !important;
   }
+
   .cm-table-cell-editor {
     padding: 8px;
     caret-color: white !important;
@@ -597,7 +596,7 @@ body {
 
   .cm-table-unified-col-trigger span,
   .cm-table-unified-row-trigger span {
-    background: #0078d7;
+    background: var(--editor-accent-color);
     color: white;
     width: 16px;
     height: 16px;
@@ -612,13 +611,14 @@ body {
   .cm-content > .cm-line:has(.cm-table-widget-container) ::selection {
     background-color: transparent;
   }
+
   .cm-table-widget-container ::selection {
     background-color: transparent;
   }
 
   .cm-interactive-table.is-selected {
-    outline: 1px solid #5d00ff;
-    border-radius: 2px;
+    outline: 1px solid var(--editor-accent-color) !important;
+    border-radius: 0px;
     transition: outline 0.1s ease-in-out;
   }
 
@@ -649,11 +649,6 @@ body {
   }
 
   /** End Table preview **/
-
-  /* .cm-blockquote {
-    border-left: 2px solid color-mix(in srgb, var(--primary), transparent 20%);
-    padding-left: 10px;
-  } */
 
   .cm-code-block-start,
   .cm-code-block-end {

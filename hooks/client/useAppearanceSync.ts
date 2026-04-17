@@ -91,7 +91,6 @@ export function useSettingsSync({ projectId, nData }: UseSettingsSyncProps) {
         const nodes = rootNodesRef.current;
         const mut = mutationRef.current;
         const guaranteedRoot = await ensureNode(mut, projectId, null, '.mondreymd', 'folder', nodes);
-        console.log('guaranteedRoot', guaranteedRoot);
         if (!guaranteedRoot?._id) return;
 
         const guaranteedOptions = await ensureNode(mut, projectId, guaranteedRoot._id, 'options', 'folder', guaranteedRoot.children);

@@ -9,6 +9,7 @@ export default function AppearanceTabContent() {
   const updateSetting = useEditorSettings(state => state.updateSetting);
   const inlineTitle = useEditorSettings(state => state.inlineTitle);
   const accentColor = useEditorSettings(state => state.accentColor);
+  const accentColorTimeoutRef = React.useRef<ReturnType<typeof setTimeout> | null>(null);
 
   return (
     <div className="flex-1 bg-background flex flex-col w-full h-full overflow-y-auto hoverable-scrollbar p-6 sm:p-10">
@@ -42,7 +43,18 @@ export default function AppearanceTabContent() {
                   <input
                     type="color"
                     value={accentColor}
-                    onChange={e => updateSetting('accentColor', e.target.value)}
+                    // onChange={e => updateSetting('accentColor', e.target.value)}
+                    onChange={e => {
+                      const value = e.target.value;
+
+                      if (accentColorTimeoutRef.current) {
+                        clearTimeout(accentColorTimeoutRef.current);
+                      }
+
+                      accentColorTimeoutRef.current = setTimeout(() => {
+                        updateSetting('accentColor', value);
+                      }, 150);
+                    }}
                     className="absolute top-[-50%] left-[-50%] w-[200%] h-[200%] cursor-pointer border-0 p-0 outline-none bg-transparent"
                   />
                 </div>
