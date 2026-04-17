@@ -2,11 +2,13 @@ import React from 'react';
 import { Switch } from '@/components/ui/switch';
 import { cn } from '@/lib/utils';
 import { useEditorSettings } from '@/features/editor/stores/setting';
+import { RotateCcw } from 'lucide-react';
 
 export default function AppearanceTabContent() {
   const tabTitleBar = useEditorSettings(state => state.tabTitleBar);
   const updateSetting = useEditorSettings(state => state.updateSetting);
   const inlineTitle = useEditorSettings(state => state.inlineTitle);
+  const accentColor = useEditorSettings(state => state.accentColor);
 
   return (
     <div className="flex-1 bg-background flex flex-col w-full h-full overflow-y-auto hoverable-scrollbar p-6 sm:p-10">
@@ -27,10 +29,23 @@ export default function AppearanceTabContent() {
             </SettingRow>
 
             <SettingRow title="Accent Color" description="The primary color used for buttons and active states." isLast>
-              <div className="flex items-center space-x-2">
-                <div className="w-6 h-6 rounded-full bg-emerald-500 cursor-pointer ring-2 ring-emerald-500/30" />
-                <div className="w-6 h-6 rounded-full bg-indigo-500 cursor-pointer opacity-50 hover:opacity-100" />
-                <div className="w-6 h-6 rounded-full bg-rose-500 cursor-pointer opacity-50 hover:opacity-100" />
+              <div className="flex items-center gap-3">
+                <button
+                  onClick={() => updateSetting('accentColor', '#8b59fa')}
+                  className="p-1 text-muted-foreground hover:text-foreground hover:bg-muted rounded-md transition-colors"
+                  title="Reset color"
+                >
+                  <RotateCcw className="w-5! h-5!" />
+                </button>
+
+                <div className="relative w-6 h-6 shrink-0 rounded-full overflow-hidden ring-2 ring-border/50 hover:ring-border transition-colors">
+                  <input
+                    type="color"
+                    value={accentColor}
+                    onChange={e => updateSetting('accentColor', e.target.value)}
+                    className="absolute top-[-50%] left-[-50%] w-[200%] h-[200%] cursor-pointer border-0 p-0 outline-none bg-transparent"
+                  />
+                </div>
               </div>
             </SettingRow>
           </SettingsCard>

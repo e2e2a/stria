@@ -2,7 +2,7 @@ import { create } from 'zustand';
 
 export const DEFAULT_APPEARANCE = {
   theme: 'dark',
-  accentColor: 'green',
+  accentColor: '#8b59fa',
   inlineTitle: false,
   tabTitleBar: false,
   globalRibbon: true,

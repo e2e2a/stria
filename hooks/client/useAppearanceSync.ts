@@ -24,7 +24,7 @@ const ensureNode = async (
 
 interface UseSettingsSyncProps {
   projectId: string;
-  nData: INode[] | undefined;
+  nData: { nodes: INode[] } | undefined | null;
 }
 
 export function useSettingsSync({ projectId, nData }: UseSettingsSyncProps) {
@@ -40,7 +40,7 @@ export function useSettingsSync({ projectId, nData }: UseSettingsSyncProps) {
 
   mutationRef.current = mutation;
 
-  const rootNodes: INode[] = Array.isArray(nData) ? nData : Object.values(nData ?? {});
+  const rootNodes: INode[] = Array.isArray(nData?.nodes) ? nData.nodes : Object.values(nData?.nodes ?? {});
   rootNodesRef.current = rootNodes;
 
   const rootFolder = findChild(rootNodes, '.mondreymd', 'folder');
@@ -90,8 +90,8 @@ export function useSettingsSync({ projectId, nData }: UseSettingsSyncProps) {
       try {
         const nodes = rootNodesRef.current;
         const mut = mutationRef.current;
-
         const guaranteedRoot = await ensureNode(mut, projectId, null, '.mondreymd', 'folder', nodes);
+        console.log('guaranteedRoot', guaranteedRoot);
         if (!guaranteedRoot?._id) return;
 
         const guaranteedOptions = await ensureNode(mut, projectId, guaranteedRoot._id, 'options', 'folder', guaranteedRoot.children);
