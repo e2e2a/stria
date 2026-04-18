@@ -39,7 +39,18 @@ export class BulletWidget extends WidgetType {
     return false;
   }
 }
+function parseCellHTML(text: string): string {
+  if (!text) return '';
+  let html = text.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;'); // Prevent XSS
 
+  html = html.replace(/\*\*\*([^*]+)\*\*\*/g, '<strong><em>$1</em></strong>');
+  html = html.replace(/\*\*([^*]+)\*\*/g, '<strong>$1</strong>');
+  html = html.replace(/\*([^*]+)\*/g, '<em>$1</em>');
+  html = html.replace(/(^|\s|\|)#([a-zA-Z][\w-]+)/g, '$1<span class="cm-hashtag" data-tag="#$2">#$2</span>');
+  html = html.replace(/`([^`]+)`/g, '<code class="cm-inline-code">$1</code>');
+
+  return html;
+}
 export class TablePreviewWidget extends WidgetType {
   public isFreshInsert = true;
   public selectedColumn: number | null = null;
@@ -192,10 +203,32 @@ export class TablePreviewWidget extends WidgetType {
           td.appendChild(grip);
         }
 
+        // const editor = document.createElement('div');
+        // editor.className = 'cm-table-cell-editor';
+        // editor.contentEditable = `${!this.isViewMode}`;
+        // editor.textContent = cellText.replace(/\\\|/g, '|');
         const editor = document.createElement('div');
         editor.className = 'cm-table-cell-editor';
         editor.contentEditable = `${!this.isViewMode}`;
-        editor.textContent = cellText.replace(/\\\|/g, '|');
+
+        const rawTextValue = cellText.replace(/\\\|/g, '|');
+        editor.dataset.raw = rawTextValue; // Store the raw markdown safely
+
+        editor.innerHTML = parseCellHTML(rawTextValue);
+
+        if (!this.isViewMode) {
+          editor.addEventListener('focus', () => {
+            if (editor.innerHTML !== editor.dataset.raw) {
+              editor.textContent = editor.dataset.raw || '';
+            }
+          });
+
+          editor.addEventListener('blur', () => {
+            const currentRaw = editor.textContent || '';
+            editor.dataset.raw = currentRaw;
+            editor.innerHTML = parseCellHTML(currentRaw);
+          });
+        }
 
         let debounceTimer: ReturnType<typeof setTimeout>;
         editor.addEventListener('input', () => {
