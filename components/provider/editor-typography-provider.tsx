@@ -41,7 +41,7 @@ export function EditorTypographyProvider() {
       document.head.appendChild(styleEl);
     }
     const iFont = interfaceFont?.[0] ? `"${interfaceFont[0]}"` : 'IBM Plex Mono';
-    const tFont = textFont?.[0] ? `"${textFont[0]}"` : 'Georgia';
+    const tFont = textFont?.[0] ? `"${textFont[0]}"` : 'var(--font-dm-sans)';
     const mFont = monospaceFont?.[0] ? `"${monospaceFont[0]}"` : 'monospace';
 
     styleEl.textContent = `
@@ -50,11 +50,13 @@ export function EditorTypographyProvider() {
         --app-font-text: ${tFont}, Georgia, serif;
         --app-font-mono: ${mFont}, monospace;
         --app-font-size: ${fontSize ?? 16}px;
+
+        --editor-font-text: ${tFont}, Georgia, serif;
         --editor-accent-color: ${accentColor};
       }
 
       .app-font-interface { font-family: var(--app-font-interface) !important; }
-      .app-font-text      { font-family: var(--app-font-text) !important; }
+      .editor-font-text      { font-family: var(--editor-font-text) !important; }
       .app-font-mono      { font-family: var(--app-font-mono) !important; }
     `;
 

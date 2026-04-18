@@ -82,7 +82,7 @@ const FooterLinks = ({ activeNodeId }: FooterLinksProps) => {
           if (parent) setScrollParent(parent);
         }
       }}
-      className="pb-30 px-10 mt-10 w-full"
+      className="pb-30 px-10 mt-10 w-full editor-font-text"
     >
       <Separator className="w-full bg-white/5 mb-4" />
 
@@ -154,7 +154,7 @@ const FooterLinks = ({ activeNodeId }: FooterLinksProps) => {
           <CollapsibleTrigger className="flex items-center gap-2 mb-3 w-fit">
             <ChevronRight className="h-3.5 w-3.5 text-muted-foreground transition-transform group-data-[state=open]/section:rotate-90" />
             <span className="text-[13px] font-bold text-foreground/90 uppercase tracking-wide">Linked mentions</span>
-            <span className="text-xs text-muted-foreground/50 font-mono">{linkedMentions.length}</span>
+            <span className="text-xs text-muted-foreground/50">{linkedMentions.length}</span>
           </CollapsibleTrigger>
           <CollapsibleContent className="space-y-1">
             {isLoading ? (
@@ -175,7 +175,7 @@ const FooterLinks = ({ activeNodeId }: FooterLinksProps) => {
           <CollapsibleTrigger className="flex items-center gap-2 mb-3 w-fit">
             <ChevronRight className="h-3.5 w-3.5 text-muted-foreground transition-transform group-data-[state=open]/unlinked:rotate-90" />
             <span className="text-[13px] font-bold text-foreground/90 uppercase tracking-wide">Unlinked mentions</span>
-            <span className="text-xs text-muted-foreground/50 font-mono">{unlinkedMentions.length}</span>
+            <span className="text-xs text-muted-foreground/50">{unlinkedMentions.length}</span>
           </CollapsibleTrigger>
           <CollapsibleContent className="space-y-1">
             {!isLoading && unlinkedMentions.length > 0 ? (

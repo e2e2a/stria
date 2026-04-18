@@ -321,7 +321,7 @@ function MarkdownSection({ node, isDirty, canEditNode, canEditChunk }: { node: I
         <div
           tabIndex={-1}
           className={cn(
-            'absolute inset-0 z-30 bg-background hoverable-scrollbar',
+            'absolute inset-0 z-30 bg-background hoverable-scrollbar editor-font-text',
             'h-full! grid grid-cols-1 max-h-full w-full overflow-y-auto overflow-x-hidden relative [&::-webkit-scrollbar-track]:mt-14 [&::-webkit-scrollbar-track]:mb-5'
           )}
         >
@@ -334,7 +334,7 @@ function MarkdownSection({ node, isDirty, canEditNode, canEditChunk }: { node: I
       <div
         tabIndex={-1}
         className={cn(
-          'hoverable-scrollbar',
+          'hoverable-scrollbar editor-font-text',
           'h-full! grid grid-cols-1 max-h-full min-w-0! max-w-full w-full px-10 overflow-y-auto overflow-x-auto relative',
           '[&::-webkit-scrollbar-track]:mt-14 [&::-webkit-scrollbar-track]:mb-5',
           isChunkActive ? 'hidden' : ''
