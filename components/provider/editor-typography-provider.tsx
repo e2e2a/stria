@@ -44,6 +44,10 @@ export function EditorTypographyProvider() {
     const tFont = textFont?.[0] ? `"${textFont[0]}"` : 'var(--font-dm-sans)';
     const mFont = monospaceFont?.[0] ? `"${monospaceFont[0]}"` : 'monospace';
 
+    const baseSize = fontSize ?? 16;
+    const lhRatio = 1.5; // The multiplier
+    const baseLineHeight = Math.round(baseSize * lhRatio);
+
     styleEl.textContent = `
       :root {
         --app-font-interface: ${iFont}, system-ui, sans-serif;
@@ -53,6 +57,9 @@ export function EditorTypographyProvider() {
         --editor-font-text: ${tFont}, Georgia, serif;
         --editor-font-mono: ${mFont}, monospace;
         --editor-accent-color: ${accentColor};
+
+        --editor-font-size: ${baseSize}px;
+        --editor-line-height: ${baseLineHeight}px;
       }
 
       .app-font-interface { font-family: var(--app-font-interface) !important; }

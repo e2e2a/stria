@@ -347,9 +347,9 @@ body {
     line-height: inherit;
     margin: 0 !important;
     padding: 0 !important;
-
+    font-size: var(--editor-font-size);
     /* Add these for 1M+ character performance */
-    contain-intrinsic-size: auto 1.5em; /* Match your inherit line-height roughly */
+    contain-intrinsic-size: auto calc(var(--editor-font-size) * 1.5); /* Match your inherit line-height roughly */
     contain: layout style;
   }
 
@@ -372,16 +372,16 @@ body {
   }
 
   .cm-h1 {
-    font-size: 2rem;
-    line-height: 2.5rem;
+    font-size: calc(var(--editor-font-size) * 2);
+    line-height: calc(calc(var(--editor-font-size) * 2) * 1);
     font-weight: 700;
     vertical-align: bottom;
     font-weight: 700;
   }
 
   .cm-h2 {
-    font-size: 1.75rem;
-    line-height: 2.25rem;
+    font-size: calc(var(--editor-font-size) * 1.75);
+    line-height: calc(calc(var(--editor-font-size) * 1.75) * 1.15);
     vertical-align: bottom;
     font-weight: 600;
     pointer-events: auto;
@@ -390,27 +390,27 @@ body {
   }
 
   .cm-h3 {
-    font-size: 1.45rem;
-    line-height: 1.95rem;
+    font-size: calc(var(--editor-font-size) * 1.45);
+    line-height: calc(calc(var(--editor-font-size) * 1.45) * 1.25);
     vertical-align: bottom;
     font-weight: 600;
   }
 
   .cm-h4 {
-    font-size: 1.25rem;
-    line-height: 1.75rem;
+    font-size: calc(var(--editor-font-size) * 1.25);
+    line-height: calc(calc(var(--editor-font-size) * 1.25) * 1.35);
     font-weight: 600;
   }
 
   .cm-h5 {
-    font-size: 1.1rem;
-    line-height: 1.6rem;
+    font-size: calc(var(--editor-font-size) * 1.1);
+    line-height: calc(calc(var(--editor-font-size) * 1.1) * 1.45);
     font-weight: 600;
   }
 
   .cm-h6 {
-    font-size: 1rem;
-    line-height: 1.5rem;
+    font-size: calc(var(--editor-font-size) * 1);
+    line-height: calc(calc(var(--editor-font-size) * 1) * 1.5);
     font-weight: 600;
     opacity: 0.8;
   }
@@ -430,7 +430,7 @@ body {
 
   .cm-list-number {
     display: inline-block;
-    font-size: 1rem; /* Hides the typed "2." */
+    font-size: var(--editor-font-size);
     @apply text-muted-foreground pl-5;
   }
 
@@ -464,7 +464,7 @@ body {
     user-select: none;
     /* Restore the visibility and layout for the widget only */
     line-height: normal !important;
-    font-size: 1rem !important;
+    font-size: var(--editor-font-size);
     height: auto !important;
   }
 
@@ -669,7 +669,7 @@ body {
   .cm-code-block-line {
     font-family: var(--editor-font-mono) !important;
     padding: 0 12px;
-    line-height: 1.5;
+    line-height: calc(var(--editor-font-size) * 1.5);
   }
 
   .cm-code-block-end {
@@ -690,7 +690,7 @@ body {
     background-color: rgb(52, 51, 51);
     padding: 0.1rem 0.3rem;
     border-radius: 4px;
-    font-size: 0.9em;
+    font-size: var(--editor-font-size);
     color: #e2e8f0;
   }
 
@@ -700,16 +700,16 @@ body {
   }
 
   /* i think i dont use this class-name soon to investigate */
-  .cm-fenced-inline-code {
-    /* font-family: var(--editor-font-mono) !important; */
-    /* background-color: rgb(52, 51, 51) !important; */
-    /* color: #e6e6e6;
+  /* .cm-fenced-inline-code { */
+  /* font-family: var(--editor-font-mono) !important; */
+  /* background-color: rgb(52, 51, 51) !important; */
+  /* color: #e6e6e6;
     padding: 0 0.4em;
     display: inline;
     white-space: normal;
     word-break: break-word;
     @apply h-fit! rounded-sm; */
-  }
+  /* } */
 
   .cm-syntax-hide {
     font-size: 0 !important;
@@ -730,13 +730,6 @@ body {
     pointer-events: auto;
   }
 
-  .cm-code-header-lang {
-    color: #666;
-    font-size: 11px;
-    font-family: sans-serif;
-    text-transform: uppercase;
-  }
-
   .cm-code-copy-btn {
     pointer-events: auto;
     color: #eee;
@@ -751,7 +744,6 @@ body {
   .cm-code-block-fence.cm-line,
   .cm-code-block-line.cm-line {
     background-color: rgb(52, 51, 51) !important;
-    line-height: 1.5;
     box-shadow:
       0 1px 0 rgb(52, 51, 51),
       0 -1px 0 rgb(52, 51, 51) !important;
@@ -838,8 +830,8 @@ body {
   }
 
   .cm-callout {
-    line-height: 1.65rem !important;
-    font-size: 1rem !important;
+    line-height: calc(var(--editor-font-size) * 1.65) !important;
+    font-size: var(--editor-font-size) !important;
     padding: 12px;
     position: relative;
     user-select: none;
@@ -868,12 +860,12 @@ body {
     position: absolute;
     top: 6px;
     right: 6px;
-    font-size: 12px;
+    font-size: calc(var(--editor-font-size) * 0.75);
     opacity: 0.6;
   }
 
   .cm-callout-header {
-    font-size: 1.15rem;
+    font-size: calc(var(--editor-font-size) * 1.15);
     letter-spacing: 0.02em;
   }
 
@@ -884,29 +876,29 @@ body {
   }
 
   .cm-callout-body h1 {
-    font-size: 1.5rem;
-    line-height: 2rem;
+    font-size: calc(var(--editor-font-size) * 1.5);
+    line-height: calc(var(--editor-font-size) * 2);
     font-weight: 700;
     color: var(--foreground);
   }
 
   .cm-callout-body h2 {
-    font-size: 1.35rem;
-    line-height: 1.75rem;
+    font-size: calc(var(--editor-font-size) * 1.35);
+    line-height: calc(var(--editor-font-size) * 1.75);
     font-weight: 600;
   }
 
   .cm-callout-body h3 {
-    font-size: 1.2rem;
-    line-height: 1.6rem;
+    font-size: calc(var(--editor-font-size) * 1.2);
+    line-height: calc(var(--editor-font-size) * 1.6);
     font-weight: 600;
   }
 
   .cm-callout-body h4,
   .cm-callout-body h5,
   .cm-callout-body h6 {
-    font-size: 1.1rem;
-    line-height: 1.5rem;
+    font-size: calc(var(--editor-font-size) * 1.1);
+    line-height: calc(var(--editor-font-size) * 1.5);
     font-weight: 600;
     margin-top: 0.5rem;
     margin-bottom: 0.25rem;
@@ -1135,13 +1127,13 @@ body {
   }
 
   .cm-file-option .cm-completionLabel {
-    font-size: 14px !important;
+    font-size: calc(var(--editor-font-size) * 0.85);
     font-weight: 600 !important;
     @apply text-foreground block!;
   }
 
   .cm-file-option .cm-completionDetail {
-    font-size: 11px !important;
+    font-size: calc(var(--editor-font-size) * 0.75);
     color: #a1a1aa !important;
     opacity: 0.7;
     font-style: normal !important;
@@ -1167,7 +1159,7 @@ body {
   }
 
   .cm-heading-option .cm-completionDetail {
-    font-size: 12px;
+    font-size: calc(var(--editor-font-size) * 0.75);
     color: #f70a0a;
     margin-left: auto; /* push to right */
     @apply text-end w-full! -mt-4;
