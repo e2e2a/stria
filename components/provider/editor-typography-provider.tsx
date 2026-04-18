@@ -24,6 +24,7 @@ export function EditorTypographyProvider() {
   const textFont = useEditorSettings(state => state.textFont);
   const monospaceFont = useEditorSettings(state => state.monospaceFont);
   const fontSize = useEditorSettings(state => state.fontSize);
+  const accentColor = useEditorSettings(state => state.accentColor);
 
   useEffect(() => {
     // Load dynamic fonts
@@ -49,6 +50,7 @@ export function EditorTypographyProvider() {
         --app-font-text: ${tFont}, Georgia, serif;
         --app-font-mono: ${mFont}, monospace;
         --app-font-size: ${fontSize ?? 16}px;
+        --editor-accent-color: ${accentColor};
       }
 
       .app-font-interface { font-family: var(--app-font-interface) !important; }
@@ -59,7 +61,7 @@ export function EditorTypographyProvider() {
     return () => {
       document.getElementById(id)?.remove();
     };
-  }, [interfaceFont, textFont, monospaceFont, fontSize]);
+  }, [interfaceFont, textFont, monospaceFont, fontSize, accentColor]);
 
   return null;
 }

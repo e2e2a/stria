@@ -218,7 +218,7 @@ body {
   .custom-resize-handle[data-active],
   .custom-resize-handle:hover,
   .custom-resize-handle[data-resize-handle-state='drag'] {
-    background-color: var(--primary) !important;
+    background-color: var(--editor-accent-color) !important;
   }
 
   [data-slot='resizable-handle']::after {

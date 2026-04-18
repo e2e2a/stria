@@ -44,8 +44,32 @@ import { cn } from '@/lib/utils';
 import { useQueryClient } from '@tanstack/react-query';
 import EditorTabTitleBar from './options/appearance/tab-title-bar';
 import EditorInlineTitle from './options/appearance/inline-title';
-import { useEditorSettings } from '@/features/editor/stores/setting';
-import { getEditorCustomTheme } from '@/features/editor/themes/editor-custom-theme';
+import createTheme from '@uiw/codemirror-themes';
+import { tags as t } from '@lezer/highlight';
+
+const myTheme = createTheme({
+  theme: 'dark',
+  settings: {
+    background: 'transparent',
+    foreground: '#d4d4d4',
+    // selectionMatch: `${accentColor}40`,
+    gutterBackground: '#191d24',
+    lineHighlight: '#ffffff0f',
+  },
+  styles: [
+    { tag: [t.keyword], color: '#569cd6' },
+    { tag: [t.string], color: '#ce9178' },
+    { tag: [t.comment], color: '#6a9955', fontStyle: 'italic' },
+    { tag: [t.variableName], color: '#9cdcfe' },
+    { tag: [t.function(t.variableName), t.propertyName], color: '#dcdcaa' },
+    { tag: [t.typeName, t.className], color: '#4ec9b0' },
+    { tag: [t.number, t.bool, t.null, t.atom], color: '#b5cea8' },
+    { tag: t.operator, color: '#d4d4d4' },
+    { tag: [t.typeName], color: '#4ec9b0' },
+    { tag: [t.heading], color: 'var(--foreground)', fontWeight: 'bold' },
+    { tag: [t.atom, t.bool, t.number], color: '#b5cea8' },
+  ],
+});
 
 function MarkdownSection({ node, isDirty, canEditNode, canEditChunk }: { node: INode; isDirty: boolean; canEditNode: boolean; canEditChunk: boolean }) {
   const { data } = useSession();
@@ -59,7 +83,7 @@ function MarkdownSection({ node, isDirty, canEditNode, canEditChunk }: { node: I
   const [contextType, setContextType] = useState<'general' | 'callout'>('general');
   const [isReadOnly, setIsReadOnly] = useState(false);
   const [isChunkActive, setIsChunkActive] = useState(false);
-  const accentColor = useEditorSettings(state => state.accentColor);
+
   useEditorEvents(node._id, synced, editorViewRef, setIsReadOnly, setIsChunkActive);
 
   const providerRef = useRef<HocuspocusProvider | null>(null);
@@ -130,10 +154,6 @@ function MarkdownSection({ node, isDirty, canEditNode, canEditChunk }: { node: I
     });
   }, [markDirty, pid, node._id, isDirty]);
 
-  const themeExtensions = useMemo(() => {
-    return [...getEditorCustomTheme(accentColor)];
-  }, [accentColor]);
-
   const editorExtensions = useMemo(() => {
     if (!instance || !ytext || !undoManager) return [];
 
@@ -163,6 +183,7 @@ function MarkdownSection({ node, isDirty, canEditNode, canEditChunk }: { node: I
           return false;
         },
       }),
+      myTheme,
       internalLinkCompletion,
       internalLinkClickHandler,
       linkClickHandler,
@@ -360,7 +381,7 @@ function MarkdownSection({ node, isDirty, canEditNode, canEditChunk }: { node: I
                   }}
                   theme="none"
                   basicSetup={false}
-                  extensions={[...themeExtensions, ...editorExtensions]}
+                  extensions={editorExtensions}
                   className="h-auto!"
                 />
               ) : (

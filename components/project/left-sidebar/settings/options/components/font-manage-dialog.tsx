@@ -178,7 +178,7 @@ export const FontManageDialog = ({ isOpen, onClose, title, description, initialF
           </form>
         </div>
 
-        <DialogFooter className="gap-2 sm:gap-0">
+        <DialogFooter className="gap-2">
           <Button variant="outline" onClick={onClose}>
             Cancel
           </Button>
