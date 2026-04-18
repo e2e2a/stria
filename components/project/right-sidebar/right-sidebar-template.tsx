@@ -89,7 +89,7 @@ const RightSidebarTemplate = ({ activeNodeId }: { activeNodeId: string; activeNo
   }, [activeUsers, data?.user?._id]);
 
   return (
-    <Sidebar side="right" className="right-0 border-l p-0 w-full" collapsible="none" variant="inset">
+    <Sidebar side="right" className="right-0 border-l p-0 w-full app-font-interface" collapsible="none" variant="inset">
       <SidebarContent className="min-h-screen w-full">
         <Tabs
           defaultValue="nodes"
@@ -138,7 +138,7 @@ const RightSidebarTemplate = ({ activeNodeId }: { activeNodeId: string; activeNo
                     >
                       <Users className="w-6! h-6!" />
                       {filteredUsers.length > 0 && (
-                        <span className="absolute -top-1 -right-1 flex h-3 min-w-[12px] items-center justify-center rounded-full bg-primary text-[8px] font-bold text-white">
+                        <span className="absolute -top-1 -right-1 flex h-3 min-w-3 items-center justify-center rounded-full bg-primary text-[8px] font-bold text-white">
                           {filteredUsers.length}
                         </span>
                       )}
@@ -150,7 +150,7 @@ const RightSidebarTemplate = ({ activeNodeId }: { activeNodeId: string; activeNo
                         className="grow-0 hover:bg-accent/50 data-[state=active]:bg-accent/50! data-[state=active]:border-accent!"
                         value="mermaid"
                       >
-                        <IconTrident className="w-6! h-6! rotate-45 -ml-1 mt-[4px]" />
+                        <IconTrident className="w-6! h-6! rotate-45 -ml-1 mt-1" />
                       </TabsTrigger>
                     </IconTooltip>
                   )}
