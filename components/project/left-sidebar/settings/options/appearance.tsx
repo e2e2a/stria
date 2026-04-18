@@ -1,8 +1,13 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { Switch } from '@/components/ui/switch';
 import { cn } from '@/lib/utils';
 import { useEditorSettings } from '@/features/editor/stores/setting';
 import { RotateCcw } from 'lucide-react';
+import { Slider } from '@/components/ui/slider';
+import { Button } from '@/components/ui/button';
+import { FontManageDialog } from './components/font-manage-dialog';
+
+type FontSettingType = 'interface' | 'text' | 'monospace' | null;
 
 export default function AppearanceTabContent() {
   const tabTitleBar = useEditorSettings(state => state.tabTitleBar);
@@ -11,73 +16,175 @@ export default function AppearanceTabContent() {
   const accentColor = useEditorSettings(state => state.accentColor);
   const accentColorTimeoutRef = React.useRef<ReturnType<typeof setTimeout> | null>(null);
 
+  const interfaceFont = useEditorSettings(state => state.interfaceFont);
+  const textFont = useEditorSettings(state => state.textFont);
+  const monospaceFont = useEditorSettings(state => state.monospaceFont);
+  const fontSize = useEditorSettings(state => state.fontSize);
+  const quickZoom = useEditorSettings(state => state.quickZoom);
+
+  const [activeDialog, setActiveDialog] = useState<FontSettingType>(null);
+
+  const getDialogContent = () => {
+    switch (activeDialog) {
+      case 'interface':
+        return {
+          title: 'Interface font',
+          description: 'The first font from this list that is available on your system will be applied.',
+          fonts: interfaceFont,
+          onSave: (newFonts: string[]) => updateSetting('interfaceFont', newFonts),
+        };
+      case 'text':
+        return {
+          title: 'Text font',
+          description: 'The first font from this list that is available on your system will be applied.',
+          fonts: textFont,
+          onSave: (newFonts: string[]) => updateSetting('textFont', newFonts),
+        };
+      case 'monospace':
+        return {
+          title: 'Monospace font',
+          description: 'No custom font is applied right now. Add one below.',
+          fonts: monospaceFont,
+          onSave: (newFonts: string[]) => updateSetting('monospaceFont', newFonts),
+        };
+      default:
+        return null;
+    }
+  };
+
+  // Local UI state just to track which dialog is open
+  const dialogContent = getDialogContent();
   return (
-    <div className="flex-1 bg-background flex flex-col w-full h-full overflow-y-auto hoverable-scrollbar p-6 sm:p-10">
-      <div className="w-full space-y-8">
-        <div>
-          <h2 className="text-2xl font-semibold text-foreground tracking-tight">Appearance</h2>
-          <p className="text-muted-foreground mt-1 text-sm">Manage your workspace aesthetics and interface layout.</p>
-        </div>
+    <>
+      <div className="flex-1 bg-background flex flex-col w-full h-full overflow-y-auto p-6 sm:p-10">
+        <div className="w-full space-y-8">
+          <div>
+            <h2 className="text-2xl font-semibold text-foreground tracking-tight">Appearance</h2>
+            <p className="text-muted-foreground mt-1 text-sm">Manage your workspace aesthetics and interface layout.</p>
+          </div>
 
-        <div className="space-y-6">
-          <SettingsCard title="Theme & Colors" description="Customize the visual appearance of your workspace.">
-            <SettingRow title="Base Color Scheme" description="Choose between light, dark, or system default.">
-              <select className="bg-background border border-border rounded-md px-3 py-1.5 text-sm focus:ring-2 focus:ring-ring outline-none text-foreground">
-                <option>Dark</option>
-                <option>Light</option>
-                <option>System</option>
-              </select>
-            </SettingRow>
+          <div className="space-y-6">
+            <SettingsCard title="Theme & Colors" description="Customize the visual appearance of your workspace.">
+              <SettingRow title="Base Color Scheme" description="Choose between light, dark, or system default.">
+                <select className="bg-background border border-border rounded-md px-3 py-1.5 text-sm focus:ring-2 focus:ring-ring outline-none text-foreground">
+                  <option>Dark</option>
+                  <option>Light</option>
+                  <option>System</option>
+                </select>
+              </SettingRow>
 
-            <SettingRow title="Accent Color" description="The primary color used for buttons and active states." isLast>
-              <div className="flex items-center gap-3">
-                <button
-                  onClick={() => updateSetting('accentColor', '#8b59fa')}
-                  className="p-1 text-muted-foreground hover:text-foreground hover:bg-muted rounded-md transition-colors"
-                  title="Reset color"
-                >
-                  <RotateCcw className="w-5! h-5!" />
-                </button>
+              <SettingRow title="Accent Color" description="The primary color used for buttons and active states." isLast>
+                <div className="flex items-center gap-3">
+                  <button
+                    onClick={() => updateSetting('accentColor', '#8b59fa')}
+                    className="p-1 text-muted-foreground hover:text-foreground hover:bg-muted rounded-md transition-colors"
+                    title="Reset color"
+                  >
+                    <RotateCcw className="w-5! h-5!" />
+                  </button>
 
-                <div className="relative w-6 h-6 shrink-0 rounded-full overflow-hidden ring-2 ring-border/50 hover:ring-border transition-colors">
-                  <input
-                    type="color"
-                    value={accentColor}
-                    // onChange={e => updateSetting('accentColor', e.target.value)}
-                    onChange={e => {
-                      const value = e.target.value;
+                  <div className="relative w-6 h-6 shrink-0 rounded-full overflow-hidden ring-2 ring-border/50 hover:ring-border transition-colors">
+                    <input
+                      type="color"
+                      value={accentColor}
+                      // onChange={e => updateSetting('accentColor', e.target.value)}
+                      onChange={e => {
+                        const value = e.target.value;
 
-                      if (accentColorTimeoutRef.current) {
-                        clearTimeout(accentColorTimeoutRef.current);
-                      }
+                        if (accentColorTimeoutRef.current) {
+                          clearTimeout(accentColorTimeoutRef.current);
+                        }
 
-                      accentColorTimeoutRef.current = setTimeout(() => {
-                        updateSetting('accentColor', value);
-                      }, 150);
-                    }}
-                    className="absolute top-[-50%] left-[-50%] w-[200%] h-[200%] cursor-pointer border-0 p-0 outline-none bg-transparent"
+                        accentColorTimeoutRef.current = setTimeout(() => {
+                          updateSetting('accentColor', value);
+                        }, 150);
+                      }}
+                      className="absolute top-[-50%] left-[-50%] w-[200%] h-[200%] cursor-pointer border-0 p-0 outline-none bg-transparent"
+                    />
+                  </div>
+                </div>
+              </SettingRow>
+            </SettingsCard>
+
+            <SettingsCard title="Interface Layout" description="Toggle structural elements of the application.">
+              <SettingRow title="Inline Title" description="Display the filename as an editable title inline with the file contents.">
+                <Switch checked={inlineTitle} onCheckedChange={val => updateSetting('inlineTitle', val)} />
+              </SettingRow>
+
+              <SettingRow title="Show Tab Title Bar" description="Display the header at the top of every tab.">
+                <Switch checked={tabTitleBar} onCheckedChange={val => updateSetting('tabTitleBar', val)} />
+              </SettingRow>
+            </SettingsCard>
+
+            <SettingsCard title="Typography" description="Customize the text rendering and styling across your workspace.">
+              <SettingRow
+                title="Interface typography"
+                description="Choose the primary typeface used throughout the application's menus, sidebars, and panels."
+              >
+                <Button variant="outline" size="sm" className="bg-secondary/50" onClick={() => setActiveDialog('interface')}>
+                  Manage
+                </Button>
+              </SettingRow>
+
+              <SettingRow title="Document text font" description="Determine the main font family used when reading and editing your notes.">
+                <Button variant="outline" size="sm" className="bg-secondary/50" onClick={() => setActiveDialog('text')}>
+                  Manage
+                </Button>
+              </SettingRow>
+
+              <SettingRow title="Monospace typeface" description="Select the fixed-width font used for code blocks, frontmatter, and raw technical text.">
+                <Button variant="outline" size="sm" className="bg-secondary/50" onClick={() => setActiveDialog('monospace')}>
+                  Manage
+                </Button>
+              </SettingRow>
+
+              <SettingRow title="Base font size" description="Adjust the default text scale in pixels to improve reading comfort across your files.">
+                <div className="flex items-center gap-4">
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    onClick={() => updateSetting('fontSize', 16)} // Reset button works
+                    className="h-8 w-8 text-muted-foreground hover:text-foreground"
+                  >
+                    <RotateCcw className="h-4 w-4" />
+                  </Button>
+                  <Slider
+                    value={[fontSize]}
+                    onValueChange={val => updateSetting('fontSize', val[0])} // Directly update Zustand
+                    max={32}
+                    min={10}
+                    step={1}
+                    className="w-[120px]"
                   />
                 </div>
-              </div>
-            </SettingRow>
-          </SettingsCard>
+              </SettingRow>
 
-          <SettingsCard title="Interface Layout" description="Toggle structural elements of the application.">
-            <SettingRow title="Inline Title" description="Display the filename as an editable title inline with the file contents.">
-              <Switch checked={inlineTitle} onCheckedChange={val => updateSetting('inlineTitle', val)} />
-            </SettingRow>
-
-            <SettingRow title="Show Tab Title Bar" description="Display the header at the top of every tab.">
-              <Switch checked={tabTitleBar} onCheckedChange={val => updateSetting('tabTitleBar', val)} />
-            </SettingRow>
-
-            <SettingRow title="Global Ribbon" description="Display vertical toolbar on the side of the window." isLast>
-              <Switch checked={true} onCheckedChange={() => {}} />
-            </SettingRow>
-          </SettingsCard>
+              <SettingRow
+                title="Quick zoom shortcut"
+                description="Enable scaling the text size dynamically using Ctrl/Cmd + Scroll wheel or trackpad pinch gestures."
+                isLast
+              >
+                <Switch
+                  checked={quickZoom}
+                  onCheckedChange={val => updateSetting('quickZoom', val)} // Directly update Zustand
+                />
+              </SettingRow>
+            </SettingsCard>
+          </div>
         </div>
       </div>
-    </div>
+      {dialogContent && (
+        <FontManageDialog
+          isOpen={activeDialog !== null}
+          onClose={() => setActiveDialog(null)}
+          title={dialogContent.title}
+          description={dialogContent.description}
+          initialFonts={dialogContent.fonts}
+          onSave={dialogContent.onSave}
+        />
+      )}
+      {/* create a dialog component per manage button */}
+    </>
   );
 }
 

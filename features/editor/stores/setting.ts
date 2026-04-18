@@ -5,7 +5,13 @@ export const DEFAULT_APPEARANCE = {
   accentColor: '#8b59fa',
   inlineTitle: false,
   tabTitleBar: false,
-  globalRibbon: true,
+
+  interfaceFont: ['Inter'],
+  textFont: ['Noto Serif'],
+  monospaceFont: [] as string[],
+
+  fontSize: 16,
+  quickZoom: false,
 };
 
 export type AppearanceSettings = typeof DEFAULT_APPEARANCE;

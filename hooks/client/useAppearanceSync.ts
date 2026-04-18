@@ -77,7 +77,6 @@ export function useSettingsSync({ projectId, nData }: UseSettingsSyncProps) {
     accentColor: settingsStore.accentColor,
     inlineTitle: settingsStore.inlineTitle,
     tabTitleBar: settingsStore.tabTitleBar,
-    globalRibbon: settingsStore.globalRibbon,
   };
 
   const jsonString = JSON.stringify(currentSettings, null, 2);
