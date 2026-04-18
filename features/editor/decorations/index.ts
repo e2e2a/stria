@@ -814,12 +814,16 @@ export function getMathBlockDecos(
           const idx = l.text.indexOf('$$');
           decos.push(Decoration.mark({ class: 'cm-math-marker' }).range(l.from + idx, l.from + idx + 2));
           if (k === lineNum && endLine === lineNum) {
+            const innerStart = l.from + idx + 2;
+            const innerEnd = l.from + l.text.lastIndexOf('$$');
             const innerText = l.text.slice(idx + 2, l.text.lastIndexOf('$$'));
+            decos.push(Decoration.mark({ class: 'cm-block-line' }).range(innerStart, innerEnd));
             decos.push(...getMathSyntaxHighlighting(innerText, l.from + idx + 2));
             const lastIdx = l.text.lastIndexOf('$$');
             decos.push(Decoration.mark({ class: 'cm-math-marker' }).range(l.from + lastIdx, l.from + lastIdx + 2));
           }
         } else {
+          decos.push(Decoration.mark({ class: 'cm-block-line' }).range(l.from, l.to));
           decos.push(...getMathSyntaxHighlighting(l.text, l.from));
         }
       }

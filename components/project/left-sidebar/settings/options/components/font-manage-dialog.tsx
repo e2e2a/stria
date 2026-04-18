@@ -113,11 +113,11 @@ export const FontManageDialog = ({ isOpen, onClose, title, description, initialF
   };
 
   return (
-    <Dialog modal={false} open={isOpen} onOpenChange={open => !open && onClose()}>
+    <Dialog modal={true} open={isOpen} onOpenChange={open => !open && onClose()}>
       <DialogContent className="sm:max-w-[425px] bg-card text-card-foreground z-60 shadow-none">
         <DialogHeader>
           <DialogTitle>{title}</DialogTitle>
-          <DialogDescription className="pt-2 text-muted-foreground">{description}</DialogDescription>
+          <DialogDescription className="sr-only">{description}</DialogDescription>
         </DialogHeader>
 
         <div className="py-4 space-y-4">
@@ -150,19 +150,20 @@ export const FontManageDialog = ({ isOpen, onClose, title, description, initialF
                   value={inputValue}
                   onValueChange={setInputValue}
                   onFocus={() => setIsFocused(true)}
-                  onBlur={() => setTimeout(() => setIsFocused(false), 200)}
+                  onBlur={() => setTimeout(() => setIsFocused(false), 100)}
                   onKeyDown={e => {
                     if (e.key === 'Enter') handleAddFont();
+                    if (e.key === 'Escape' || e.key === 'Tab') setIsFocused(false); // ADDED: keyboard fallback
                   }}
                 />
 
                 {isFocused && (
-                  <div className="absolute top-full left-0 w-full z-50 mt-1">
-                    <CommandList className="bg-popover text-popover-foreground border border-border rounded-md shadow-md max-h-40 overflow-y-auto [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden">
-                      <CommandEmpty>Press Enter or click Add...</CommandEmpty>
+                  <div className="absolute top-full left-0 w-full z-50 mt-1 bg-popover rounded-md shadow-md border border-border">
+                    <CommandList className="max-h-40 overflow-y-auto overflow-x-hidden ">
+                      <CommandEmpty className="p-2 text-xs text-muted-foreground">Press Enter or click Add...</CommandEmpty>
                       <CommandGroup>
                         {SUPPORTED_GOOGLE_FONTS.map(font => (
-                          <CommandItem key={font} value={font} onSelect={submitFont}>
+                          <CommandItem key={font} value={font} onSelect={submitFont} className="cursor-pointer">
                             <span style={{ fontFamily: font }}>{font}</span>
                           </CommandItem>
                         ))}

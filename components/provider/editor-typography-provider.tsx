@@ -48,16 +48,16 @@ export function EditorTypographyProvider() {
       :root {
         --app-font-interface: ${iFont}, system-ui, sans-serif;
         --app-font-text: ${tFont}, Georgia, serif;
-        --app-font-mono: ${mFont}, monospace;
         --app-font-size: ${fontSize ?? 16}px;
-
+        
         --editor-font-text: ${tFont}, Georgia, serif;
+        --editor-font-mono: ${mFont}, monospace;
         --editor-accent-color: ${accentColor};
       }
 
       .app-font-interface { font-family: var(--app-font-interface) !important; }
       .editor-font-text      { font-family: var(--editor-font-text) !important; }
-      .app-font-mono      { font-family: var(--app-font-mono) !important; }
+      .editor-font-mono      { font-family: var(--editor-font-mono) !important; }
     `;
 
     return () => {

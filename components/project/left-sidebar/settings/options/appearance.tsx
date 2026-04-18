@@ -52,8 +52,8 @@ export default function AppearanceTabContent() {
     }
   };
 
-  // Local UI state just to track which dialog is open
   const dialogContent = getDialogContent();
+
   return (
     <>
       <div className="flex-1 bg-background flex flex-col w-full h-full overflow-y-auto p-6 sm:p-10">
@@ -87,7 +87,6 @@ export default function AppearanceTabContent() {
                     <input
                       type="color"
                       value={accentColor}
-                      // onChange={e => updateSetting('accentColor', e.target.value)}
                       onChange={e => {
                         const value = e.target.value;
 
@@ -143,19 +142,12 @@ export default function AppearanceTabContent() {
                   <Button
                     variant="ghost"
                     size="icon"
-                    onClick={() => updateSetting('fontSize', 16)} // Reset button works
+                    onClick={() => updateSetting('fontSize', 16)}
                     className="h-8 w-8 text-muted-foreground hover:text-foreground"
                   >
                     <RotateCcw className="h-4 w-4" />
                   </Button>
-                  <Slider
-                    value={[fontSize]}
-                    onValueChange={val => updateSetting('fontSize', val[0])} // Directly update Zustand
-                    max={32}
-                    min={10}
-                    step={1}
-                    className="w-[120px]"
-                  />
+                  <Slider value={[fontSize]} onValueChange={val => updateSetting('fontSize', val[0])} max={32} min={10} step={1} className="w-[120px]" />
                 </div>
               </SettingRow>
 
@@ -164,10 +156,7 @@ export default function AppearanceTabContent() {
                 description="Enable scaling the text size dynamically using Ctrl/Cmd + Scroll wheel or trackpad pinch gestures."
                 isLast
               >
-                <Switch
-                  checked={quickZoom}
-                  onCheckedChange={val => updateSetting('quickZoom', val)} // Directly update Zustand
-                />
+                <Switch checked={quickZoom} onCheckedChange={val => updateSetting('quickZoom', val)} />
               </SettingRow>
             </SettingsCard>
           </div>
@@ -183,7 +172,6 @@ export default function AppearanceTabContent() {
           onSave={dialogContent.onSave}
         />
       )}
-      {/* create a dialog component per manage button */}
     </>
   );
 }

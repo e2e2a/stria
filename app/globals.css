@@ -653,7 +653,7 @@ body {
   .cm-code-block-start,
   .cm-code-block-end {
     @apply bg-neutral-800/60;
-    font-family: monospace;
+    font-family: var(--editor-font-mono) !important;
     min-height: 1rem !important;
   }
 
@@ -667,7 +667,9 @@ body {
   }
 
   .cm-code-block-line {
+    font-family: var(--editor-font-mono) !important;
     padding: 0 12px;
+    line-height: 1.5;
   }
 
   .cm-code-block-end {
@@ -684,8 +686,8 @@ body {
   }
 
   .cm-inline-code {
-    font-family: 'JetBrains Mono', 'Fira Code', monospace;
-    background-color: rgba(255, 255, 255, 0.1);
+    font-family: var(--editor-font-mono) !important;
+    background-color: rgb(52, 51, 51);
     padding: 0.1rem 0.3rem;
     border-radius: 4px;
     font-size: 0.9em;
@@ -697,14 +699,16 @@ body {
     cursor: text;
   }
 
+  /* i think i dont use this class-name soon to investigate */
   .cm-fenced-inline-code {
-    background-color: rgb(52, 51, 51) !important;
-    color: #e6e6e6;
+    /* font-family: var(--editor-font-mono) !important; */
+    /* background-color: rgb(52, 51, 51) !important; */
+    /* color: #e6e6e6;
     padding: 0 0.4em;
     display: inline;
     white-space: normal;
     word-break: break-word;
-    @apply h-fit! rounded-sm;
+    @apply h-fit! rounded-sm; */
   }
 
   .cm-syntax-hide {
@@ -747,7 +751,7 @@ body {
   .cm-code-block-fence.cm-line,
   .cm-code-block-line.cm-line {
     background-color: rgb(52, 51, 51) !important;
-
+    line-height: 1.5;
     box-shadow:
       0 1px 0 rgb(52, 51, 51),
       0 -1px 0 rgb(52, 51, 51) !important;
@@ -1067,10 +1071,19 @@ body {
   }
 
   /* Source Text Highlighting */
+  .cm-block-line {
+    font-family: var(--editor-font-mono) !important;
+  }
+  .cm-line:has(.cm-math-marker) {
+    font-family: var(--editor-font-mono) !important;
+    @apply italic;
+  }
   .cm-math-command {
+    font-family: var(--editor-font-mono) !important;
     @apply text-blue-400 font-bold;
   }
   .cm-math-variable {
+    font-family: var(--editor-font-mono) !important;
     @apply text-primary italic;
   }
   .cm-math-number {
@@ -1083,7 +1096,9 @@ body {
     @apply text-gray-500;
   }
   .cm-math-marker {
-    @apply text-primary/40 font-bold;
+    color: var(--editor-accent-color);
+    font-family: var(--editor-font-mono) !important;
+    @apply font-bold;
   }
 
   .cm-bullet-line {
