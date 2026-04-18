@@ -77,6 +77,15 @@ export function useSettingsSync({ projectId, nData }: UseSettingsSyncProps) {
     accentColor: settingsStore.accentColor,
     inlineTitle: settingsStore.inlineTitle,
     tabTitleBar: settingsStore.tabTitleBar,
+
+    interfaceFont: settingsStore.interfaceFont,
+    /**
+     * @TODO
+     */
+    textFont: settingsStore.textFont, // This is for the editor text
+    monospaceFont: settingsStore.monospaceFont,
+    fontSize: settingsStore.fontSize,
+    quickZoom: settingsStore.quickZoom,
   };
 
   const jsonString = JSON.stringify(currentSettings, null, 2);

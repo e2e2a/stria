@@ -6,7 +6,7 @@ export const DEFAULT_APPEARANCE = {
   inlineTitle: false,
   tabTitleBar: false,
 
-  interfaceFont: ['Inter'],
+  interfaceFont: ['IBM Plex Mono'],
   textFont: ['Noto Serif'],
   monospaceFont: [] as string[],
 

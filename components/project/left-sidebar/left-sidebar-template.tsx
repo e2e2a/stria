@@ -131,7 +131,7 @@ function LeftSidebarTemplate({ projectData }: { projectData: IProject }) {
       id="sidebar-tree-nodes"
       data-sidebar-node="true"
       tabIndex={-1}
-      className="group left-12 w-full border-r bg-none p-0 text-muted-foreground"
+      className="group left-12 w-full border-r bg-none p-0 text-muted-foreground app-font-interface"
       collapsible="none"
       variant="inset"
     >
@@ -227,10 +227,7 @@ function LeftSidebarTemplate({ projectData }: { projectData: IProject }) {
                 <SidebarContextMenu node={null} mData={mData}>
                   <TabsContent
                     forceMount
-                    className={cn(
-                      'h-full min-h-0 p-0! gap-0! space-x-0 space-y-0! m-0! font-(family-name:--font-IBM)',
-                      leftSidebarTab !== 'nodes' && 'hidden'
-                    )}
+                    className={cn('h-full min-h-0 p-0! gap-0! space-x-0 space-y-0! m-0!', leftSidebarTab !== 'nodes' && 'hidden')}
                     value="nodes"
                   >
                     <NavMain canMoveNode={!!mData?.permissions.canMoveNode} mData={mData} />

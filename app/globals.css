@@ -272,7 +272,9 @@ body {
   .hoverable-scrollbar::-webkit-scrollbar-track {
     background-color: transparent !important;
   }
-
+  .app-font-interface {
+    font-family: var(--app-font-interface), system-ui, sans-serif;
+  }
   /* *::-webkit-scrollbar-track {
     background: var(--sb-track-color);
   } */

@@ -1,8 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from '@/components/ui/dialog';
-import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { X, GripVertical, CheckCircle2 } from 'lucide-react';
+import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from '@/components/ui/command';
 
 interface FontManageDialogProps {
   isOpen: boolean;
@@ -13,41 +13,93 @@ interface FontManageDialogProps {
   onSave: (fonts: string[]) => void;
 }
 
-// A generic list of common fonts to populate the dropdown suggestions
-const COMMON_FONTS = [
+export const SUPPORTED_GOOGLE_FONTS = [
+  'Algerian',
   'Inter',
-  'Arial',
-  'Arial Black',
-  'Comic Sans MS',
-  'Courier New',
-  'Georgia',
-  'Impact',
-  'Noto Serif',
   'Roboto',
+  'Open Sans',
+  'Lato',
+  'Montserrat',
+  'Poppins',
+  'Nunito',
+  'Source Sans 3',
+  'Work Sans',
+  'Fira Sans',
+  'Rubik',
+  'Ubuntu',
+  'Quicksand',
+  'Mulish',
+  'PT Sans',
+  'DM Sans',
+  'Manrope',
+  'IBM Plex Sans',
+  'Karla',
+  'Josefin Sans',
+
+  'Merriweather',
+  'Playfair Display',
+  'Lora',
+  'PT Serif',
+  'Noto Serif',
+  'Crimson Text',
+  'EB Garamond',
+  'Libre Baskerville',
+  'Bitter',
+  'Spectral',
+  'Source Serif 4',
+  'Cormorant Garamond',
+  'Zilla Slab',
+  'Arvo',
+  'Roboto Slab',
+  'Domine',
+
+  'Fira Code',
   'Source Code Pro',
-  'Times New Roman',
-  'Trebuchet MS',
-];
+  'JetBrains Mono',
+  'Roboto Mono',
+  'Inconsolata',
+  'Space Mono',
+  'IBM Plex Mono',
+  'Ubuntu Mono',
+  'PT Mono',
+  'Anonymous Pro',
+  'Courier Prime',
+  'Overpass Mono',
+  'Share Tech Mono',
+  'VT323',
+  'Cutive Mono',
+].sort();
 
 export const FontManageDialog = ({ isOpen, onClose, title, description, initialFonts, onSave }: FontManageDialogProps) => {
   const [fonts, setFonts] = useState<string[]>([]);
   const [inputValue, setInputValue] = useState('');
+  const [isFocused, setIsFocused] = useState(false);
 
-  // Reset local state when dialog opens
   useEffect(() => {
     if (isOpen) {
       // eslint-disable-next-line react-hooks/set-state-in-effect
       setFonts(initialFonts);
       setInputValue('');
+      setIsFocused(false);
     }
   }, [isOpen, initialFonts]);
 
-  const handleAddFont = (e: React.FormEvent) => {
-    e.preventDefault();
+  const submitFont = (fontName: string) => {
+    const trimmed = fontName.trim();
+    if (trimmed && !fonts.includes(trimmed)) {
+      setFonts([...fonts, trimmed]);
+      setInputValue('');
+      setIsFocused(false);
+    }
+  };
+
+  const handleAddFont = (e?: React.FormEvent) => {
+    e?.preventDefault();
     const trimmed = inputValue.trim();
     if (trimmed && !fonts.includes(trimmed)) {
       setFonts([...fonts, trimmed]);
       setInputValue('');
+      setIsFocused(false);
     }
   };
 
@@ -61,15 +113,14 @@ export const FontManageDialog = ({ isOpen, onClose, title, description, initialF
   };
 
   return (
-    <Dialog open={isOpen} onOpenChange={open => !open && onClose()}>
-      <DialogContent className="sm:max-w-[425px] bg-card text-card-foreground z-60">
+    <Dialog modal={false} open={isOpen} onOpenChange={open => !open && onClose()}>
+      <DialogContent className="sm:max-w-[425px] bg-card text-card-foreground z-60 shadow-none">
         <DialogHeader>
           <DialogTitle>{title}</DialogTitle>
           <DialogDescription className="pt-2 text-muted-foreground">{description}</DialogDescription>
         </DialogHeader>
 
         <div className="py-4 space-y-4">
-          {/* Font List */}
           {fonts.length > 0 ? (
             <div className="space-y-2 border-b border-border pb-4">
               {fonts.map((font, index) => (
@@ -91,21 +142,35 @@ export const FontManageDialog = ({ isOpen, onClose, title, description, initialF
             <div className="text-sm text-muted-foreground italic border-b border-border pb-4">No custom font is applied right now. Add one below.</div>
           )}
 
-          {/* Add Font Input */}
           <form onSubmit={handleAddFont} className="flex items-center gap-2">
-            <div className="flex-1">
-              <Input
-                placeholder="Enter font name..."
-                value={inputValue}
-                onChange={e => setInputValue(e.target.value)}
-                list="common-fonts" // Links to the datalist below
-                className="bg-background"
-              />
-              <datalist id="common-fonts">
-                {COMMON_FONTS.map(font => (
-                  <option key={font} value={font} />
-                ))}
-              </datalist>
+            <div className="relative flex-1">
+              <Command className="border border-border rounded-md overflow-visible bg-background">
+                <CommandInput
+                  placeholder="Enter font name..."
+                  value={inputValue}
+                  onValueChange={setInputValue}
+                  onFocus={() => setIsFocused(true)}
+                  onBlur={() => setTimeout(() => setIsFocused(false), 200)}
+                  onKeyDown={e => {
+                    if (e.key === 'Enter') handleAddFont();
+                  }}
+                />
+
+                {isFocused && (
+                  <div className="absolute top-full left-0 w-full z-50 mt-1">
+                    <CommandList className="bg-popover text-popover-foreground border border-border rounded-md shadow-md max-h-40 overflow-y-auto [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden">
+                      <CommandEmpty>Press Enter or click Add...</CommandEmpty>
+                      <CommandGroup>
+                        {SUPPORTED_GOOGLE_FONTS.map(font => (
+                          <CommandItem key={font} value={font} onSelect={submitFont}>
+                            <span style={{ fontFamily: font }}>{font}</span>
+                          </CommandItem>
+                        ))}
+                      </CommandGroup>
+                    </CommandList>
+                  </div>
+                )}
+              </Command>
             </div>
             <Button type="submit" variant="secondary" disabled={!inputValue.trim()}>
               Add

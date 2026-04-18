@@ -89,11 +89,11 @@ export default function SettingsFooter() {
 
       <DialogContent
         tabIndex={-1}
-        className="w-[90%]! max-w-[90%]! min-w-[90%] h-[95vh] sm:h-[92vh] p-0 gap-0 bg-sidebar flex flex-col sm:flex-row overflow-hidden z-51"
+        className="w-[90%]! max-w-[90%]! min-w-[90%] h-[95vh] sm:h-[92vh] p-0 gap-0 bg-sidebar flex flex-col sm:flex-row overflow-hidden z-51 app-font-interface"
       >
         <DialogTitle className="sr-only">Settings</DialogTitle>
         <DialogDescription className="sr-only">Manage application settings and preferences</DialogDescription>
-        <div className="w-auto min-h-20! bg-sidebar sm:border-r sm:border-border flex flex-row sm:flex-col sm:overflow-y-auto overflow-y-hidden pt-5">
+        <div className="w-auto min-h-20! sm:w-56 bg-sidebar sm:border-r sm:border-border flex flex-row sm:flex-col sm:overflow-y-auto overflow-y-hidden pt-5">
           <div className="sm:mb-6">
             <h3 className="px-3 mb-2 text-xs font-semibold text-accent uppercase tracking-wider">Options</h3>
             <div className="flex flex-row sm:flex-col w-full! gap-0.5">{OPTIONS_TABS.map(renderTabButton)}</div>
@@ -105,11 +105,6 @@ export default function SettingsFooter() {
           </div>
         </div>
         {activeTab === 'appearance' && <AppearanceTabContent />}
-        {/* <div className="flex-1 bg-background flex flex-col w-auto p-5">
-          <h2 className="text-2xl font-semibold text-foreground capitalize mb-6">{activeTab.replace('-', ' ')}</h2>
-
-          <div className="text-accent">Content for {activeTab} goes here.</div>
-        </div> */}
       </DialogContent>
     </Dialog>
   );

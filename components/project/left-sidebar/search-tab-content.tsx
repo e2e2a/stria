@@ -54,7 +54,7 @@ const SearchRow = memo(function SearchRow({
     <div className="px-3 py-px">
       <div
         onClick={() => onJump(item.nodeId, index, text.length, matchIndices)}
-        className="text-[12px] font-mono text-muted-foreground bg-white/5 rounded px-2 py-1 cursor-pointer hover:bg-white/10 overflow-hidden border border-transparent"
+        className="text-[12px] text-muted-foreground bg-white/5 rounded px-2 py-1 cursor-pointer hover:bg-white/10 overflow-hidden border border-transparent"
       >
         <div className="truncate whitespace-pre">{renderLine(lineContent, matchIndices, text.length)}</div>
       </div>

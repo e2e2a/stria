@@ -18,7 +18,7 @@ export const IconTooltip = ({ children, label, side = 'bottom', disabled = false
         </TooltipTrigger>
         <TooltipContent
           side={side}
-          className="max-w-[200px] z-101 text-foreground bg-sidebar text-center font-sans [&_svg]:bg-sidebar [&_svg]:border-b-[0.1px] [&_svg]:border-r-[0.1px] border-[0.1px] border-border [&_svg]:fill-sidebar"
+          className="max-w-[200px] z-101 text-foreground bg-sidebar text-center app-font-interface [&_svg]:bg-sidebar [&_svg]:border-b-[0.1px] [&_svg]:border-r-[0.1px] border-[0.1px] border-border [&_svg]:fill-sidebar"
         >
           {label}
         </TooltipContent>
