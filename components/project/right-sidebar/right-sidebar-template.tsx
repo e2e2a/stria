@@ -102,7 +102,10 @@ const RightSidebarTemplate = ({ activeNodeId }: { activeNodeId: string; activeNo
               <div className="flex-1 min-w-0 h-full flex items-center overflow-x-auto overflow-y-hidden [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden">
                 <TabsList className="bg-transparent flex items-center gap-x-1 w-max">
                   <IconTooltip label={'Backlinks for Tools and Libraries'}>
-                    <TabsTrigger className="grow-0 hover:bg-accent/50 data-[state=active]:bg-accent/50! data-[state=active]:border-accent!" value="link">
+                    <TabsTrigger
+                      className="grow-0 hover:bg-accent/50 text-muted-foreground hover:text-foreground! data-[state=active]:text-foreground data-[state=active]:bg-accent/50! data-[state=active]:border-accent!"
+                      value="link"
+                    >
                       <InboundLinkIcon className="w-6! h-6!" />
                     </TabsTrigger>
                   </IconTooltip>
@@ -111,13 +114,16 @@ const RightSidebarTemplate = ({ activeNodeId }: { activeNodeId: string; activeNo
                   </TabsTrigger> */}
                   {/* Inside TabsList */}
                   <IconTooltip label={'Tags'}>
-                    <TabsTrigger className="grow-0 hover:bg-accent/50 data-[state=active]:bg-accent/50! data-[state=active]:border-accent!" value="tags">
+                    <TabsTrigger
+                      className="grow-0 hover:bg-accent/50 text-muted-foreground hover:text-foreground! data-[state=active]:text-foreground data-[state=active]:bg-accent/50! data-[state=active]:border-accent!"
+                      value="tags"
+                    >
                       <Tags className="w-6! h-6!" />
                     </TabsTrigger>
                   </IconTooltip>
                   <IconTooltip label={'All Properties'}>
                     <TabsTrigger
-                      className="grow-0 hover:bg-accent/50 data-[state=active]:bg-accent/50! data-[state=active]:border-accent!"
+                      className="grow-0 hover:bg-accent/50 text-muted-foreground hover:text-foreground! data-[state=active]:text-foreground data-[state=active]:bg-accent/50! data-[state=active]:border-accent!"
                       value="properties"
                     >
                       <Archive className="w-6! h-6!" />
@@ -125,7 +131,7 @@ const RightSidebarTemplate = ({ activeNodeId }: { activeNodeId: string; activeNo
                   </IconTooltip>
                   <IconTooltip label={'Outline of backpressure Handling Pattern'}>
                     <TabsTrigger
-                      className="grow-0 hover:bg-accent/50 data-[state=active]:bg-accent/50! data-[state=active]:border-accent!"
+                      className="grow-0 hover:bg-accent/50 text-muted-foreground hover:text-foreground! data-[state=active]:text-foreground data-[state=active]:bg-accent/50! data-[state=active]:border-accent!"
                       value="outline"
                     >
                       <List className="w-6! h-6!" />
@@ -133,7 +139,7 @@ const RightSidebarTemplate = ({ activeNodeId }: { activeNodeId: string; activeNo
                   </IconTooltip>
                   <IconTooltip label={'Active Users'}>
                     <TabsTrigger
-                      className="grow-0 relative hover:bg-accent/50 data-[state=active]:bg-accent/50! data-[state=active]:border-accent!"
+                      className="grow-0 relative text-muted-foreground hover:text-foreground! data-[state=active]:text-foreground hover:bg-accent/50 data-[state=active]:bg-accent/50! data-[state=active]:border-accent!"
                       value="pressence"
                     >
                       <Users className="w-6! h-6!" />
@@ -147,7 +153,7 @@ const RightSidebarTemplate = ({ activeNodeId }: { activeNodeId: string; activeNo
                   {mData?.permissions.canEditNode && (
                     <IconTooltip label={'Mermaid'}>
                       <TabsTrigger
-                        className="grow-0 hover:bg-accent/50 data-[state=active]:bg-accent/50! data-[state=active]:border-accent!"
+                        className="grow-0 hover:bg-accent/50 text-muted-foreground hover:text-foreground! data-[state=active]:text-foreground data-[state=active]:bg-accent/50! data-[state=active]:border-accent!"
                         value="mermaid"
                       >
                         <IconTrident className="w-6! h-6! rotate-45 -ml-1 mt-1" />

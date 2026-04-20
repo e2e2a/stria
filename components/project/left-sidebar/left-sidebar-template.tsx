@@ -147,18 +147,24 @@ function LeftSidebarTemplate({ projectData }: { projectData: IProject }) {
               <SidebarMenu className="h-12 flex w-full flex-row items-center justify-center px-2 relative">
                 <TabsList className="bg-transparent w-full flex items-start gap-x-3 justify-start">
                   <IconTooltip label={'Files'}>
-                    <TabsTrigger className="grow-0 hover:bg-accent/50 data-[state=active]:bg-accent/50! data-[state=active]:border-accent!" value="nodes">
+                    <TabsTrigger
+                      className="grow-0 hover:bg-accent/50 text-muted-foreground hover:text-foreground! data-[state=active]:text-foreground data-[state=active]:bg-accent/50! data-[state=active]:border-accent!"
+                      value="nodes"
+                    >
                       <FolderOpen className="w-6! h-6!" />
                     </TabsTrigger>
                   </IconTooltip>
                   <IconTooltip label={'Search'}>
-                    <TabsTrigger className="grow-0 hover:bg-accent/50 data-[state=active]:bg-accent/50! data-[state=active]:border-accent!" value="search">
+                    <TabsTrigger
+                      className="grow-0 hover:bg-accent/50 text-muted-foreground hover:text-foreground! data-[state=active]:text-foreground data-[state=active]:bg-accent/50! data-[state=active]:border-accent!"
+                      value="search"
+                    >
                       <Search className="w-6! h-6!" />
                     </TabsTrigger>
                   </IconTooltip>
                   <IconTooltip label={'Bookmarks'}>
                     <TabsTrigger
-                      className="grow-0 hover:bg-accent/50 data-[state=active]:bg-accent/50! data-[state=active]:border-accent!"
+                      className="grow-0 hover:bg-accent/50 text-muted-foreground hover:text-foreground! data-[state=active]:text-foreground data-[state=active]:bg-accent/50! data-[state=active]:border-accent!"
                       value="bookmarks"
                     >
                       <Bookmark className="w-6! h-6!" />
