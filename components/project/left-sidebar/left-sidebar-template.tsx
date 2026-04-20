@@ -172,8 +172,8 @@ function LeftSidebarTemplate({ projectData }: { projectData: IProject }) {
                   </IconTooltip>
                 </TabsList>
 
-                <div className="absolute top-12 left-0 right-0 h-1 z-51 w-full bg-background" />
-                <div className="absolute top-13 left-0 right-0 h-14 z-50 flex px-3 items-center border-b border-white/5 bg-sidebar/80 backdrop-blur-lg pointer-events-auto cursor-default">
+                <div className="absolute top-12 left-0 right-0 h-1 z-12 w-full bg-border dark:bg-border/50" />
+                <div className="absolute top-13 left-0 right-0 h-14 z-50 flex px-3 items-center border-b border-border bg-sidebar/80 backdrop-blur-lg pointer-events-auto cursor-default">
                   <div className="flex w-full">
                     {/* Nodes Header Content */}
                     <NodeTabHeader projectData={projectData} />

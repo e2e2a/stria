@@ -169,10 +169,10 @@ const RightSidebarTemplate = ({ activeNodeId }: { activeNodeId: string; activeNo
             </div>
           </SidebarHeader>
 
-          <div className="h-1! w-full bg-background" />
+          <div className="h-1! w-full bg-border dark:bg-border/50" />
 
           {rightSidebarTab !== 'pressence' && rightSidebarTab !== 'mermaid' && (
-            <div className="h-14 flex items-center border-b text-muted-foreground border-white/5 w-full">
+            <div className="h-14 flex items-center border-b text-muted-foreground border-border w-full">
               {/* Link Header Content */}
               <LinkTabHeader
                 isSearching={isSearchingInLink}

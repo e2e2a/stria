@@ -307,6 +307,7 @@ function MarkdownSection({ node, isDirty, canEditNode, canEditChunk }: { node: I
 
   return (
     <>
+      <div className="absolute top-12 left-0 right-0 h-1 z-11 w-full bg-border dark:bg-border/50" />
       <EditorTabTitleBar
         node={node}
         editorViewRef={editorViewRef}

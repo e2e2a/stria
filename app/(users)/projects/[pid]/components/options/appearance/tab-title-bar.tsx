@@ -75,8 +75,7 @@ const EditorTabTitleBar = ({
 
   return (
     <>
-      <div className="absolute top-12 left-0 right-0 h-1 z-51 w-full bg-background" />
-      <div className="absolute top-13 left-0 right-0 h-14 z-50 flex items-center px-10 border-b border-white/5 bg-sidebar/80 backdrop-blur-sm pointer-events-auto cursor-default drop-shadow-xs shadow-xs">
+      <div className="absolute top-13 left-0 right-0 h-14 z-50 flex items-center px-10 border-b border-border bg-sidebar/80 backdrop-blur-sm pointer-events-auto cursor-default drop-shadow-xs shadow-xs">
         <div className="flex justify-between items-center w-full">
           <input
             type="text"
