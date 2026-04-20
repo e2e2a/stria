@@ -41,7 +41,7 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en" className="dark">
+    <html lang="en" className="dark" suppressHydrationWarning>
       <body className={`${roboto.variable} ${merriweather.variable} ${dm_sans.variable} ${ibm.variable} antialiased`}>
         <SessionProviderWrapper>
           <Providers>

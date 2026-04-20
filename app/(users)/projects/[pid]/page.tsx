@@ -1,6 +1,7 @@
 import { projectClient } from '@/lib/client/api/projectClient';
 import { ProjectSingleClient } from './components/ProjectSingleClient';
 import { headers } from 'next/headers';
+import { EditorThemeProvider } from '@/components/provider/editor-theme-provider';
 
 export const generateMetadata = async ({ params }: { params: { pid: string } | Promise<{ pid: string }> }) => {
   const resolvedParams = await params;
@@ -20,5 +21,9 @@ export const generateMetadata = async ({ params }: { params: { pid: string } | P
 };
 
 export default function Page() {
-  return <ProjectSingleClient />;
+  return (
+    <EditorThemeProvider>
+      <ProjectSingleClient />
+    </EditorThemeProvider>
+  );
 }

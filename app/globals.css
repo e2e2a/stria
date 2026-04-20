@@ -1,7 +1,8 @@
 @import 'tailwindcss';
 @import 'tw-animate-css';
+@import '../styles/themes/all-themes.css';
 
-@custom-variant dark (&:is(.dark *));
+@custom-variant dark (&:where(.dark, .dark *):not(.force-light *));
 
 @theme inline {
   --color-background: var(--background);
@@ -132,14 +133,15 @@
   --sb-thumb-color: var(--card-foreground);
 }
 
-.dark {
+.dark,
+[data-theme].dark,
+.themed-root.dark {
   --background: oklch(0.2293 0.0153 264.2095);
   --foreground: oklch(0.9843 0.0017 247.8393);
   --card: oklch(0.2293 0.0153 264.2095);
   --card-foreground: oklch(0.9843 0.0017 247.8393);
   --popover: oklch(0.2293 0.0153 264.2095);
   --popover-foreground: oklch(0.9843 0.0017 247.8393);
-  /* --primary: oklch(0.4913 0.2588 287.18); */
   --primary: oklch(0.5337 0.2808 293.24);
   --primary-foreground: oklch(0.9848 0 0);
   --secondary: oklch(0.2915 0.0168 264.2705);

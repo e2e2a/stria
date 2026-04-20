@@ -74,17 +74,19 @@ export function useSettingsSync({ projectId, nData }: UseSettingsSyncProps) {
 
   const currentSettings = {
     theme: settingsStore.theme,
+    skin: settingsStore.skin,
     accentColor: settingsStore.accentColor,
     inlineTitle: settingsStore.inlineTitle,
     tabTitleBar: settingsStore.tabTitleBar,
 
     interfaceFont: settingsStore.interfaceFont,
+    textFont: settingsStore.textFont,
+    monospaceFont: settingsStore.monospaceFont,
+    fontSize: settingsStore.fontSize,
+
     /**
      * @TODO
      */
-    textFont: settingsStore.textFont, // This is for the editor text
-    monospaceFont: settingsStore.monospaceFont,
-    fontSize: settingsStore.fontSize,
     quickZoom: settingsStore.quickZoom,
   };
 

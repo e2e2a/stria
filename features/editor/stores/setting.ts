@@ -1,7 +1,8 @@
 import { create } from 'zustand';
 
 export const DEFAULT_APPEARANCE = {
-  theme: 'dark',
+  theme: '',
+  skin: '',
   accentColor: '#8b59fa',
   inlineTitle: false,
   tabTitleBar: false,

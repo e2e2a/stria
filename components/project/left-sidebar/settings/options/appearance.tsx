@@ -6,6 +6,9 @@ import { RotateCcw } from 'lucide-react';
 import { Slider } from '@/components/ui/slider';
 import { Button } from '@/components/ui/button';
 import { FontManageDialog } from './components/font-manage-dialog';
+import { Appearance, useThemeContext } from '@/components/provider/editor-theme-provider';
+import { Select, SelectContent, SelectGroup, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { DEFAULT_THEME, THEMES } from '@/lib/client/themes-config';
 
 type FontSettingType = 'interface' | 'text' | 'monospace' | null;
 
@@ -14,6 +17,7 @@ export default function AppearanceTabContent() {
   const updateSetting = useEditorSettings(state => state.updateSetting);
   const inlineTitle = useEditorSettings(state => state.inlineTitle);
   const accentColor = useEditorSettings(state => state.accentColor);
+  const theme = useEditorSettings(state => state.theme);
   const accentColorTimeoutRef = React.useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const interfaceFont = useEditorSettings(state => state.interfaceFont);
@@ -23,6 +27,10 @@ export default function AppearanceTabContent() {
   const quickZoom = useEditorSettings(state => state.quickZoom);
 
   const [activeDialog, setActiveDialog] = useState<FontSettingType>(null);
+
+  const { skin, isDark, setTheme, setSkin } = useThemeContext();
+  const currentSkin = skin || DEFAULT_THEME;
+  const selectedThemeName = THEMES.find(t => t.value === currentSkin)?.name || 'Default Theme';
 
   const getDialogContent = () => {
     switch (activeDialog) {
@@ -66,11 +74,24 @@ export default function AppearanceTabContent() {
           <div className="space-y-6">
             <SettingsCard title="Theme & Colors" description="Customize the visual appearance of your workspace.">
               <SettingRow title="Base Color Scheme" description="Choose between light, dark, or system default.">
-                <select className="bg-background border border-border rounded-md px-3 py-1.5 text-sm focus:ring-2 focus:ring-ring outline-none text-foreground">
-                  <option>Dark</option>
-                  <option>Light</option>
-                  <option>System</option>
-                </select>
+                <Select
+                  value={theme}
+                  onValueChange={val => {
+                    updateSetting('theme', val as Appearance);
+                    setTheme(val as Appearance);
+                  }}
+                >
+                  <SelectTrigger className="w-full max-w-48">
+                    <SelectValue defaultValue={theme} />
+                  </SelectTrigger>
+                  <SelectContent className="z-52">
+                    <SelectGroup>
+                      <SelectItem value="light">Light</SelectItem>
+                      <SelectItem value="dark">Dark</SelectItem>
+                      <SelectItem value="system">System</SelectItem>
+                    </SelectGroup>
+                  </SelectContent>
+                </Select>
               </SettingRow>
 
               <SettingRow title="Accent Color" description="The primary color used for buttons and active states." isLast>
@@ -102,6 +123,52 @@ export default function AppearanceTabContent() {
                     />
                   </div>
                 </div>
+              </SettingRow>
+              <SettingRow title="Theme" description="Choose your custom skin.">
+                <Select
+                  value={currentSkin}
+                  onValueChange={val => {
+                    updateSetting('skin', val); // 💾 Updates Zustand / Database
+                    setSkin(val); // 🔥 Instantly updates the DOM via Provider
+                  }}
+                >
+                  <SelectTrigger className="w-full max-w-64">
+                    <SelectValue>{selectedThemeName}</SelectValue>
+                  </SelectTrigger>
+                  <SelectContent className="z-52">
+                    <SelectGroup>
+                      {THEMES.map(t => {
+                        // Pick the dots based on the active appearance (light vs dark)
+                        const dots = isDark ? t.dots.dark : t.dots.light;
+
+                        return (
+                          <SelectItem
+                            key={t.value}
+                            value={t.value}
+                            className={cn(
+                              'flex flex-col gap-2 p-3 rounded-lg border text-left transition-colors mb-1 cursor-pointer',
+                              'data-[state=checked]:border-primary data-[state=checked]:bg-primary/5', // Shadcn active state
+                              skin === t.value ? 'border-2 border-primary' : 'border-transparent hover:border-border'
+                            )}
+                          >
+                            <div className="flex items-center gap-2 w-full">
+                              <div className="flex gap-1.5 shrink-0">
+                                {dots.map((color, i) => (
+                                  <span
+                                    key={i}
+                                    className="w-4 h-4 rounded-full shadow-sm border border-black/10 dark:border-white/10"
+                                    style={{ backgroundColor: color }}
+                                  />
+                                ))}
+                              </div>
+                              <p className="flex-1 text-right text-sm font-medium leading-none">{t.name}</p>
+                            </div>
+                          </SelectItem>
+                        );
+                      })}
+                    </SelectGroup>
+                  </SelectContent>
+                </Select>
               </SettingRow>
             </SettingsCard>
 
