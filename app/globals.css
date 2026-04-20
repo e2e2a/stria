@@ -350,6 +350,7 @@ body {
     margin: 0 !important;
     padding: 0 !important;
     font-size: var(--editor-font-size);
+    color: color-mix(in srgb, var(--foreground), transparent 0%) !important;
     /* Add these for 1M+ character performance */
     contain-intrinsic-size: auto calc(var(--editor-font-size) * 1.5); /* Match your inherit line-height roughly */
     contain: layout style;
@@ -749,7 +750,7 @@ body {
     box-shadow:
       0 1px 0 rgb(52, 51, 51),
       0 -1px 0 rgb(52, 51, 51) !important;
-    @apply ml-1! pl-2!;
+    @apply ml-1! pl-2! text-gray-300!;
   }
 
   .markdown-render-inline {

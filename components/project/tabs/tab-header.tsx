@@ -37,14 +37,20 @@ export const TabsHeader = ({ pid }: TabsHeaderProps) => {
     return tabElements.length;
   };
 
+  const getReorderIndex = (rawIndex: number, currentIndex: number) => {
+    return rawIndex > currentIndex ? rawIndex - 1 : rawIndex;
+  };
+
   const handleTabDragStart = (e: React.DragEvent, tabId: string) => {
     setDraggedTabId(tabId);
     e.dataTransfer.effectAllowed = 'move';
+
     const dragImage = document.createElement('div');
     dragImage.innerText = tabs.find(t => t.nodeId === tabId)?.title || 'Tab';
     dragImage.style.cssText = 'position:absolute; top:-1000px; padding:6px 10px; background:#000; color:#fff; border-radius:4px;';
     document.body.appendChild(dragImage);
     e.dataTransfer.setDragImage(dragImage, 0, 0);
+
     setTimeout(() => {
       if (document.body.contains(dragImage)) document.body.removeChild(dragImage);
     }, 0);
@@ -54,20 +60,22 @@ export const TabsHeader = ({ pid }: TabsHeaderProps) => {
     if (!activeDrag && !draggedTabId) return;
     e.preventDefault();
 
-    const index = getInsertIndex(e.clientX);
+    const rawIndex = getInsertIndex(e.clientX);
 
-    // 1️⃣ Dragging a tab itself
     if (draggedTabId) {
       const currentIndex = tabs.findIndex(t => t.nodeId === draggedTabId);
-      // Ignore if hovering over the same index or immediately next (VS Code behavior)
-      if (currentIndex === index || currentIndex + 1 === index) return;
+      if (currentIndex === -1) return;
+
+      const nextDropIndex = getReorderIndex(rawIndex, currentIndex);
+      const currentDropIndex = dropIndex === null ? null : getReorderIndex(dropIndex, currentIndex);
+
+      if (nextDropIndex === currentIndex) return;
+      if (currentDropIndex === nextDropIndex) return;
+    } else if (activeDrag && dropIndex === rawIndex) {
+      return;
     }
 
-    // 2️⃣ Dragging a node to insert as new tab
-    if (activeDrag && dropIndex === index) return; // nothing changed, ignore
-
-    // Only update dropIndex if it’s actually different
-    if (dropIndex !== index) setDropIndex(index);
+    setDropIndex(rawIndex);
   };
 
   const handleDragLeave = () => setDropIndex(null);
@@ -78,17 +86,20 @@ export const TabsHeader = ({ pid }: TabsHeaderProps) => {
     if (draggedTabId) {
       const currentIndex = tabs.findIndex(t => t.nodeId === draggedTabId);
       if (currentIndex === -1 || dropIndex === null) return;
+
       const newTabs = [...tabs];
       const [moved] = newTabs.splice(currentIndex, 1);
-      const finalIndex = dropIndex > currentIndex ? dropIndex - 1 : dropIndex;
+      const finalIndex = getReorderIndex(dropIndex, currentIndex);
       newTabs.splice(finalIndex, 0, moved);
-      useTabStore.setState(state => ({ projectTabs: { ...state.projectTabs, [pid]: newTabs } }));
+
+      useTabStore.setState(state => ({
+        projectTabs: { ...state.projectTabs, [pid]: newTabs },
+      }));
     } else if (activeDrag) {
       if (dropIndex === null) return;
       openTab(pid, activeDrag, true, dropIndex);
       setActiveTab(pid, activeDrag._id);
       setActiveNode(activeDrag._id);
-      // setSelectedNode(null);
     }
 
     setDropIndex(null);
@@ -101,6 +112,7 @@ export const TabsHeader = ({ pid }: TabsHeaderProps) => {
       headerRef.current.scrollLeft += e.deltaY;
     }
   };
+
   return (
     <header
       ref={headerRef}
@@ -109,11 +121,12 @@ export const TabsHeader = ({ pid }: TabsHeaderProps) => {
       onDrop={handleDrop}
       onDragEnter={e => e.preventDefault()}
       onWheel={handleWheel}
-      className={cn('flex flex-row p-0 items-center h-full overflow-x-auto overflow-y-hidden w-full relative')}
+      className={cn('flex flex-row items-end h-12 w-full overflow-x-auto overflow-y-hidden', 'pl-3')}
     >
       {tabs.map((tab, i) => {
         const isActive = activeTabId === tab.nodeId;
         const isDropBefore = dropIndex === i;
+
         return (
           <TabItem
             key={tab.nodeId}
@@ -127,7 +140,10 @@ export const TabsHeader = ({ pid }: TabsHeaderProps) => {
           />
         );
       })}
-      <div className="flex-1 w-full h-full drop-shadow-xl shadow-xl" />
+
+      <div className="relative flex-1 h-10 min-w-6">
+        {dropIndex === tabs.length && <div className="absolute left-0 top-1 bottom-1 w-0.5 bg-primary/60 z-50 rounded-full" />}
+      </div>
     </header>
   );
 };

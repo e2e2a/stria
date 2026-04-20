@@ -71,23 +71,35 @@ export const TabItem = ({ tab, isActive, isDropBefore, pid, canEditChunk, onDrag
         }}
         onDoubleClick={() => pinTab(pid, tab.nodeId)}
         onDragEnter={e => e.preventDefault()}
-        className="h-fit w-fit"
+        className="h-fit w-full"
       >
         <div
           className={cn(
-            'group relative inline-flex select-none items-center h-12 px-3 min-w-[120px] max-w-[200px] border-r cursor-pointer transition-colors',
-            isActive ? 'bg-background text-foreground' : 'bg-muted/40 text-muted-foreground hover:bg-muted/80'
+            'group relative inline-flex items-center h-10 px-3 min-w-[140px] max-w-[220px] cursor-pointer transition-all duration-200 ease-in-out',
+            'rounded-t-lg',
+            isActive
+              ? 'bg-background text-foreground z-20 border-t border-l border-r border-border shadow-[0_-2px_10px_-2px_rgba(0,0,0,0.08)]'
+              : 'bg-transparent text-muted-foreground hover:bg-muted/50 hover:text-foreground/80'
           )}
         >
-          {isActive && <div className="absolute top-0 left-0 right-0 h-[2px]" />}
+          {!isActive && <div className="absolute -left-px top-1/2 -translate-y-1/2 w-px h-[50%] bg-border/60 transition-opacity group-hover:opacity-0" />}
 
-          {isDropBefore && <div className="absolute left-0 top-0 bottom-0 w-[2px] bg-blue-500 z-50" />}
+          {!isActive && (
+            <div className="absolute -right-px top-1/2 -translate-y-1/2  w-px h-[50%] bg-border/60 transition-opacity group-hover:opacity-0" />
+          )}
 
-          <span className={cn('text-sm truncate flex-1 select-none', tab.isPreview && 'italic opacity-80')}>{tab.title}</span>
+          {isDropBefore && <div className="absolute left-px top-1 bottom-1 w-0.5 bg-primary/60 z-50 rounded-full" />}
 
-          <div onMouseDown={e => e.stopPropagation()} className={cn('ml-2 flex items-center justify-center w-4 h-4 pointer-events-auto')}>
+          <span className={cn('text-xs font-medium tracking-wide truncate flex-1 z-10 pl-1', tab.isPreview && 'italic opacity-80')}>{tab.title}</span>
+
+          <div className="ml-2 flex items-center justify-center w-5 h-5 z-10">
             <X
-              className={cn('w-3 h-3 opacity-0 group-hover:opacity-100 hover:bg-accent rounded-sm transition-opacity ')}
+              className={cn(
+                'w-3.5 h-3.5 p-[1.5px] rounded-md transition-all duration-200',
+                isActive
+                  ? 'opacity-60 hover:opacity-100 hover:bg-muted hover:scale-105'
+                  : 'opacity-0 group-hover:opacity-60 hover:opacity-100! hover:bg-muted/80'
+              )}
               onClick={e => {
                 e.preventDefault();
                 e.stopPropagation();
