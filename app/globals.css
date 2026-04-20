@@ -434,7 +434,7 @@ body {
   .cm-list-number {
     display: inline-block;
     font-size: var(--editor-font-size);
-    @apply text-muted-foreground pl-5;
+    @apply text-foreground/90 pl-5;
   }
 
   /** Start Table preview **/
@@ -518,6 +518,7 @@ body {
     border: 1px solid var(--border) !important;
     position: relative;
     min-width: 50px;
+    @apply text-foreground;
   }
 
   /* .cm-table-col-selected {

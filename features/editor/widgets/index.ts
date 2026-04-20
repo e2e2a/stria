@@ -859,7 +859,7 @@ export class MathWidget extends WidgetType {
           output: 'htmlAndMathml',
         });
       } catch {
-        renderArea.className = 'w-full py-4 text-center font-mono text-muted-foreground text-sm';
+        renderArea.className = 'w-full py-4 text-center font-mono text-foreground text-sm';
         renderArea.innerHTML = `<span>$$${this.code}$$</span>`;
         btn.style.display = 'none';
       }
@@ -911,7 +911,7 @@ export class InlineMathWidget extends WidgetType {
         });
       } catch {
         span.textContent = `$${this.code}$`;
-        span.classList.add('font-mono', 'text-muted-foreground');
+        span.classList.add('font-mono', 'text-foreground');
       }
     });
 
