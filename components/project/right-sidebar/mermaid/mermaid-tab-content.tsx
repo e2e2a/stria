@@ -49,10 +49,10 @@ const MermaidTabContent = () => {
   const [category, setCategory] = useState<keyof typeof MERMAID_GALLERY>('Flowchart');
 
   return (
-    <div className="flex flex-col h-full text-white overflow-hidden">
-      <div className="border-gray-700 flex items-center p-3 gap-2">
+    <div className="flex flex-col h-full text-foreground overflow-hidden">
+      <div className="border-border flex items-center p-3 gap-2">
         <Select value={category} onValueChange={val => setCategory(val as keyof typeof MERMAID_GALLERY)}>
-          <SelectTrigger className="w-full border-none text-xs h-8">
+          <SelectTrigger className="w-full border-border foreground text-xs h-8">
             <SelectValue placeholder="Category" />
           </SelectTrigger>
           <SelectContent>
@@ -66,7 +66,7 @@ const MermaidTabContent = () => {
         <Button
           variant="ghost"
           size="icon"
-          className="h-8 w-8 text-gray-400 hover:text-white"
+          className="h-8 w-8 text-foreground hover:text-white"
           title={`Insert default ${category} snippet`}
           onClick={() => {
             const defaultItem = MERMAID_GALLERY[category][0];

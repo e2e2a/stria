@@ -62,42 +62,42 @@ const LinkTabContent = ({ activeNodeId, searchQueryInLink, linkSortMode, backlin
     <div className="p-2 space-y-4">
       {/* Linked Mentions Section */}
       <Collapsible className="group/linked" key={`linked-${linkRefreshKey}`} defaultOpen={backlinkExpand}>
-        <CollapsibleTrigger className="flex items-center justify-between w-full px-2 py-1 hover:bg-white/5 rounded transition-colors">
+        <CollapsibleTrigger className="flex items-center justify-between w-full px-2 py-1 hover:bg-secondary rounded transition-colors">
           <div className="flex items-center gap-1">
-            <ChevronRight className="h-3 w-3 text-muted-foreground transition-transform duration-200 group-data-[state=open]/linked:rotate-90" />
-            <h3 className="text-sm font-bold text-muted-foreground uppercase tracking-widest">Linked mentions</h3>
+            <ChevronRight className="h-3 w-3 text-foreground transition-transform duration-200 group-data-[state=open]/linked:rotate-90" />
+            <h3 className="text-sm font-bold text-foreground uppercase tracking-widest">Linked mentions</h3>
           </div>
           <span className="text-[10px] text-muted-foreground">{linkedMentions.length}</span>
         </CollapsibleTrigger>
 
         <CollapsibleContent className="space-y-0.5 mt-1">
           {isLoading ? (
-            <p className="text-xs text-zinc-500 italic mt-2 px-2 animate-pulse">Loading...</p>
+            <p className="text-xs text-foreground italic mt-2 px-2 animate-pulse">Loading...</p>
           ) : linkedMentions.length > 0 ? (
             linkedMentions.map(file => <LinkTabItems key={file._id} file={file} defaultOpen={false} searchQuery={searchQueryInLink} />)
           ) : (
-            <p className="text-xs text-zinc-500 italic mt-2 px-6">No linked mentions found</p>
+            <p className="text-xs text-muted-foreground italic mt-2 px-6">No linked mentions found</p>
           )}
         </CollapsibleContent>
       </Collapsible>
 
       {/* Unlinked Mentions Section */}
-      <Collapsible className="group/unlinked pt-2 border-t border-white/5" key={`unlinked-${linkRefreshKey}`} defaultOpen={backlinkExpand}>
-        <CollapsibleTrigger className="flex items-center justify-between w-full px-2 py-1 hover:bg-white/5 rounded transition-colors">
+      <Collapsible className="group/unlinked pt-2 border-t border-border" key={`unlinked-${linkRefreshKey}`} defaultOpen={backlinkExpand}>
+        <CollapsibleTrigger className="flex items-center justify-between w-full px-2 py-1 hover:bg-secondary rounded transition-colors">
           <div className="flex items-center gap-1">
-            <ChevronRight className="h-3 w-3 text-muted-foreground transition-transform duration-200 group-data-[state=open]/unlinked:rotate-90" />
-            <h3 className="text-sm font-bold text-muted-foreground uppercase tracking-widest">Unlinked mentions</h3>
+            <ChevronRight className="h-3 w-3 text-foreground transition-transform duration-200 group-data-[state=open]/unlinked:rotate-90" />
+            <h3 className="text-sm font-bold text-foreground uppercase tracking-widest">Unlinked mentions</h3>
           </div>
           <span className="text-[10px] text-muted-foreground">{unlinkedMentions.length}</span>
         </CollapsibleTrigger>
 
         <CollapsibleContent className="space-y-0.5 mt-1">
           {isLoading ? (
-            <p className="text-xs text-zinc-500 italic mt-2 px-2 animate-pulse">Loading...</p>
+            <p className="text-xs text-foreground italic mt-2 px-2 animate-pulse">Loading...</p>
           ) : unlinkedMentions.length > 0 ? (
             unlinkedMentions.map(file => <LinkTabItems key={file._id} file={file} defaultOpen={false} searchQuery={searchQueryInLink} />)
           ) : (
-            <p className="text-xs text-zinc-500 italic mt-2 px-6">No unlinked mentions found</p>
+            <p className="text-xs text-muted-foreground italic mt-2 px-6">No unlinked mentions found</p>
           )}
         </CollapsibleContent>
       </Collapsible>

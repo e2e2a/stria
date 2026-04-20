@@ -58,13 +58,13 @@ export const PropertyTabItems = ({ sortMode, searchQuery }: IProps) => {
         <button
           key={key}
           onClick={() => handlePropertyClick(key)}
-          className="group flex items-center justify-between px-4 py-1.5 hover:bg-white/5 transition-colors text-left"
+          className="group flex items-center justify-between px-4 py-1.5 hover:bg-secondary transition-colors text-left"
         >
           <div className="flex items-center gap-3">
-            <span className="opacity-50 text-sm">{ICON_MAP[key] || '≡'}</span>
-            <span className="text-xs font-medium text-white/70 group-hover:text-white">{key}</span>
+            <span className="opacity-50 text-[16px]">{ICON_MAP[key] || '≡'}</span>
+            <span className="text-sm font-medium text-muted-foreground group-hover:text-foreground">{key}</span>
           </div>
-          <span className="text-[10px] tabular-nums opacity-40">{count}</span>
+          <span className="text-[10px] tabular-nums text-muted-foreground group-hover:text-foreground">{count}</span>
         </button>
       ))}
 

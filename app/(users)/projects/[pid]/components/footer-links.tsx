@@ -129,7 +129,7 @@ const FooterLinks = ({ activeNodeId }: FooterLinksProps) => {
                 <ArrowUpNarrowWide className="h-4 w-4" />
               </Button>
             </DropdownMenuTrigger>
-            <DropdownMenuContent align="start" className="w-56 bg-[#1e1e20] border-white/10 text-white shadow-xl">
+            <DropdownMenuContent align="start" className="w-56 bg-background border-white/10 shadow-xl text-foreground">
               <DropdownMenuItem onClick={() => setSortMode('name-asc')} className="text-xs flex justify-between cursor-pointer focus:bg-primary/20">
                 Property name (A to Z) {sortMode === 'name-asc' && <span className="text-primary font-bold">✓</span>}
               </DropdownMenuItem>
@@ -152,20 +152,20 @@ const FooterLinks = ({ activeNodeId }: FooterLinksProps) => {
         {/* Linked */}
         <Collapsible key={`linked-${refreshKey}`} defaultOpen={backlinkExpand} className="group/section">
           <CollapsibleTrigger className="flex items-center gap-2 mb-3 w-fit">
-            <ChevronRight className="h-3.5 w-3.5 text-muted-foreground transition-transform group-data-[state=open]/section:rotate-90" />
-            <span className="text-[13px] font-bold text-foreground/90 uppercase tracking-wide">Linked mentions</span>
-            <span className="text-xs text-muted-foreground/50">{linkedMentions.length}</span>
+            <ChevronRight className="h-3.5 w-3.5 text-foreground transition-transform group-data-[state=open]/section:rotate-90" />
+            <span className="text-[13px] font-bold text-foreground uppercase tracking-wide">Linked mentions</span>
+            <span className="text-xs text-foreground">{linkedMentions.length}</span>
           </CollapsibleTrigger>
           <CollapsibleContent className="space-y-1">
             {isLoading ? (
               <div className="space-y-2 ml-6">
-                <div className="h-4 w-48 bg-white/5 animate-pulse rounded" />
-                <div className="h-4 w-64 bg-white/5 animate-pulse rounded" />
+                <div className="h-4 w-48 bg-secondary animate-pulse rounded" />
+                <div className="h-4 w-64 bg-secondary animate-pulse rounded" />
               </div>
             ) : linkedMentions.length > 0 ? (
               linkedMentions.map(file => <LinkItems key={file._id} file={file} defaultOpen={false} searchQuery={searchQuery} />)
             ) : (
-              <p className="text-xs text-muted-foreground/60 italic ml-6">No linked mentions found.</p>
+              <p className="text-xs text-muted-foreground italic ml-6">No linked mentions found.</p>
             )}
           </CollapsibleContent>
         </Collapsible>
@@ -173,9 +173,9 @@ const FooterLinks = ({ activeNodeId }: FooterLinksProps) => {
         {/* Unlinked */}
         <Collapsible key={`unlinked-${refreshKey}`} defaultOpen={backlinkExpand} className="group/unlinked">
           <CollapsibleTrigger className="flex items-center gap-2 mb-3 w-fit">
-            <ChevronRight className="h-3.5 w-3.5 text-muted-foreground transition-transform group-data-[state=open]/unlinked:rotate-90" />
-            <span className="text-[13px] font-bold text-foreground/90 uppercase tracking-wide">Unlinked mentions</span>
-            <span className="text-xs text-muted-foreground/50">{unlinkedMentions.length}</span>
+            <ChevronRight className="h-3.5 w-3.5 text-foreground transition-transform group-data-[state=open]/unlinked:rotate-90" />
+            <span className="text-[13px] font-bold text-foreground uppercase tracking-wide">Unlinked mentions</span>
+            <span className="text-xs text-foreground">{unlinkedMentions.length}</span>
           </CollapsibleTrigger>
           <CollapsibleContent className="space-y-1">
             {!isLoading && unlinkedMentions.length > 0 ? (
@@ -194,7 +194,7 @@ const FooterLinks = ({ activeNodeId }: FooterLinksProps) => {
                 }}
               />
             ) : (
-              <p className="text-xs text-muted-foreground/60 italic ml-6">No unlinked mentions found.</p>
+              <p className="text-xs text-muted-foreground italic ml-6">No unlinked mentions found.</p>
             )}
           </CollapsibleContent>
         </Collapsible>

@@ -14,7 +14,7 @@ const HighlightedText = ({ text, highlight }: { text: string; highlight: string 
     <span>
       {parts.map((part, i) =>
         part.toLowerCase() === highlight.toLowerCase() ? (
-          <mark key={i} className="bg-primary/40 text-white rounded-sm px-0.5">
+          <mark key={i} className="bg-primary/60 text-muted-foreground rounded-sm px-0.5">
             {part}
           </mark>
         ) : (
@@ -50,13 +50,13 @@ export const OutlineTabItem = ({
   return (
     <Collapsible className="w-full" defaultOpen={defaultOpen}>
       <div
-        className="group relative flex items-center gap-2 rounded cursor-pointer hover:bg-white/5 transition-colors w-full"
+        className="group relative flex items-center gap-2 rounded cursor-pointer hover:bg-secondary transition-colors w-full"
         style={{ paddingLeft: `${depth * 16 + 12}px` }}
       >
         <div className="flex items-center justify-center w-6! h-6! shrink-0">
           {hasChildren ? (
             <CollapsibleTrigger asChild>
-              <button className="hover:bg-white/10 p-0.5 rounded transition-transform data-[state=open]:rotate-90">
+              <button className="hover:bg-secondary p-0.5 rounded transition-transform data-[state=open]:rotate-90">
                 <ChevronRight className="w-3.5 h-3.5 text-zinc-500 group-hover:text-zinc-300" />
               </button>
             </CollapsibleTrigger>
@@ -65,7 +65,7 @@ export const OutlineTabItem = ({
           )}
         </div>
         <button onClick={handleNavigate} className="inline-flex w-full h-auto text-start py-1.5 overflow-hidden">
-          <span className="text-[13px] text-zinc-400 group-hover:text-zinc-100 truncate flex-1 font-medium tracking-tight">
+          <span className="text-[13px] text-muted-foreground group-hover:text-foreground truncate flex-1 font-medium tracking-tight">
             <HighlightedText text={node.text} highlight={searchQuery} />
           </span>
         </button>
@@ -73,7 +73,7 @@ export const OutlineTabItem = ({
 
       {hasChildren && (
         <CollapsibleContent className="relative w-full overflow-hidden">
-          <div className="absolute top-0 bottom-0 w-px bg-white/5 pointer-events-none transition-colors" style={{ left: `${depth * 16 + 24}px` }} />
+          <div className="absolute top-0 bottom-0 w-px bg-secondary pointer-events-none transition-colors" style={{ left: `${depth * 16 + 24}px` }} />
           <div className="flex flex-col">
             {node.children.map((child, i) => (
               <OutlineTabItem key={`${child.text}-${i}`} node={child} depth={depth + 1} defaultOpen={defaultOpen} searchQuery={searchQuery} />

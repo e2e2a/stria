@@ -77,7 +77,7 @@ const HighlightedText = ({ text, highlight }: { text: string; highlight: string 
     <span>
       {parts.map((part, i) =>
         part.toLowerCase() === highlight.toLowerCase() ? (
-          <mark key={i} className="bg-primary/40 text-white rounded-sm px-0.5">
+          <mark key={i} className="bg-primary/60 text-primary-foreground/90 rounded-sm px-0.5">
             {part}
           </mark>
         ) : (
@@ -203,7 +203,7 @@ export const TagsTabContent = ({ searchQuery, defaultExpand, isNestedView }: { s
       data={displayData}
       itemContent={(index, { node, depth, isExpanded, hasChildren }) => (
         <div
-          className="group flex items-center justify-between gap-2 px-2 py-1.5 hover:bg-white/5 cursor-pointer transition-colors w-full"
+          className="group flex items-center justify-between gap-2 px-2 py-1.5 hover:bg-secondary cursor-pointer transition-colors w-full"
           style={{ paddingLeft: `${depth * 16 + 8}px` }}
           onClick={() => handleTagClick(node.fullName)}
         >
@@ -219,19 +219,19 @@ export const TagsTabContent = ({ searchQuery, defaultExpand, isNestedView }: { s
             >
               {hasChildren && isNestedView && (
                 <button
-                  className="hover:bg-white/10 p-0.5 rounded transition-transform"
+                  className="hover:bg-secondary p-0.5 rounded transition-transform"
                   style={{ transform: isExpanded ? 'rotate(90deg)' : 'rotate(0deg)' }}
                 >
-                  <ChevronRight className="w-3.5 h-3.5 text-zinc-500 group-hover:text-zinc-300 -ml-1" />
+                  <ChevronRight className="w-3.5 h-3.5 text-muted-foreground group-hover:text-foreground -ml-1" />
                 </button>
               )}
             </div>
-            <span className="text-[13px] text-zinc-400 group-hover:text-zinc-100 truncate font-medium tracking-tight">
+            <span className="text-[13px] text-muted-foreground group-hover:text-foreground truncate font-medium tracking-tight">
               <HighlightedText text={isNestedView ? node.name : node.fullName} highlight={searchQuery} />
             </span>
           </div>
 
-          <span className="text-[10px] text-zinc-500 font-mono group-hover:text-zinc-400 shrink-0 pr-2">{node.count}</span>
+          <span className="text-[10px] text-muted-foreground font-mono group-hover:text-foreground shrink-0 pr-2">{node.count}</span>
         </div>
       )}
     />

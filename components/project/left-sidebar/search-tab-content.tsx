@@ -30,7 +30,7 @@ const SearchRow = memo(function SearchRow({
   if (item.type === 'header') {
     return (
       <div className="px-3 flex w-full select-none">
-        <div className="flex flex-1 items-center gap-2 px-1 cursor-pointer hover:bg-white/5 min-w-0" onClick={() => onToggle(item.nodeId)}>
+        <div className="flex flex-1 items-center gap-2 px-1 cursor-pointer group hover:bg-secondary min-w-0" onClick={() => onToggle(item.nodeId)}>
           <div className="w-4 shrink-0 flex items-center justify-center">
             {item.count > 0 ? isCollapsed ? <ChevronRight size={10} /> : <ChevronDown size={10} /> : null}
           </div>
@@ -41,9 +41,9 @@ const SearchRow = memo(function SearchRow({
               onResultClick(item.nodeId);
             }}
           >
-            <span className="text-[14px] font-bold uppercase truncate block text-foreground/90">{item.title}</span>
+            <span className="text-[16px] font-bold uppercase truncate block text-foreground/90">{item.title}</span>
           </div>
-          <span className="text-[10px] opacity-40 shrink-0 tabular-nums">{item.count}</span>
+          <span className="text-[10px] opacity-40 shrink-0 tabular-nums text-muted-foreground group-hover:text-foreground">{item.count}</span>
         </div>
       </div>
     );
@@ -54,7 +54,7 @@ const SearchRow = memo(function SearchRow({
     <div className="px-3 py-px">
       <div
         onClick={() => onJump(item.nodeId, index, text.length, matchIndices)}
-        className="text-[12px] text-muted-foreground bg-white/5 rounded px-2 py-1 cursor-pointer hover:bg-white/10 overflow-hidden border border-transparent"
+        className="text-[12px] text-muted-foreground hover:text-foreground bg-secondary/80 rounded px-2 py-1 cursor-pointer hover:bg-secondary overflow-hidden border border-transparent"
       >
         <div className="truncate whitespace-pre">{renderLine(lineContent, matchIndices, text.length)}</div>
       </div>
