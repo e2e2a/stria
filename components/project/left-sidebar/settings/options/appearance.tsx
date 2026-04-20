@@ -128,8 +128,8 @@ export default function AppearanceTabContent() {
                 <Select
                   value={currentSkin}
                   onValueChange={val => {
-                    updateSetting('skin', val); // 💾 Updates Zustand / Database
-                    setSkin(val); // 🔥 Instantly updates the DOM via Provider
+                    updateSetting('skin', val);
+                    setSkin(val);
                   }}
                 >
                   <SelectTrigger className="w-full max-w-64">
@@ -138,7 +138,6 @@ export default function AppearanceTabContent() {
                   <SelectContent className="z-52">
                     <SelectGroup>
                       {THEMES.map(t => {
-                        // Pick the dots based on the active appearance (light vs dark)
                         const dots = isDark ? t.dots.dark : t.dots.light;
 
                         return (
@@ -146,12 +145,12 @@ export default function AppearanceTabContent() {
                             key={t.value}
                             value={t.value}
                             className={cn(
-                              'flex flex-col gap-2 p-3 rounded-lg border text-left transition-colors mb-1 cursor-pointer',
+                              'flex w-full flex-col gap-2 p-3 rounded-lg border text-left transition-colors mb-1 cursor-pointer',
                               'data-[state=checked]:border-primary data-[state=checked]:bg-primary/5', // Shadcn active state
                               skin === t.value ? 'border-2 border-primary' : 'border-transparent hover:border-border'
                             )}
                           >
-                            <div className="flex items-center gap-2 w-full">
+                            <div className="flex items-center gap-2 min-w-50">
                               <div className="flex gap-1.5 shrink-0">
                                 {dots.map((color, i) => (
                                   <span
