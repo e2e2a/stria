@@ -370,7 +370,7 @@ body {
   }
 
   .cm-cursor {
-    border-left: 0.5px solid #ffffff !important;
+    border-left: 0.5px solid var(--editor-accent-color) !important;
     width: 0 !important;
   }
 
