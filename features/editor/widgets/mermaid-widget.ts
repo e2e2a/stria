@@ -1,7 +1,7 @@
 import { EditorView, WidgetType } from '@uiw/react-codemirror';
 import mermaid from 'mermaid';
+import { mermaidHeightCache } from '../plugins';
 
-// mermaid.initialize({ startOnLoad: false, theme: 'dark' });
 mermaid.initialize({
   startOnLoad: false,
   theme: 'dark',
@@ -28,6 +28,11 @@ export class MermaidWidget extends WidgetType {
     const mainContainer = document.createElement('div');
     const container = document.createElement('div');
     mainContainer.className = 'z-100 relative group';
+
+    const cachedHeight = mermaidHeightCache.get(this.code);
+    if (cachedHeight) {
+      mainContainer.style.minHeight = `${cachedHeight}px`;
+    }
 
     container.className =
       'group border border-transparent hover:border-border transition-colors relative block w-full max-w-full box-border z-10 select-none leading-[0] overflow-x-auto! overflow-y-hidden!';
@@ -98,8 +103,19 @@ export class MermaidWidget extends WidgetType {
           svgElement.style.maxWidth = 'none';
           svgElement.style.width = 'auto';
           svgElement.style.height = 'auto';
-          // svgElement.setAttribute('height', 'auto');
         }
+
+        const observer = new ResizeObserver(entries => {
+          for (const entry of entries) {
+            const currentHeight = entry.contentRect.height;
+            if (currentHeight > 10) {
+              mermaidHeightCache.set(this.code, currentHeight);
+              observer.disconnect();
+            }
+          }
+        });
+        observer.observe(mainContainer);
+
         view.requestMeasure();
       } catch {
         renderArea.innerHTML = `<div style="line-height: normal; color: #ef4444; font-size: 12px; padding: 10px;">Syntax Error</div>`;

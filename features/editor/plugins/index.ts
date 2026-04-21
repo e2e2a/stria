@@ -4,6 +4,8 @@ import { buildChunkDecorations, buildDecorations } from '../decorations';
 import { TablePreviewWidget } from '../widgets';
 import { makeToastError } from '@/lib/toast';
 
+export const mermaidHeightCache = new Map<string, number>();
+
 export const setViewportLinesEffect = StateEffect.define<{ from: number; to: number }>();
 
 export const viewportLinesField = StateField.define<{ from: number; to: number }>({
