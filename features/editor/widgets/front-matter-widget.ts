@@ -94,9 +94,9 @@ export class FrontmatterWidget extends WidgetType {
         const valuesHtml = values
           .map(val => {
             if (key.toLowerCase() === 'tags') {
-              return `<button type="button" data-val="${val}" class="appearance-none text-foreground/90 py-0.5 px-2 cm-hashtag cursor-pointer leading-none">${val}</button>`;
+              return `<button type="button" data-val="${val}" class="appearance-none py-0.5 px-2 cm-hashtag cursor-pointer leading-none">${val}</button>`;
             }
-            return `<span class="py-0.5 px-1 text-foreground/90">${val}</span>`;
+            return `<span class="py-0.5 px-1 text-foreground/80">${val}</span>`;
           })
           .join('');
 
