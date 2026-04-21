@@ -129,8 +129,8 @@
   --tracking-normal: 0em;
   --spacing: 0.25rem;
 
-  --sb-track-color: var(--color-muted);
-  --sb-thumb-color: var(--card-foreground);
+  --sb-track-color: var(--secondary);
+  --sb-thumb-color: var(--secondary);
 }
 
 .dark,
@@ -249,7 +249,7 @@ body {
   }
 
   *::-webkit-scrollbar-thumb {
-    background: var(--sb-thumb-color);
+    background: var(--accent);
     border-radius: 9999px;
   }
 
@@ -258,7 +258,7 @@ body {
   }
 
   .hoverable-scrollbar:hover {
-    --dynamic-thumb: var(--sb-thumb-color, rgba(156, 163, 175, 0.5));
+    --dynamic-thumb: var(--accent, --accent);
   }
 
   .hoverable-scrollbar::-webkit-scrollbar {
