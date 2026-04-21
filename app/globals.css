@@ -777,9 +777,9 @@ body {
   }
 
   .cm-link-text {
-    color: color-mix(in srgb, var(--editor-accent-color), transparent 60%);
     text-decoration: underline;
     cursor: pointer;
+    @apply text-[var(--editor-accent-color)] dark:text-[color-mix(in_srgb,var(--editor-accent-color)_60%,transparent)];
   }
 
   .cm-link-text::selection {
@@ -1110,9 +1110,9 @@ body {
   } */
 
   .cm-internal-link {
-    color: color-mix(in srgb, var(--editor-accent-color) 60%, transparent);
     cursor: pointer !important;
     text-decoration: underline;
+    @apply text-[var(--editor-accent-color)] dark:text-[color-mix(in_srgb,var(--editor-accent-color)_60%,transparent)];
   }
 
   .cm-link-source-editing {
