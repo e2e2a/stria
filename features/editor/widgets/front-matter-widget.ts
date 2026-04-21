@@ -72,7 +72,7 @@ export class FrontmatterWidget extends WidgetType {
     };
 
     const header = document.createElement('div');
-    header.className = 'text-[10px] uppercase font-bold tracking-widest opacity-30 mb-1';
+    header.className = 'text-[10px] uppercase font-bold text-foreground/90 tracking-widest mb-1';
     header.innerHTML = `Properties`;
     container.appendChild(header);
 
@@ -81,7 +81,7 @@ export class FrontmatterWidget extends WidgetType {
 
     if (entries.length === 0) {
       const placeholder = document.createElement('div');
-      placeholder.className = 'text-[10px] text-gray-500 italic px-1';
+      placeholder.className = 'text-[10px] text-foreground/90 italic px-1';
       placeholder.textContent = '(No properties defined)';
       container.appendChild(placeholder);
     } else {
@@ -94,14 +94,14 @@ export class FrontmatterWidget extends WidgetType {
         const valuesHtml = values
           .map(val => {
             if (key.toLowerCase() === 'tags') {
-              return `<button type="button" data-val="${val}" class="appearance-none py-0.5 px-2 cm-hashtag cursor-pointer leading-none">${val}</button>`;
+              return `<button type="button" data-val="${val}" class="appearance-none text-foreground/90 py-0.5 px-2 cm-hashtag cursor-pointer leading-none">${val}</button>`;
             }
-            return `<span class="py-0.5 px-1 text-white/60">${val}</span>`;
+            return `<span class="py-0.5 px-1 text-foreground/90">${val}</span>`;
           })
           .join('');
 
         row.innerHTML = `
-          <div class="w-24 shrink-0 flex items-center gap-2 opacity-50">
+          <div class="w-24 shrink-0 flex items-center text-foreground/90 gap-2 opacity-80">
             <span>${icon}</span> <span class="truncate">${key}</span>
           </div>
           <div class="flex flex-wrap flex-row gap-1 flex-1">${valuesHtml}</div>`;
@@ -128,7 +128,7 @@ export class FrontmatterWidget extends WidgetType {
     // Dynamic "Add Property" button
     const addBtn = document.createElement('button');
     addBtn.className =
-      'mt-2 flex items-center gap-2 text-[10px] text-gray-500 hover:text-white transition-colors uppercase tracking-wider font-bold p-1 w-fit';
+      'mt-2 flex items-center gap-2 text-[10px] text-foreground/70 cursor-pointer hover:text-foreground transition-colors uppercase tracking-wider font-bold p-1 w-fit';
     addBtn.innerHTML = `<span>+</span> Add Property`;
     addBtn.onclick = e => {
       e.preventDefault();
