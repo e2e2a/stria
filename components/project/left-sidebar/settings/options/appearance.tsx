@@ -9,6 +9,8 @@ import { FontManageDialog } from './components/font-manage-dialog';
 import { Appearance, useThemeContext } from '@/components/provider/editor-theme-provider';
 import { Select, SelectContent, SelectGroup, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { DEFAULT_THEME, THEMES } from '@/lib/client/themes-config';
+import SettingRow from './components/setting-row';
+import SettingsCard from './components/settings-card';
 
 type FontSettingType = 'interface' | 'text' | 'monospace' | null;
 
@@ -24,7 +26,6 @@ export default function AppearanceTabContent() {
   const textFont = useEditorSettings(state => state.textFont);
   const monospaceFont = useEditorSettings(state => state.monospaceFont);
   const fontSize = useEditorSettings(state => state.fontSize);
-  const quickZoom = useEditorSettings(state => state.quickZoom);
 
   const [activeDialog, setActiveDialog] = useState<FontSettingType>(null);
 
@@ -73,7 +74,7 @@ export default function AppearanceTabContent() {
 
           <div className="space-y-6">
             <SettingsCard title="Theme & Colors" description="Customize the visual appearance of your workspace.">
-              <SettingRow title="Base Color Scheme" description="Choose between light, dark, or system default.">
+              <SettingRow title="Appearance" description="Choose between light, dark, or system default.">
                 <Select
                   value={theme}
                   onValueChange={val => {
@@ -94,7 +95,7 @@ export default function AppearanceTabContent() {
                 </Select>
               </SettingRow>
 
-              <SettingRow title="Accent Color" description="The primary color used for buttons and active states." isLast>
+              <SettingRow title="Accent Color" description="Customize the highlight and cursor color used exclusively within the text editor." isLast>
                 <div className="flex items-center gap-3">
                   <button
                     onClick={() => updateSetting('accentColor', '#8b59fa')}
@@ -124,7 +125,7 @@ export default function AppearanceTabContent() {
                   </div>
                 </div>
               </SettingRow>
-              <SettingRow title="Theme" description="Choose your custom skin.">
+              <SettingRow title="Theme" description="Choose your custom theme.">
                 <Select
                   value={currentSkin}
                   onValueChange={val => {
@@ -184,7 +185,7 @@ export default function AppearanceTabContent() {
             <SettingsCard title="Typography" description="Customize the text rendering and styling across your workspace.">
               <SettingRow
                 title="Interface typography"
-                description="Choose the primary typeface used throughout the application's menus, sidebars, and panels."
+                description="Choose the primary typeface used throughout the editors's menus, sidebars, and panels."
               >
                 <Button variant="outline" size="sm" className="bg-secondary/50" onClick={() => setActiveDialog('interface')}>
                   Manage
@@ -197,7 +198,7 @@ export default function AppearanceTabContent() {
                 </Button>
               </SettingRow>
 
-              <SettingRow title="Monospace typeface" description="Select the fixed-width font used for code blocks, frontmatter, and raw technical text.">
+              <SettingRow title="Monospace typeface" description="Select the font used for code blocks, frontmatter, and raw technical text.">
                 <Button variant="outline" size="sm" className="bg-secondary/50" onClick={() => setActiveDialog('monospace')}>
                   Manage
                 </Button>
@@ -216,14 +217,6 @@ export default function AppearanceTabContent() {
                   <Slider value={[fontSize]} onValueChange={val => updateSetting('fontSize', val[0])} max={32} min={10} step={1} className="w-[120px]" />
                 </div>
               </SettingRow>
-
-              <SettingRow
-                title="Quick zoom shortcut"
-                description="Enable scaling the text size dynamically using Ctrl/Cmd + Scroll wheel or trackpad pinch gestures."
-                isLast
-              >
-                <Switch checked={quickZoom} onCheckedChange={val => updateSetting('quickZoom', val)} />
-              </SettingRow>
             </SettingsCard>
           </div>
         </div>
@@ -239,39 +232,5 @@ export default function AppearanceTabContent() {
         />
       )}
     </>
-  );
-}
-
-function SettingsCard({ title, description, children }: { title: string; description: string; children: React.ReactNode }) {
-  return (
-    <div className="bg-sidebar border border-border rounded-xl overflow-hidden shadow-sm">
-      <div className="px-6 py-5 border-b border-border bg-accent/20">
-        <h3 className="text-base font-medium text-foreground">{title}</h3>
-        <p className="text-sm text-muted-foreground mt-1">{description}</p>
-      </div>
-      <div className="px-6 py-2">{children}</div>
-    </div>
-  );
-}
-
-function SettingRow({
-  title,
-  description,
-  children,
-  isLast = false,
-}: {
-  title: string;
-  description: string;
-  children: React.ReactNode;
-  isLast?: boolean;
-}) {
-  return (
-    <div className={cn('py-4 flex items-center justify-between', !isLast && 'border-b border-border/50')}>
-      <div className="pr-8">
-        <h4 className="text-sm font-medium text-foreground">{title}</h4>
-        <p className="text-sm text-muted-foreground mt-0.5">{description}</p>
-      </div>
-      <div className="shrink-0">{children}</div>
-    </div>
   );
 }

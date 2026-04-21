@@ -26,6 +26,7 @@ import {
 import { useIsMobileSM } from '@/hooks/use-mobile';
 import { IconTooltip } from '../../icon-tooltip';
 import AppearanceTabContent from './options/appearance';
+import BacklinkTabContent from './options/backlink';
 
 const OPTIONS_TABS = [
   { id: 'general', label: 'General', icon: Settings },
@@ -39,7 +40,7 @@ const OPTIONS_TABS = [
 ];
 
 const CORE_PLUGINS_TABS = [
-  { id: 'backlinks', label: 'Backlinks', icon: Link },
+  { id: 'backlink', label: 'Backlinks', icon: Link },
   { id: 'canvas', label: 'Canvas', icon: LayoutDashboard },
   { id: 'command-palette', label: 'Command palette', icon: Command },
   { id: 'daily-notes', label: 'Daily notes', icon: Calendar },
@@ -105,6 +106,7 @@ export default function SettingsFooter() {
           </div>
         </div>
         {activeTab === 'appearance' && <AppearanceTabContent />}
+        {activeTab === 'backlink' && <BacklinkTabContent />}
       </DialogContent>
     </Dialog>
   );

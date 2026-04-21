@@ -1,7 +1,6 @@
 import { useEffect, useRef, useState } from 'react';
-import { useEditorSettings } from '@/features/editor/stores/setting';
 import { useNodeMutations } from '@/hooks/node/useNodeMutations';
-import { useNodeByIdQuery } from '../node/useNodeQuery';
+import { useNodeByIdQuery } from '../node/useNodeQuery'; // Adjust path as needed
 import { INode } from '@/types';
 
 const findChild = (nodes: INode[] | undefined, title: string, type: 'folder' | 'file'): INode | undefined => {
@@ -22,45 +21,48 @@ const ensureNode = async (
   return (res && 'data' in res ? res.data : res) as INode | null;
 };
 
-interface UseSettingsSyncProps {
+export interface UseFileSyncProps {
   projectId: string;
-  nData: { nodes: INode[] } | undefined | null;
+  nData: { nodes: INode[] | Record<string, INode> } | undefined | null;
+  fileName: string;
+  fileContent: string;
+  onInit: (content: string) => void;
 }
 
-export function useSettingsSync({ projectId, nData }: UseSettingsSyncProps) {
-  const fileName = 'appearance.json';
-
-  const settingsStore = useEditorSettings();
+export function useFileSync({ projectId, nData, fileName, fileContent, onInit }: UseFileSyncProps) {
   const mutation = useNodeMutations();
-
   const hasInitializedRef = useRef(false);
   const lastSavedContentRef = useRef<string | null>(null);
+
   const mutationRef = useRef(mutation);
   const rootNodesRef = useRef<INode[]>([]);
-
-  mutationRef.current = mutation;
+  const onInitRef = useRef(onInit);
 
   const rootNodes: INode[] = Array.isArray(nData?.nodes) ? nData.nodes : Object.values(nData?.nodes ?? {});
-  rootNodesRef.current = rootNodes;
+
+  // FIX: Update refs safely after the render phase to satisfy React Strict Mode
+  useEffect(() => {
+    mutationRef.current = mutation;
+    rootNodesRef.current = rootNodes;
+    onInitRef.current = onInit;
+  });
 
   const rootFolder = findChild(rootNodes, '.mondreymd', 'folder');
   const optionsFolder = findChild(rootFolder?.children, 'options', 'folder');
-  const settingsNode = findChild(optionsFolder?.children, fileName, 'file');
+  const targetNode = findChild(optionsFolder?.children, fileName, 'file');
 
-  const queryId = settingsNode?._id ?? '';
+  const queryId = targetNode?._id ?? '';
   const { data: fetchedNode, isSuccess, isLoading: isNodeLoading } = useNodeByIdQuery(queryId);
 
-  const [isSettingsReady, setIsSettingsReady] = useState(false);
+  const [isReady, setIsReady] = useState(false);
 
   useEffect(() => {
-    if (hasInitializedRef.current) return;
-    if (rootNodes.length === 0) return;
-
-    if (settingsNode && (!isSuccess || !fetchedNode)) return;
+    if (hasInitializedRef.current || rootNodes.length === 0) return;
+    if (targetNode && (!isSuccess || !fetchedNode)) return;
 
     if (fetchedNode?.content) {
       try {
-        settingsStore.initSettings(JSON.parse(fetchedNode.content) as Parameters<typeof settingsStore.initSettings>[0]);
+        onInitRef.current(fetchedNode.content);
         lastSavedContentRef.current = fetchedNode.content;
       } catch (e) {
         console.error(`Failed to parse ${fileName}:`, e);
@@ -68,33 +70,12 @@ export function useSettingsSync({ projectId, nData }: UseSettingsSyncProps) {
     }
 
     hasInitializedRef.current = true;
-    setIsSettingsReady(true);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [rootNodes.length, settingsNode, fetchedNode, isSuccess]);
-
-  const currentSettings = {
-    theme: settingsStore.theme,
-    skin: settingsStore.skin,
-    accentColor: settingsStore.accentColor,
-    inlineTitle: settingsStore.inlineTitle,
-    tabTitleBar: settingsStore.tabTitleBar,
-
-    interfaceFont: settingsStore.interfaceFont,
-    textFont: settingsStore.textFont,
-    monospaceFont: settingsStore.monospaceFont,
-    fontSize: settingsStore.fontSize,
-
-    /**
-     * @TODO
-     */
-    quickZoom: settingsStore.quickZoom,
-  };
-
-  const jsonString = JSON.stringify(currentSettings, null, 2);
+    // eslint-disable-next-line react-hooks/set-state-in-effect
+    setIsReady(true);
+  }, [rootNodes.length, targetNode, fetchedNode, isSuccess, fileName]);
 
   useEffect(() => {
-    if (!hasInitializedRef.current) return;
-    if (lastSavedContentRef.current === jsonString) return;
+    if (!hasInitializedRef.current || lastSavedContentRef.current === fileContent) return;
 
     const timer = setTimeout(async () => {
       try {
@@ -109,18 +90,18 @@ export function useSettingsSync({ projectId, nData }: UseSettingsSyncProps) {
         const guaranteedFile = await ensureNode(mut, projectId, guaranteedOptions._id, fileName, 'file', guaranteedOptions.children);
         if (!guaranteedFile?._id) return;
 
-        mut.update.mutate({ _id: guaranteedFile._id, pid: projectId, content: jsonString });
-        lastSavedContentRef.current = jsonString;
+        mut.update.mutate({ _id: guaranteedFile._id, pid: projectId, content: fileContent });
+        lastSavedContentRef.current = fileContent;
       } catch (e) {
         console.error(`Sync Error for ${fileName}:`, e);
       }
     }, 1000);
 
     return () => clearTimeout(timer);
-  }, [jsonString, projectId]);
+  }, [fileContent, projectId, fileName]);
 
-  const isPending = rootNodes.length === 0 || (!!settingsNode && (isNodeLoading || !isSuccess));
-  const noFileFirstTime = !settingsNode && rootNodes.length > 0;
+  const isPending = rootNodes.length === 0 || (!!targetNode && (isNodeLoading || !isSuccess));
+  const noFileFirstTime = !targetNode && rootNodes.length > 0;
 
-  return { isSettingsLoading: !isSettingsReady && !noFileFirstTime && isPending };
+  return { isLoading: !isReady && !noFileFirstTime && isPending };
 }

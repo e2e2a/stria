@@ -15,9 +15,10 @@ import { useNodesProjectIdQuery } from '@/hooks/node/useNodeQuery';
 import { Button } from '../ui/button';
 import { PanelRightCloseIcon, PanelRightOpenIcon } from 'lucide-react';
 import { IconTooltip } from './icon-tooltip';
-import { useSettingsSync } from '@/hooks/client/useAppearanceSync';
+import { useSettingsSync } from '@/hooks/client/useSettingsSync';
 import { ProjectLoadingScreen } from './project-loading-screen';
 import { useProjectLoader } from './use-project-loader';
+import { useCorePluginsSync } from '@/hooks/client/useCorePluginsSync';
 
 interface MainContentAreaProps {
   children: React.ReactNode;
@@ -84,7 +85,9 @@ export default function AppSidebarLayout({ children }: { children: React.ReactNo
   const RightSidebarRef = useRef<ImperativePanelHandle>(null);
 
   const { isSettingsLoading } = useSettingsSync({ projectId: pid, nData });
-  const { steps, pct, isReady: projectLoadingReady } = useProjectLoader({ pLoading, nLoading, isSettingsLoading, pData, nData });
+  const { isPluginsLoading } = useCorePluginsSync({ projectId: pid, nData });
+  const isConfigLoading = isSettingsLoading || isPluginsLoading;
+  const { steps, pct, isReady: projectLoadingReady } = useProjectLoader({ pLoading, nLoading, isSettingsLoading: isConfigLoading, pData, nData });
 
   useEffect(() => {
     if (!pid) return;

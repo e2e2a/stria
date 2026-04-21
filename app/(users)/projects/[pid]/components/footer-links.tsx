@@ -11,6 +11,7 @@ import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/component
 import { LinkItems } from './link-items';
 import { cn } from '@/lib/utils';
 import { Virtuoso } from 'react-virtuoso';
+import { useCorePluginStore } from '@/features/editor/stores/setting-core-plugin';
 
 // Types from your schema
 type ISortMode = 'name-asc' | 'name-desc' | 'freq-high' | 'freq-low';
@@ -41,6 +42,7 @@ const FooterLinks = ({ activeNodeId }: FooterLinksProps) => {
   const [sortMode, setSortMode] = useState<ISortMode>('name-asc');
   const [backlinkExpand, setBacklinkExpand] = useState(true);
   const [refreshKey, setRefreshKey] = useState(0);
+  const backlink = useCorePluginStore(state => state.settings.backlink);
 
   const { data: bData, isLoading } = useNodeBacklinksQuery(activeNodeId ?? '');
   const [scrollParent, setScrollParent] = useState<HTMLElement | null>(null);
@@ -74,6 +76,7 @@ const FooterLinks = ({ activeNodeId }: FooterLinksProps) => {
     setRefreshKey(k => k + 1);
   };
 
+  if (!backlink) return null;
   return (
     <div
       ref={el => {

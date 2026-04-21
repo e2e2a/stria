@@ -12,7 +12,6 @@ export const DEFAULT_APPEARANCE = {
   monospaceFont: [] as string[],
 
   fontSize: 16,
-  quickZoom: false,
 };
 
 export type AppearanceSettings = typeof DEFAULT_APPEARANCE;
