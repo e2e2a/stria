@@ -5,6 +5,7 @@ import Providers from '@/components/provider/query-provider';
 import { Toaster } from 'react-hot-toast';
 import SessionProviderWrapper from '@/components/provider/session-provider';
 import SessionGuard from '@/components/provider/session-guard';
+import { TooltipProvider } from '@/components/ui/tooltip';
 
 const roboto = Roboto({
   variable: '--font-roboto',
@@ -46,7 +47,9 @@ export default function RootLayout({
         <SessionProviderWrapper>
           <Providers>
             <SessionGuard>
-              {children}
+              <TooltipProvider delayDuration={1000} skipDelayDuration={3000}>
+                {children}
+              </TooltipProvider>
               <Toaster position="top-center" reverseOrder={false} />
             </SessionGuard>
           </Providers>

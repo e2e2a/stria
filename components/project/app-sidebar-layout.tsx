@@ -19,6 +19,7 @@ import { useSettingsSync } from '@/hooks/client/useSettingsSync';
 import { ProjectLoadingScreen } from './project-loading-screen';
 import { useProjectLoader } from './use-project-loader';
 import { useCorePluginsSync } from '@/hooks/client/useCorePluginsSync';
+import { TooltipProvider } from '../ui/tooltip';
 
 interface MainContentAreaProps {
   children: React.ReactNode;
@@ -166,87 +167,89 @@ export default function AppSidebarLayout({ children }: { children: React.ReactNo
     <div ref={containerRef} className="h-full w-full overflow-hidden">
       {!projectLoadingReady && <ProjectLoadingScreen steps={steps} pct={pct} />}
       <AppShell variant="sidebar">
-        <ResizablePanelGroup
-          direction="horizontal"
-          className="overflow-y-hidden rounded-none bg-white"
-          onMouseDownCapture={e => {
-            const target = e.target as HTMLElement;
-            if (target.closest('[data-sidebar-node]')) return;
-            if (e.button !== 2) {
-              if (!selectedNode) return;
-              setSelectedNode(null);
-            }
-          }}
-        >
-          <MiniSidebarTemplate LeftSidebarRef={LeftSidebarRef} isLeftCollapsed={isLeftCollapsed} RightSidebarRef={RightSidebarRef} />
-
-          <ResizablePanel
-            ref={LeftSidebarRef}
-            minSize={leftMinPercent}
-            collapsedSize={0}
-            defaultSize={leftMinPercent}
-            collapsible
-            onCollapse={() => setIsLeftCollapsed(true)}
-            onExpand={() => setIsLeftCollapsed(false)}
-            onResize={size => {
-              if (size <= 4 && LeftSidebarRef.current) LeftSidebarRef.current.collapse();
-            }}
-            className="text-muted-foreground flex h-full flex-row p-0"
-          >
-            {pData && !nLoading && <LeftSidebarTemplate projectData={pData.project} />}
-          </ResizablePanel>
-
-          <ResizableHandle
-            tabIndex={-1}
-            hitAreaMargins={{ coarse: 1, fine: 1 }}
-            onDragging={isDragging => {
-              isDraggingRef.current = isDragging;
-              if (isDragging) {
-                document.documentElement.classList.add('is-dragging-panels');
-              } else {
-                document.documentElement.classList.remove('is-dragging-panels');
+        <TooltipProvider delayDuration={1500} skipDelayDuration={3000}>
+          <ResizablePanelGroup
+            direction="horizontal"
+            className="overflow-y-hidden rounded-none bg-white"
+            onMouseDownCapture={e => {
+              const target = e.target as HTMLElement;
+              if (target.closest('[data-sidebar-node]')) return;
+              if (e.button !== 2) {
+                if (!selectedNode) return;
+                setSelectedNode(null);
               }
             }}
-            className="p-0 w-px custom-resize-handle group relative "
-            withHandle={isLeftCollapsed}
-          />
-
-          <ResizablePanel className="flex-1 h-full max-h-full p-0" minSize={8} defaultSize={70}>
-            <MainContentArea RightSidebarRef={RightSidebarRef} isRightCollapsed={isRightCollapsed}>
-              {children}
-            </MainContentArea>
-          </ResizablePanel>
-
-          <ResizableHandle
-            tabIndex={-1}
-            hitAreaMargins={{ coarse: 1, fine: 1 }}
-            onDragging={isDragging => {
-              isDraggingRef.current = isDragging;
-              if (isDragging) {
-                document.documentElement.classList.add('is-dragging-panels');
-              } else {
-                document.documentElement.classList.remove('is-dragging-panels');
-              }
-            }}
-            className="p-0 w-px custom-resize-handle group relative "
-            withHandle={isRightCollapsed}
-          />
-
-          <ResizablePanel
-            ref={RightSidebarRef}
-            minSize={rightMinPercent}
-            defaultSize={rightMinPercent}
-            collapsible
-            onCollapse={() => setIsRightCollapsed(true)}
-            onExpand={() => setIsRightCollapsed(false)}
-            onResize={size => {
-              if (size <= 1 && RightSidebarRef.current) RightSidebarRef.current.collapse();
-            }}
-            className="flex-1 h-full max-h-full p-0"
           >
-            <RightSidebarArea activeNodeId={activeNode?._id ?? ''} activeNodeType={activeNode?.type ?? ''} />
-          </ResizablePanel>
-        </ResizablePanelGroup>
+            <MiniSidebarTemplate LeftSidebarRef={LeftSidebarRef} isLeftCollapsed={isLeftCollapsed} RightSidebarRef={RightSidebarRef} />
+
+            <ResizablePanel
+              ref={LeftSidebarRef}
+              minSize={leftMinPercent}
+              collapsedSize={0}
+              defaultSize={leftMinPercent}
+              collapsible
+              onCollapse={() => setIsLeftCollapsed(true)}
+              onExpand={() => setIsLeftCollapsed(false)}
+              onResize={size => {
+                if (size <= 4 && LeftSidebarRef.current) LeftSidebarRef.current.collapse();
+              }}
+              className="text-muted-foreground flex h-full flex-row p-0"
+            >
+              {pData && !nLoading && <LeftSidebarTemplate projectData={pData.project} />}
+            </ResizablePanel>
+
+            <ResizableHandle
+              tabIndex={-1}
+              hitAreaMargins={{ coarse: 1, fine: 1 }}
+              onDragging={isDragging => {
+                isDraggingRef.current = isDragging;
+                if (isDragging) {
+                  document.documentElement.classList.add('is-dragging-panels');
+                } else {
+                  document.documentElement.classList.remove('is-dragging-panels');
+                }
+              }}
+              className="p-0 w-px custom-resize-handle group relative "
+              withHandle={isLeftCollapsed}
+            />
+
+            <ResizablePanel className="flex-1 h-full max-h-full p-0" minSize={8} defaultSize={70}>
+              <MainContentArea RightSidebarRef={RightSidebarRef} isRightCollapsed={isRightCollapsed}>
+                {children}
+              </MainContentArea>
+            </ResizablePanel>
+
+            <ResizableHandle
+              tabIndex={-1}
+              hitAreaMargins={{ coarse: 1, fine: 1 }}
+              onDragging={isDragging => {
+                isDraggingRef.current = isDragging;
+                if (isDragging) {
+                  document.documentElement.classList.add('is-dragging-panels');
+                } else {
+                  document.documentElement.classList.remove('is-dragging-panels');
+                }
+              }}
+              className="p-0 w-px custom-resize-handle group relative "
+              withHandle={isRightCollapsed}
+            />
+
+            <ResizablePanel
+              ref={RightSidebarRef}
+              minSize={rightMinPercent}
+              defaultSize={rightMinPercent}
+              collapsible
+              onCollapse={() => setIsRightCollapsed(true)}
+              onExpand={() => setIsRightCollapsed(false)}
+              onResize={size => {
+                if (size <= 1 && RightSidebarRef.current) RightSidebarRef.current.collapse();
+              }}
+              className="flex-1 h-full max-h-full p-0"
+            >
+              <RightSidebarArea activeNodeId={activeNode?._id ?? ''} activeNodeType={activeNode?.type ?? ''} />
+            </ResizablePanel>
+          </ResizablePanelGroup>
+        </TooltipProvider>
       </AppShell>
     </div>
   );

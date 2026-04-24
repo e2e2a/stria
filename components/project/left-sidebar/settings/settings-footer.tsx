@@ -7,6 +7,7 @@ import { useIsMobileSM } from '@/hooks/use-mobile';
 import { IconTooltip } from '../../icon-tooltip';
 import AppearanceTabContent from './options/appearance';
 import BacklinkTabContent from './options/backlink';
+import { TooltipProvider } from '@/components/ui/tooltip';
 
 const OPTIONS_TABS = [
   { id: 'general', label: 'General', icon: Settings },
@@ -63,21 +64,23 @@ export default function SettingsFooter() {
         tabIndex={-1}
         className="w-[90%]! max-w-[90%]! min-w-[90%] h-[95vh] sm:h-[92vh] p-0 gap-0 bg-sidebar flex flex-col sm:flex-row overflow-hidden z-51 app-font-interface"
       >
-        <DialogTitle className="sr-only">Settings</DialogTitle>
-        <DialogDescription className="sr-only">Manage application settings and preferences</DialogDescription>
-        <div className="w-auto min-h-20! sm:w-56 bg-sidebar sm:border-r sm:border-border flex flex-row sm:flex-col sm:overflow-y-auto overflow-y-hidden pt-5">
-          <div className="sm:mb-6">
-            <h3 className="px-3 mb-2 text-xs font-semibold text-accent uppercase tracking-wider">Options</h3>
-            <div className="flex flex-row sm:flex-col w-full! gap-0.5">{OPTIONS_TABS.map(renderTabButton)}</div>
-          </div>
+        <TooltipProvider delayDuration={1500} skipDelayDuration={3000}>
+          <DialogTitle className="sr-only">Settings</DialogTitle>
+          <DialogDescription className="sr-only">Manage application settings and preferences</DialogDescription>
+          <div className="w-auto min-h-20! sm:w-56 bg-sidebar sm:border-r sm:border-border flex flex-row sm:flex-col sm:overflow-y-auto overflow-y-hidden pt-5">
+            <div className="sm:mb-6">
+              <h3 className="px-3 mb-2 text-xs font-semibold text-accent uppercase tracking-wider">Options</h3>
+              <div className="flex flex-row sm:flex-col w-full! gap-0.5">{OPTIONS_TABS.map(renderTabButton)}</div>
+            </div>
 
-          <div className="mb-2 sm:mb-6">
-            <h3 className="px-3 mb-2 text-xs font-semibold text-accent uppercase tracking-wider">Core plugins</h3>
-            <div className="flex flex-row sm:flex-col w-full gap-0.5">{CORE_PLUGINS_TABS.map(renderTabButton)}</div>
+            <div className="mb-2 sm:mb-6">
+              <h3 className="px-3 mb-2 text-xs font-semibold text-accent uppercase tracking-wider">Core plugins</h3>
+              <div className="flex flex-row sm:flex-col w-full gap-0.5">{CORE_PLUGINS_TABS.map(renderTabButton)}</div>
+            </div>
           </div>
-        </div>
-        {activeTab === 'appearance' && <AppearanceTabContent />}
-        {activeTab === 'backlink' && <BacklinkTabContent />}
+          {activeTab === 'appearance' && <AppearanceTabContent />}
+          {activeTab === 'backlink' && <BacklinkTabContent />}
+        </TooltipProvider>
       </DialogContent>
     </Dialog>
   );
