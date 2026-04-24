@@ -10,6 +10,19 @@ export function resolveTheme(theme: string) {
   return theme === 'dark' || theme === '' ? 'dark' : 'default';
 }
 
+function escapeHtml(str: string) {
+  return str.replace(/[&<>"']/g, s => {
+    const map: Record<string, string> = {
+      '&': '&amp;',
+      '<': '&lt;',
+      '>': '&gt;',
+      '"': '&quot;',
+      "'": '&#039;',
+    };
+    return map[s];
+  });
+}
+
 export class MermaidWidget extends WidgetType {
   constructor(
     readonly code: string,
@@ -97,11 +110,21 @@ async function renderMermaid(code: string, container: HTMLElement, from: number,
 
     mountContent(container, code, from, to, view, svgCacheKey);
   } catch (e) {
-    console.error('Mermaid render failed:', e);
+    const message = e instanceof Error ? e.message : 'Syntax Error';
+    container.innerHTML = '';
+
+    mountContent(container, code, from, to, view, svgCacheKey, message);
+    requestAnimationFrame(() => {
+      const renderArea = container.querySelector('.mermaid-error');
+      const h = renderArea?.getBoundingClientRect().height;
+      console.log('h', h);
+      mermaidHeightCache.set(code, h ?? 0);
+      container.style.minHeight = `${h}px`;
+    });
   }
 }
 
-function mountContent(mainContainer: HTMLElement, code: string, from: number, to: number, view: EditorView, svgCacheKey: string) {
+function mountContent(mainContainer: HTMLElement, code: string, from: number, to: number, view: EditorView, svgCacheKey: string, error?: string) {
   const svg = mermaidSvgCache.get(svgCacheKey)!;
 
   const container = document.createElement('div');
@@ -134,20 +157,39 @@ function mountContent(mainContainer: HTMLElement, code: string, from: number, to
   const renderArea = document.createElement('div');
   renderArea.className = 'mermaid-render-area min-h-auto h-auto relative inline-block pr-[5px] pb-[5px] w-auto! min-w-full';
   renderArea.innerHTML = svg;
-
-  const svgEl = renderArea.querySelector('svg');
-  if (svgEl) {
-    svgEl.style.maxWidth = 'none';
-    svgEl.style.width = 'auto';
-    svgEl.style.height = 'auto';
+  if (error) {
+    renderArea.style.cssText = `
+    width: 100%;
+    max-width: 100%;
+    overflow-y: hidden;
+    overflow-x: auto;
+  `;
+    renderArea.className = 'mermaid-error h-[135px] min-h-[135px] relative inline-block w-full max-w-full';
+    renderArea.innerHTML = `
+    <div style="
+      line-height: normal;
+      color: #ef4444;
+      font-size: 12px;
+      padding: 10px;
+      white-space: pre;
+      min-width: max-content;
+    ">
+      ${escapeHtml(error)}
+    </div>
+  `;
+  } else if (svg) {
+    const svgEl = renderArea.querySelector('svg');
+    if (svgEl) {
+      svgEl.style.maxWidth = 'none';
+      svgEl.style.width = 'auto';
+      svgEl.style.height = 'auto';
+    }
   }
-
   scrollWrapper.appendChild(renderArea);
   container.appendChild(scrollWrapper);
   container.appendChild(button);
   mainContainer.appendChild(container);
 
-  // silently update height cache
   const observer = new ResizeObserver(entries => {
     for (const entry of entries) {
       const h = entry.contentRect.height;
