@@ -345,7 +345,7 @@ function MarkdownSection({ node, isDirty, canEditNode, canEditChunk }: { node: I
             'h-full! grid grid-cols-1 max-h-full w-full overflow-y-auto overflow-x-hidden relative [&::-webkit-scrollbar-track]:mt-14 [&::-webkit-scrollbar-track]:mb-5'
           )}
         >
-          <div className="w-full h-auto pb-4 flex flex-col" tabIndex={-1}>
+          <div className="w-full h-auto pb-4 flex flex-col pt-16" tabIndex={-1}>
             <ChunkEditor text={ytext?.toString() || ''} splits={[]} ydoc={instance?.ydoc} canEditChunk={canEditChunk} />
           </div>
         </div>

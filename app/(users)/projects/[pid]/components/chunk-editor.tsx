@@ -9,13 +9,35 @@ import { ContextMenu, ContextMenuTrigger } from '@/components/ui/context-menu';
 import ChunkContextMenu from './context-menu/chunk';
 import * as Y from 'yjs';
 
-const myOwnDarkTheme = createTheme({
+// const myOwnDarkTheme = createTheme({
+//   theme: 'dark',
+//   settings: {
+//     background: '#191d24',
+//     foreground: '#d4d4d4',
+//     caret: '#ffffff',
+//     selectionMatch: '#3a3a3a',
+//     gutterBackground: '#191d24',
+//     lineHighlight: '#ffffff0f',
+//   },
+//   styles: [
+//     { tag: [t.keyword], color: '#569cd6' },
+//     { tag: [t.string], color: '#ce9178' },
+//     { tag: [t.comment], color: '#6a9955', fontStyle: 'italic' },
+//     { tag: [t.variableName], color: '#9cdcfe' },
+//     { tag: [t.function(t.variableName), t.propertyName], color: '#dcdcaa' },
+//     { tag: [t.typeName, t.className], color: '#4ec9b0' },
+//     { tag: [t.number, t.bool, t.null, t.atom], color: '#b5cea8' },
+//     { tag: t.operator, color: '#d4d4d4' },
+//     { tag: [t.heading], color: '#dcdcaa', fontWeight: 'bold' },
+//   ],
+// });
+
+const myTheme = createTheme({
   theme: 'dark',
   settings: {
-    background: '#191d24',
+    background: 'transparent',
     foreground: '#d4d4d4',
-    caret: '#ffffff',
-    selectionMatch: '#3a3a3a',
+    // selectionMatch: `${accentColor}40`,
     gutterBackground: '#191d24',
     lineHighlight: '#ffffff0f',
   },
@@ -28,7 +50,9 @@ const myOwnDarkTheme = createTheme({
     { tag: [t.typeName, t.className], color: '#4ec9b0' },
     { tag: [t.number, t.bool, t.null, t.atom], color: '#b5cea8' },
     { tag: t.operator, color: '#d4d4d4' },
-    { tag: [t.heading], color: '#dcdcaa', fontWeight: 'bold' },
+    { tag: [t.typeName], color: '#4ec9b0' },
+    { tag: [t.heading], color: 'var(--foreground)', fontWeight: 'bold' },
+    { tag: [t.atom, t.bool, t.number], color: '#b5cea8' },
   ],
 });
 
@@ -203,7 +227,7 @@ export function ChunkEditor({ text, splits, ydoc, canEditChunk }: ChunkEditorPro
 
   const extensions = useMemo(() => {
     return [
-      myOwnDarkTheme,
+      myTheme,
       EditorView.lineWrapping,
       EditorView.editable.of(false),
       chunkSplitsField,
@@ -227,8 +251,8 @@ export function ChunkEditor({ text, splits, ydoc, canEditChunk }: ChunkEditorPro
       {!isReady && (
         <div className="absolute inset-0 z-50 flex items-center justify-center bg-background/80 backdrop-blur-sm">
           <div className="flex flex-col items-center gap-4">
-            <div className="w-8 h-8 border-4 border-white/10 border-t-white/80 rounded-full animate-spin" />
-            <div className="text-sm tracking-widest text-[#d4d4d4] animate-pulse">MAPPING CHUNKS...</div>
+            <div className="w-8 h-8 border-4 border-border/10 border-t-border/80 rounded-full animate-spin" />
+            <div className="text-sm tracking-widest text-foreground animate-pulse">MAPPING CHUNKS...</div>
           </div>
         </div>
       )}
@@ -239,9 +263,9 @@ export function ChunkEditor({ text, splits, ydoc, canEditChunk }: ChunkEditorPro
             <CodeMirror
               value={text}
               extensions={extensions}
-              theme={myOwnDarkTheme}
+              theme={'none'}
               basicSetup={false}
-              className="w-full h-full text-[#d4d4d4] font-sans tracking-widest text-[11px] leading-6 whitespace-pre-wrap"
+              className="w-full h-full tracking-widest leading-6 whitespace-pre-wrap"
               onCreateEditor={view => {
                 editorViewRef.current = view;
 
