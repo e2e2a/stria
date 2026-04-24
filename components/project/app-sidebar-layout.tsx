@@ -113,8 +113,8 @@ export default function AppSidebarLayout({ children }: { children: React.ReactNo
   }, [nData, setNodes]);
 
   const containerRef = useRef<HTMLDivElement>(null);
-  const [leftMinPercent, setLeftMinPercent] = useState(14);
-  const [rightMinPercent, setRightMinPercent] = useState(16);
+  const [leftMinPercent, setLeftMinPercent] = useState(10);
+  const [rightMinPercent, setRightMinPercent] = useState(12);
   const isDraggingRef = useRef(false);
   const lastWidthRef = useRef<number>(0);
 
@@ -127,8 +127,8 @@ export default function AppSidebarLayout({ children }: { children: React.ReactNo
     if (currentTotalWidth === 0) return;
 
     // Calculate constraints
-    const leftMin = (260 / currentTotalWidth) * 100;
-    const rightMin = (300 / currentTotalWidth) * 100;
+    const leftMin = (210 / currentTotalWidth) * 100;
+    const rightMin = (240 / currentTotalWidth) * 100;
 
     setLeftMinPercent(leftMin);
     setRightMinPercent(rightMin);
@@ -213,7 +213,7 @@ export default function AppSidebarLayout({ children }: { children: React.ReactNo
               withHandle={isLeftCollapsed}
             />
 
-            <ResizablePanel className="flex-1 h-full max-h-full p-0" minSize={8} defaultSize={70}>
+            <ResizablePanel className="flex-1 h-full max-h-full p-0" minSize={8} defaultSize={78}>
               <MainContentArea RightSidebarRef={RightSidebarRef} isRightCollapsed={isRightCollapsed}>
                 {children}
               </MainContentArea>

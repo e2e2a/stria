@@ -266,13 +266,15 @@ const RightSidebarTemplate = ({ activeNodeId }: { activeNodeId: string; activeNo
             <div className="p-6">
               <div className="flex items-center justify-between mb-6">
                 <h1 className="text-xl font-bold tracking-tight text-foreground">Project Presence</h1>
-                <div className="flex items-center gap-1.5 px-2 py-1 rounded-full bg-green-500/10 border border-green-500/20">
-                  <span className="w-1.5 h-1.5 rounded-full bg-green-500 animate-pulse" />
-                  <span className="text-[10px] font-medium text-green-500 uppercase">{filteredUsers.length} Active</span>
-                </div>
               </div>
               <section>
-                <h3 className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest mb-4">Live Active</h3>
+                <div className="flex items-center justify-between mb-4">
+                  <h3 className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest ">Live Active</h3>
+                  <div className="flex items-center gap-1.5 px-2 py-1 rounded-full underline decoration-green-500">
+                    <span className="w-1.5 h-1.5 rounded-full bg-green-500 animate-pulse" />
+                    <span className="text-[10px] font-medium text-green-500 uppercase">{filteredUsers.length} Active</span>
+                  </div>
+                </div>
                 <div className="rounded-lg border border-border bg-secondary p-2">
                   <ul className="flex flex-col gap-1 font-mono text-sm">
                     {filteredUsers.length > 0 ? (
