@@ -46,6 +46,7 @@ import EditorTabTitleBar from './options/appearance/tab-title-bar';
 import EditorInlineTitle from './options/appearance/inline-title';
 import createTheme from '@uiw/codemirror-themes';
 import { tags as t } from '@lezer/highlight';
+import { mermaidLivePreviewField, registerView } from '@/features/editor/plugins/mermaid';
 
 const myTheme = createTheme({
   theme: 'dark',
@@ -193,6 +194,7 @@ function MarkdownSection({ node, isDirty, canEditNode, canEditChunk }: { node: I
       lineLimitGuard,
       permissionGuard(canEditNode),
       markdownLivePreviewField,
+      mermaidLivePreviewField,
       onDocChange,
       tableBackspace,
       sourceModeField,
@@ -374,6 +376,7 @@ function MarkdownSection({ node, isDirty, canEditNode, canEditChunk }: { node: I
                   key={node._id}
                   editable={!isReadOnly && canEditNode && synced}
                   onCreateEditor={view => {
+                    registerView(view);
                     editorViewRef.current = view;
 
                     setTimeout(() => {
