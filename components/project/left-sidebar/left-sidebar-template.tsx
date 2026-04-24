@@ -175,7 +175,6 @@ function LeftSidebarTemplate({ projectData }: { projectData: IProject }) {
                 <div className="absolute top-12 left-0 right-0 h-1 z-12 w-full bg-border dark:bg-border/50" />
                 <div className="absolute top-13 left-0 right-0 h-14 z-50 flex px-3 items-center border-b border-border bg-sidebar/80 backdrop-blur-lg pointer-events-auto cursor-default">
                   <div className="flex w-full">
-                    {/* Nodes Header Content */}
                     <NodeTabHeader projectData={projectData} />
 
                     <TabsContent className="h-full min-h-0 w-full flex items-center" value="search">
@@ -249,7 +248,7 @@ function LeftSidebarTemplate({ projectData }: { projectData: IProject }) {
                   <SearchTabContent query={searchQuery} onResultClick={handleSearchResultClick} />
                 </TabsContent>
 
-                <TabsContent value="bookmarks" className="text-white pt-16">
+                <TabsContent value="bookmarks" className="text-foreground text-center pt-16">
                   Bookmarks
                 </TabsContent>
               </SidebarContent>
@@ -257,7 +256,7 @@ function LeftSidebarTemplate({ projectData }: { projectData: IProject }) {
           </Tabs>
         </div>
 
-        <SidebarFooter className="h-auto mt-1 bg-background/70 py-2 border-t border-border/80">
+        <SidebarFooter className="h-auto mt-1 bg-background/70 p-1! border-t border-border/80">
           <LeftSidebarFooter projectData={projectData} />
         </SidebarFooter>
       </div>

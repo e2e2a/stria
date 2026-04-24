@@ -54,7 +54,9 @@ export default function SettingsFooter() {
   return (
     <Dialog>
       <DialogTrigger>
-        <Settings className="h-6! w-6!" />
+        <IconTooltip label="settings" className="hover:bg-accent p-1">
+          <Settings className="h-6! w-6!" />
+        </IconTooltip>
       </DialogTrigger>
 
       <DialogContent

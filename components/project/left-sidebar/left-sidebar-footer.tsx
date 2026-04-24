@@ -5,18 +5,19 @@ import { ChevronsUpDown, CircleQuestionMark, DoorOpenIcon } from 'lucide-react';
 import { IProject } from '@/types';
 import { useRouter } from 'next/navigation';
 import SettingsFooter from './settings/settings-footer';
+import { IconTooltip } from '../icon-tooltip';
 
 export function LeftSidebarFooter({ projectData }: { projectData: IProject }) {
   const { isMobile } = useSidebar();
   const router = useRouter();
 
   return (
-    <SidebarMenu>
-      <SidebarMenuItem className="flex flex-row items-center gap-2">
+    <SidebarMenu className="p-0!">
+      <SidebarMenuItem className="flex p-0! flex-row items-center gap-2">
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
             <SidebarMenuButton className="data-[state=open]:bg-sidebar-accent h-fit! data-[state=open]:text-sidebar-accent-foreground">
-              <ChevronsUpDown className="h-6! w-6!" />
+              <ChevronsUpDown className="h-4! w-4!" />
               <div className="grid flex-1 text-left text-sm leading-tight">
                 <span className="truncate font-medium">{projectData?.title}</span>
               </div>
@@ -37,7 +38,9 @@ export function LeftSidebarFooter({ projectData }: { projectData: IProject }) {
           </DropdownMenuContent>
         </DropdownMenu>
         <div className="flex flex-row gap-x-2">
-          <CircleQuestionMark />
+          <IconTooltip label="Support" className="hover:bg-accent p-1">
+            <CircleQuestionMark className="h-6! w-6!" />
+          </IconTooltip>
           <SettingsFooter />
         </div>
       </SidebarMenuItem>
