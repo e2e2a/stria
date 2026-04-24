@@ -131,7 +131,7 @@ function LeftSidebarTemplate({ projectData }: { projectData: IProject }) {
       id="sidebar-tree-nodes"
       data-sidebar-node="true"
       tabIndex={-1}
-      className="group left-12 w-full border-r bg-none p-0 text-muted-foreground app-font-interface"
+      className="group left-12 w-full bg-none p-0 text-muted-foreground app-font-interface"
       collapsible="none"
       variant="inset"
     >

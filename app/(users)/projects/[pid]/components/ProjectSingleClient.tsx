@@ -36,6 +36,7 @@ export function ProjectSingleClient() {
     <AppSidebarLayout>
       <ProjectPresence projectId={pid}>
         <div className="h-full">
+          <div className="absolute top-12 left-0 right-0 h-1 z-11 w-full bg-border dark:bg-border/50" />
           {(tabs.length === 0 || !activeTabId) && (
             <div className="flex flex-col items-center justify-center h-full text-muted-foreground/40 select-none">
               <div className="border-2 border-dashed border-muted rounded-xl p-8 flex flex-col items-center">

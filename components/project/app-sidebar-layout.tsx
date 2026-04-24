@@ -217,7 +217,6 @@ export default function AppSidebarLayout({ children }: { children: React.ReactNo
             </MainContentArea>
           </ResizablePanel>
 
-          <div className=" w-px p-px bg-background! " />
           <ResizableHandle
             tabIndex={-1}
             hitAreaMargins={{ coarse: 1, fine: 1 }}

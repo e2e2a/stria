@@ -3,7 +3,7 @@ import mermaid from 'mermaid';
 
 mermaid.initialize({
   startOnLoad: false,
-  theme: 'dark',
+  theme: 'base',
   securityLevel: 'loose',
   flowchart: {
     useMaxWidth: true, // Switch to true for responsive behavior
