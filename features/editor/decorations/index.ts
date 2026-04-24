@@ -11,7 +11,7 @@ import {
   TablePreviewWidget,
 } from '@/features/editor/widgets';
 import { getTableRange, isValidTable } from '@/lib/client/markdown/markdown-table-utils';
-import { MermaidWidget } from '../widgets/mermaid-widget';
+// import { MermaidWidget } from '../widgets/mermaid-widget';
 import { chunkModeFacet, sourceModeField } from '../plugins';
 import { FrontmatterWidget } from '../widgets/front-matter-widget';
 import { syntaxTree } from '@codemirror/language';

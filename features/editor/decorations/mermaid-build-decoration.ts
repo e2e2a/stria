@@ -107,7 +107,7 @@ export function buildMermaidDecorations(state: EditorState, from: number, to: nu
         fromPos,
         toPos,
         Decoration.replace({
-          widget: new MermaidWidget(code, fromPos, theme),
+          widget: new MermaidWidget(code, fromPos, toPos, theme),
           block: true,
         })
       );

@@ -167,5 +167,6 @@ export const useEditorEvents = (
       timers.forEach(clearTimeout);
       timers.clear();
     };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [nodeId, synced, editorViewRef]);
 };

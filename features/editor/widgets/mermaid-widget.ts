@@ -13,7 +13,8 @@ export function resolveTheme(theme: string) {
 export class MermaidWidget extends WidgetType {
   constructor(
     readonly code: string,
-    readonly pos: number,
+    readonly from: number,
+    readonly to: number,
     readonly theme: string
   ) {
     super();
@@ -57,16 +58,16 @@ export class MermaidWidget extends WidgetType {
 
     const svgCacheKey = `${this.theme}-${this.code}`;
     if (!mermaidSvgCache.has(svgCacheKey)) {
-      renderMermaid(this.code, mainContainer, this.pos, view, svgCacheKey);
+      renderMermaid(this.code, mainContainer, this.from, this.to, view, svgCacheKey);
       return mainContainer;
     }
-    mountContent(mainContainer, this.code, this.pos, view, svgCacheKey);
+    mountContent(mainContainer, this.code, this.from, this.to, view, svgCacheKey);
     return mainContainer;
   }
   eq(other: MermaidWidget) {
     return (
       other.code === this.code &&
-      other.pos === this.pos &&
+      other.from === this.from &&
       other.theme === this.theme &&
       mermaidHeightCache.get(this.code) === mermaidHeightCache.get(other.code) &&
       mermaidSvgCache.get(`${this.theme}-${this.code}`) === mermaidSvgCache.get(`${other.theme}-${other.code}`)
@@ -74,7 +75,7 @@ export class MermaidWidget extends WidgetType {
   }
 }
 
-async function renderMermaid(code: string, container: HTMLElement, pos: number, view: EditorView, svgCacheKey: string) {
+async function renderMermaid(code: string, container: HTMLElement, from: number, to: number, view: EditorView, svgCacheKey: string) {
   try {
     const id = `live-${crypto.randomUUID()}`;
     const { svg } = await mermaid.render(id, code);
@@ -94,13 +95,13 @@ async function renderMermaid(code: string, container: HTMLElement, pos: number, 
     container.style.minHeight = `${height}px`;
     container.innerHTML = '';
 
-    mountContent(container, code, pos, view, svgCacheKey);
+    mountContent(container, code, from, to, view, svgCacheKey);
   } catch (e) {
     console.error('Mermaid render failed:', e);
   }
 }
 
-function mountContent(mainContainer: HTMLElement, code: string, pos: number, view: EditorView, svgCacheKey: string) {
+function mountContent(mainContainer: HTMLElement, code: string, from: number, to: number, view: EditorView, svgCacheKey: string) {
   const svg = mermaidSvgCache.get(svgCacheKey)!;
 
   const container = document.createElement('div');
@@ -114,10 +115,16 @@ function mountContent(mainContainer: HTMLElement, code: string, pos: number, vie
 
   button.onclick = e => {
     e.stopPropagation();
-
+    view.focus();
+    const safeFrom = Math.min(view.state.doc.length, from + 11);
+    const safeTo = Math.min(view.state.doc.length, to - 4);
     view.dispatch({
-      selection: { anchor: pos },
+      selection: {
+        anchor: safeTo,
+        head: safeFrom,
+      },
       scrollIntoView: true,
+      effects: EditorView.scrollIntoView(from, { y: 'center' }),
     });
   };
 
