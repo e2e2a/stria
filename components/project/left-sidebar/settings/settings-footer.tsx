@@ -2,27 +2,7 @@
 
 import { useState } from 'react';
 import { Dialog, DialogContent, DialogDescription, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
-import {
-  Settings,
-  PenTool,
-  FileText,
-  Paintbrush,
-  Keyboard,
-  Key,
-  Package,
-  Puzzle,
-  Link,
-  LayoutDashboard,
-  Command,
-  Calendar,
-  History,
-  FileEdit,
-  Eye,
-  ArrowLeftRight,
-  FilePlus,
-  FileCheck,
-  LucideIcon,
-} from 'lucide-react';
+import { Settings, PenTool, FileText, Paintbrush, Keyboard, Key, Package, Puzzle, Link, LucideIcon } from 'lucide-react';
 import { useIsMobileSM } from '@/hooks/use-mobile';
 import { IconTooltip } from '../../icon-tooltip';
 import AppearanceTabContent from './options/appearance';
@@ -39,18 +19,7 @@ const OPTIONS_TABS = [
   { id: 'community-plugins', label: 'Community plugins', icon: Puzzle },
 ];
 
-const CORE_PLUGINS_TABS = [
-  { id: 'backlink', label: 'Backlinks', icon: Link },
-  { id: 'canvas', label: 'Canvas', icon: LayoutDashboard },
-  { id: 'command-palette', label: 'Command palette', icon: Command },
-  { id: 'daily-notes', label: 'Daily notes', icon: Calendar },
-  { id: 'file-recovery', label: 'File recovery', icon: History },
-  { id: 'note-composer', label: 'Note composer', icon: FileEdit },
-  { id: 'page-preview', label: 'Page preview', icon: Eye },
-  { id: 'quick-switcher', label: 'Quick switcher', icon: ArrowLeftRight },
-  { id: 'templates', label: 'Templates', icon: FilePlus },
-  { id: 'unique-note', label: 'Unique note creator', icon: FileCheck },
-];
+const CORE_PLUGINS_TABS = [{ id: 'backlink', label: 'Backlinks', icon: Link }];
 
 interface TabItem {
   id: string;
