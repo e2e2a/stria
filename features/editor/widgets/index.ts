@@ -539,7 +539,6 @@ export class FenchCodeWidget extends WidgetType {
 
     button.onclick = e => {
       e.preventDefault();
-      console.log('this code', this.code);
       navigator.clipboard.writeText(this.code);
 
       const originalText = button.textContent;
