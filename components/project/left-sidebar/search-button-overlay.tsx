@@ -25,9 +25,9 @@ export function SearchOverlay({
 
   return (
     <div className="absolute top-full left-0 w-full z-50 px-4 text-sm">
-      <div className="bg-background border border-white/10 rounded-md shadow-2xl py-2">
+      <div className="bg-background text-foreground border border-border/70 rounded-md shadow-2xl py-2">
         {!query && (
-          <div className="pb-3 border-b border-white/5 mb-2">
+          <div className="pb-3 border-b border-border/80 mb-2">
             <p className="text-[10px] uppercase text-muted-foreground font-bold px-2 pb-1">Search options</p>
             <div className="space-y-1">
               <OptionItem label="tag:" description="search for tags" onMouseDown={e => handleInteraction(e, 'tag:#')} />
@@ -37,18 +37,17 @@ export function SearchOverlay({
           </div>
         )}
 
-        {/* History Section */}
         <div>
           <div className="flex justify-between px-2 pb-1">
             <p className="text-[10px] uppercase text-muted-foreground font-bold">History</p>
-            <button onMouseDown={handleClear} className="text-[10px] hover:text-white">
+            <button onMouseDown={handleClear} className="text-[10px] hover:text-foreground">
               ✕
             </button>
           </div>
           {history.map(item => (
             <div
               key={item}
-              className="px-2 py-1.5 hover:bg-white/5 rounded cursor-pointer text-muted-foreground hover:text-white"
+              className="px-2 py-1.5 hover:bg-accent/50 rounded cursor-pointer text-muted-foreground hover:text-foreground"
               onMouseDown={() => onSelect(item)}
             >
               {item}
@@ -62,9 +61,9 @@ export function SearchOverlay({
 
 function OptionItem({ label, description, onMouseDown }: { label: string; description: string; onMouseDown?: (e: React.MouseEvent) => void }) {
   return (
-    <div className="flex gap-2 px-2 py-1 hover:bg-white/5 rounded cursor-pointer group" onMouseDown={onMouseDown}>
-      <span className="text-white font-mono">{label}</span>
-      <span className="text-muted-foreground group-hover:text-white/70">{description}</span>
+    <div className="flex gap-2 px-2 py-1 hover:bg-accent/50 rounded cursor-pointer group" onMouseDown={onMouseDown}>
+      <span className="text-foreground font-mono">{label}</span>
+      <span className="text-muted-foreground group-hover:text-foreground/70">{description}</span>
     </div>
   );
 }

@@ -203,7 +203,7 @@ function LeftSidebarTemplate({ projectData }: { projectData: IProject }) {
                             setIsDropdownOpen(false);
                           }}
                           placeholder="Search content..."
-                          className="w-full bg-background/50 border border-white/10 rounded-md py-1.5 pl-9 pr-8 text-sm focus:outline-none focus:ring-1 focus:ring-primary/50 transition-all"
+                          className="w-full bg-background/50 border border-border/80 rounded-md py-1.5 pl-9 pr-8 text-sm focus:outline-none focus:ring-1 focus:ring-primary/50 transition-all"
                         />
                         {searchQuery && (
                           <button onClick={() => setSearchQuery('')} className="absolute right-3 top-1/2 -translate-y-1/2 hover:text-foreground">
@@ -257,7 +257,7 @@ function LeftSidebarTemplate({ projectData }: { projectData: IProject }) {
           </Tabs>
         </div>
 
-        <SidebarFooter className="h-auto mt-1 bg-background/70 py-2">
+        <SidebarFooter className="h-auto mt-1 bg-background/70 py-2 border-t border-border/80">
           <LeftSidebarFooter projectData={projectData} />
         </SidebarFooter>
       </div>

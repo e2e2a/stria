@@ -85,9 +85,9 @@ const FooterLinks = ({ activeNodeId }: FooterLinksProps) => {
           if (parent) setScrollParent(parent);
         }
       }}
-      className="pb-30 px-10 mt-10 w-full editor-font-text"
+      className="pb-30 mt-10 w-full editor-font-text"
     >
-      <Separator className="w-full bg-white/5 mb-4" />
+      <Separator className="w-full bg-border/80 mb-4" />
 
       <div className={cn('flex items-center  w-full gap-x-1 mb-6 h-9', isSearching ? 'flex-row justify-between' : 'justify-end')}>
         {isSearching && (

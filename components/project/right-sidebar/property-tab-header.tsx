@@ -1,7 +1,6 @@
 import { Search, ArrowUpNarrowWide, X } from 'lucide-react';
 import { TabsContent } from '@/components/ui/tabs';
 import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 import { IconTooltip } from '../icon-tooltip';
 
@@ -60,12 +59,12 @@ export const PropertyTabHeader = ({
         ) : (
           <div className="relative px-1 w-full gap-x-2 animate-in slide-in-from-left-1 duration-800">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-            <Input
+            <input
               autoFocus
               placeholder="Filter..."
               value={searchQueryInProperty}
               onChange={e => setSearchQueryInProperty(e.target.value)}
-              className="w-full bg-background/50 border border-white/10 rounded-md py-1.5 pl-9 pr-8 text-sm focus:outline-none focus:ring-1 focus:ring-primary/50 transition-all"
+              className="w-full bg-background/50 border border-border/80 rounded-md py-1.5 pl-9 pr-8 text-sm focus:outline-none focus:ring-1 focus-visible:outline-none focus:ring-primary/50 transition-all"
             />
             <button
               onClick={() => {
