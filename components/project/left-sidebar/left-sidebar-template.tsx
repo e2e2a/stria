@@ -151,7 +151,7 @@ function LeftSidebarTemplate({ projectData }: { projectData: IProject }) {
                       className="grow-0 hover:bg-accent/50 text-muted-foreground hover:text-foreground! data-[state=active]:text-foreground data-[state=active]:bg-accent/50! data-[state=active]:border-accent!"
                       value="nodes"
                     >
-                      <FolderOpen className="w-6! h-6!" />
+                      <FolderOpen className="w-5! h-5!" />
                     </TabsTrigger>
                   </IconTooltip>
                   <IconTooltip label={'Search'}>
@@ -159,7 +159,7 @@ function LeftSidebarTemplate({ projectData }: { projectData: IProject }) {
                       className="grow-0 hover:bg-accent/50 text-muted-foreground hover:text-foreground! data-[state=active]:text-foreground data-[state=active]:bg-accent/50! data-[state=active]:border-accent!"
                       value="search"
                     >
-                      <Search className="w-6! h-6!" />
+                      <Search className="w-5! h-5!" />
                     </TabsTrigger>
                   </IconTooltip>
                   <IconTooltip label={'Bookmarks'}>
@@ -167,7 +167,7 @@ function LeftSidebarTemplate({ projectData }: { projectData: IProject }) {
                       className="grow-0 hover:bg-accent/50 text-muted-foreground hover:text-foreground! data-[state=active]:text-foreground data-[state=active]:bg-accent/50! data-[state=active]:border-accent!"
                       value="bookmarks"
                     >
-                      <Bookmark className="w-6! h-6!" />
+                      <Bookmark className="w-5! h-5!" />
                     </TabsTrigger>
                   </IconTooltip>
                 </TabsList>

@@ -53,7 +53,7 @@ export const OutlineTabItem = ({
         className="group relative flex items-center gap-2 rounded cursor-pointer hover:bg-secondary transition-colors w-full"
         style={{ paddingLeft: `${depth * 16 + 12}px` }}
       >
-        <div className="flex items-center justify-center w-6! h-6! shrink-0">
+        <div className="flex items-center justify-center w-5! h-5! shrink-0">
           {hasChildren ? (
             <CollapsibleTrigger asChild>
               <button className="hover:bg-secondary p-0.5 rounded transition-transform data-[state=open]:rotate-90">

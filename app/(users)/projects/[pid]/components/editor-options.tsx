@@ -72,7 +72,7 @@ export function EditorOptions({
   return (
     <div className="flex gap-2 items-center">
       <Button variant="ghost" onClick={toggleViewMode} tabIndex={-1} className="w-8 h-8 flex items-center text-foreground">
-        {isReadOnly ? <PencilLine className="w-6! h-6! opacity-50" /> : <BookOpen className="w-6! h-6! opacity-50" />}
+        {isReadOnly ? <PencilLine className="w-5! h-5! opacity-50" /> : <BookOpen className="w-5! h-5! opacity-50" />}
       </Button>
 
       <DropdownMenu open={open} onOpenChange={setOpen}>

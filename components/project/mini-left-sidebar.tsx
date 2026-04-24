@@ -16,9 +16,9 @@ import { useGetMyProjectMembership } from '@/hooks/projectMember/useQueries';
 export const CustomDotsIcon = ({ className }: { className?: string }) => {
   return (
     <div className={`relative flex items-center justify-center ${className}`}>
-      <Square className="w-7! h-7! stroke-[0.5]" />
+      <Square className="w-5! h-5! stroke-[0.5]" />
 
-      <MoreVertical className="absolute w-6! h-6! -rotate-45 stroke-1" />
+      <MoreVertical className="absolute w-5! h-5! -rotate-45 stroke-1" />
     </div>
   );
 };
@@ -69,22 +69,22 @@ const MiniSidebarTemplate = ({ LeftSidebarRef, isLeftCollapsed, RightSidebarRef 
   };
 
   return (
-    <Sidebar className="w-12 border-r p-0 " collapsible="none" variant="floating">
+    <Sidebar className="w-11 border-r p-0 " collapsible="none" variant="floating">
       <div className="flex min-h-screen flex-col text-muted-foreground rounded-l-none ">
         <SidebarContent className="ml-0 p-0 overflow-x-hidden bg-background/50">
           <SidebarGroup className="gap-0 p-0">
-            <SidebarMenu className="gap-y-3">
-              <IconTooltip label={'Collapse'} side="right">
-                <div className="h-12 flex items-center justify-center w-12">
-                  <Button type="button" tabIndex={-1} variant={'ghost'} onClick={toggleRightSidebar} className="w-8 h-8 cursor-pointer ">
-                    {isLeftCollapsed ? <PanelLeftOpenIcon className="w-7! h-7!" /> : <PanelLeftCloseIcon className="w-7! h-7!" />}
-                  </Button>
-                </div>
-              </IconTooltip>
+            <IconTooltip label={'Collapse'} side="right">
+              <div className="h-12 flex items-center justify-center w-10">
+                <Button type="button" tabIndex={-1} variant={'ghost'} onClick={toggleRightSidebar} className="w-6 h-6 cursor-pointer ">
+                  {isLeftCollapsed ? <PanelLeftOpenIcon className="w-5! h-5!" /> : <PanelLeftCloseIcon className="w-5! h-5!" />}
+                </Button>
+              </div>
+            </IconTooltip>
+            <SidebarMenu className="gap-y-0!">
               <SidebarMenuItem onClick={() => openTab(pid, 'Graph View', false, 0)}>
                 <IconTooltip label={'Open graph view'} side="right">
                   <Button type="button" tabIndex={-1} variant={'ghost'} className="cursor-pointer py-1 hover:bg-transparent!">
-                    <Network className="w-6! h-6! stroke-[1px]" />
+                    <Network className="w-5! h-5! stroke-[1px]" />
                   </Button>
                 </IconTooltip>
               </SidebarMenuItem>
@@ -92,7 +92,7 @@ const MiniSidebarTemplate = ({ LeftSidebarRef, isLeftCollapsed, RightSidebarRef 
               <SidebarMenuItem onClick={openRandomNode}>
                 <IconTooltip label={'Open random note'} side="right">
                   <Button type="button" tabIndex={-1} variant={'ghost'} className="cursor-pointer px-3 py-1 hover:bg-transparent!">
-                    <CustomDotsIcon className="w-6! h-6!" />
+                    <CustomDotsIcon className="w-5! h-5!" />
                   </Button>
                 </IconTooltip>
               </SidebarMenuItem>
@@ -110,7 +110,7 @@ const MiniSidebarTemplate = ({ LeftSidebarRef, isLeftCollapsed, RightSidebarRef 
                 >
                   <IconTooltip label={'Mermaid'} side="right">
                     <Button type="button" tabIndex={-1} variant={'ghost'} className="cursor-pointer py-1 hover:bg-transparent!">
-                      <IconTrident className="w-6! h-6! rotate-45 -ml-1 mt-1 stroke-[1px]" />
+                      <IconTrident className="w-5! h-5! rotate-45 -ml-1 mt-1 stroke-[1px]" />
                     </Button>
                   </IconTooltip>
                 </SidebarMenuItem>

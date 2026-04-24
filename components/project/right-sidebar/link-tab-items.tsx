@@ -111,7 +111,7 @@ export const LinkTabItems = ({ file, defaultOpen = false, searchQuery }: IProps)
         className="group relative flex items-center gap-2 rounded cursor-pointer text-foreground hover:bg-secondary transition-colors w-full"
         onClick={onHeaderClick}
       >
-        <div className="flex items-center justify-center w-6! h-6! shrink-0 ml-1">
+        <div className="flex items-center justify-center w-5! h-5! shrink-0 ml-1">
           <CollapsibleTrigger asChild>
             <button className="hover:bg-secondary p-0.5 rounded transition-transform data-[state=open]:rotate-90">
               <ChevronRight className="w-3.5 h-3.5 text-foreground" />

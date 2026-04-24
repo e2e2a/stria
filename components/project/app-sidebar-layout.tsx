@@ -49,7 +49,7 @@ const MainContentArea = memo(function MainContentArea({ children, RightSidebarRe
           <div className="w-fit h-12 flex items-center px-1">
             <IconTooltip label={'Collapse'} side="left">
               <Button type="button" tabIndex={-1} variant={'ghost'} onClick={toggleRightSidebar} className="w-8 h-8 cursor-pointer ">
-                {isRightCollapsed ? <PanelRightOpenIcon className="w-7! h-7!" /> : <PanelRightCloseIcon className="w-7! h-7!" />}
+                {isRightCollapsed ? <PanelRightOpenIcon className="w-5! h-5!" /> : <PanelRightCloseIcon className="w-5! h-5!" />}
               </Button>
             </IconTooltip>
           </div>

@@ -24,10 +24,10 @@ const NodeTabHeader = ({ projectData }: { projectData: IProject }) => {
 
   return (
     <TabsContent className="h-full min-h-0 w-full" value="nodes">
-      <div className="bg-transparent w-full flex items-start gap-x-1 justify-start">
+      <div className="bg-transparent w-full flex gap-x-1 justify-center">
         <IconTooltip label={'New Note'} disabled={mData && mData?.role === 'viewer' ? true : false}>
           <Button
-            className="px-2! py-1! border border-transparent"
+            className="px-2! py-1! w-full h-full border border-transparent"
             variant={'ghost'}
             disabled={mData && mData?.role === 'viewer' ? true : false}
             onClick={() => {
@@ -38,12 +38,12 @@ const NodeTabHeader = ({ projectData }: { projectData: IProject }) => {
               }, 0);
             }}
           >
-            <SquarePen className="h-6! w-6!" />
+            <SquarePen className="w-5! h-5!" />
           </Button>
         </IconTooltip>
         <IconTooltip label={'New Folder'} disabled={mData && mData?.role === 'viewer' ? true : false}>
           <Button
-            className="px-2! py-1! w-fit h-fit border border-transparent"
+            className="px-2! py-1! w-full h-full border border-transparent"
             variant={'ghost'}
             disabled={mData && mData?.role === 'viewer' ? true : false}
             onClick={() => {
@@ -54,12 +54,12 @@ const NodeTabHeader = ({ projectData }: { projectData: IProject }) => {
               }, 0);
             }}
           >
-            <FolderPlus className="h-6! w-6!" />
+            <FolderPlus className="w-5! h-5!" />
           </Button>
         </IconTooltip>
         <IconTooltip label={'Auto-reveal current path'}>
           <Button
-            className="px-2! py-1! border border-transparent"
+            className="px-2! py-1! w-full h-full border border-transparent"
             variant={'ghost'}
             onClick={() => {
               const targetId = activeTabId;
@@ -81,12 +81,12 @@ const NodeTabHeader = ({ projectData }: { projectData: IProject }) => {
               }, 0);
             }}
           >
-            <GalleryVertical className="h-6! w-6!" />
+            <GalleryVertical className="w-5! h-5!" />
           </Button>
         </IconTooltip>
         <IconTooltip label={'Collapse All'}>
           <Button
-            className="px-2! py-1! border border-transparent"
+            className="px-2! py-1! w-full h-full border border-transparent"
             variant={'ghost'}
             tabIndex={0}
             onClick={e => {
@@ -95,7 +95,7 @@ const NodeTabHeader = ({ projectData }: { projectData: IProject }) => {
               setCollapseAll(true);
             }}
           >
-            <ChevronsDownUp className="h-6! w-6!" />
+            <ChevronsDownUp className="w-5! h-5!" />
           </Button>
         </IconTooltip>
       </div>

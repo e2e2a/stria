@@ -36,24 +36,24 @@ export const OutlineTabHeader = ({
 
   return (
     <TabsContent className="h-full min-h-0 w-full px-3" value="outline">
-      <div className="bg-transparent w-full h-full flex items-center gap-x-1 justify-start">
+      <div className="bg-transparent w-full h-full flex items-center gap-x-1 justify-center">
         {!isSearchingInOutline ? (
           <>
             <IconTooltip label={'Search'}>
               <Button onClick={() => setIsSearchingInOutline(true)} className="px-2! py-1! border border-transparent" variant="ghost">
-                <Search className="h-6! w-6!" />
+                <Search className="w-5! h-5!" />
               </Button>
             </IconTooltip>
             {defaultExpand ? (
               <IconTooltip label={'Collapse All'}>
                 <Button onClick={() => handleToggleExpand(false)} className="px-2! py-1! border border-transparent" variant="ghost">
-                  <ChevronsDownUp className="h-6! w-6!" />
+                  <ChevronsDownUp className="w-5! h-5!" />
                 </Button>
               </IconTooltip>
             ) : (
               <IconTooltip label={'Expand All'}>
                 <Button onClick={() => handleToggleExpand(true)} className="px-2! py-1! border border-transparent" variant="ghost">
-                  <ChevronsUpDown className="h-6! w-6!" />
+                  <ChevronsUpDown className="w-5! h-5!" />
                 </Button>
               </IconTooltip>
             )}

@@ -42,14 +42,14 @@ export const LinkTabHeader = ({
 
   return (
     <TabsContent className="h-full min-h-0 w-full px-3" value="link">
-      <div className="bg-transparent w-full h-full flex items-center gap-x-1 justify-start">
+      <div className="bg-transparent w-full h-full flex items-center gap-x-1 justify-center">
         {!isSearching ? (
           <>
             <DropdownMenu>
               <IconTooltip label={'Change sort order'}>
                 <DropdownMenuTrigger asChild>
                   <Button className="px-2! py-1! border border-transparent" variant="ghost">
-                    <ArrowUpNarrowWide className="h-6! w-6!" />
+                    <ArrowUpNarrowWide className="w-5! h-5!" />
                   </Button>
                 </DropdownMenuTrigger>
               </IconTooltip>
@@ -73,20 +73,20 @@ export const LinkTabHeader = ({
             {defaultExpand ? (
               <IconTooltip label={'Collapse All'}>
                 <Button onClick={() => handleToggleExpand(false)} className="px-2! py-1! border border-transparent" variant="ghost">
-                  <ChevronsDownUp className="h-6! w-6!" />
+                  <ChevronsDownUp className="w-5! h-5!" />
                 </Button>
               </IconTooltip>
             ) : (
               <IconTooltip label={'Expand All'}>
                 <Button onClick={() => handleToggleExpand(true)} className="px-2! py-1! border border-transparent" variant="ghost">
-                  <ChevronsUpDown className="h-6! w-6!" />
+                  <ChevronsUpDown className="w-5! h-5!" />
                 </Button>
               </IconTooltip>
             )}
 
             <IconTooltip label={'Search'}>
               <Button onClick={() => setIsSearching(true)} className="px-2! py-1! border border-transparent" variant="ghost">
-                <Search className="h-6! w-6!" />
+                <Search className="w-5! h-5!" />
               </Button>
             </IconTooltip>
           </>

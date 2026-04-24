@@ -10,7 +10,7 @@ const Page = () => {
         <TooltipTrigger asChild disabled={true}>
           <div className="w-fit h-fit ">
             <Button className="px-2! py-1! border border-transparent" variant={'ghost'} disabled={true}>
-              <SquarePen className="h-6! w-6!" />
+              <SquarePen className="w-5! h-5!" />
             </Button>
           </div>
         </TooltipTrigger>

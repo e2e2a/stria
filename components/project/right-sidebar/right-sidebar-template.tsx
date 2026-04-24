@@ -106,11 +106,11 @@ const RightSidebarTemplate = ({ activeNodeId }: { activeNodeId: string; activeNo
                       className="grow-0 hover:bg-accent/50 text-muted-foreground hover:text-foreground! data-[state=active]:text-foreground data-[state=active]:bg-accent/50! data-[state=active]:border-accent!"
                       value="link"
                     >
-                      <InboundLinkIcon className="w-6! h-6!" />
+                      <InboundLinkIcon className="w-5! h-5!" />
                     </TabsTrigger>
                   </IconTooltip>
                   {/* <TabsTrigger className="grow-0" value="outgoing">
-                    <OutboundLinkIcon className="w-6! h-6!" />
+                    <OutboundLinkIcon className="w-5! h-5!" />
                   </TabsTrigger> */}
                   {/* Inside TabsList */}
                   <IconTooltip label={'Tags'}>
@@ -118,7 +118,7 @@ const RightSidebarTemplate = ({ activeNodeId }: { activeNodeId: string; activeNo
                       className="grow-0 hover:bg-accent/50 text-muted-foreground hover:text-foreground! data-[state=active]:text-foreground data-[state=active]:bg-accent/50! data-[state=active]:border-accent!"
                       value="tags"
                     >
-                      <Tags className="w-6! h-6!" />
+                      <Tags className="w-5! h-5!" />
                     </TabsTrigger>
                   </IconTooltip>
                   <IconTooltip label={'All Properties'}>
@@ -126,7 +126,7 @@ const RightSidebarTemplate = ({ activeNodeId }: { activeNodeId: string; activeNo
                       className="grow-0 hover:bg-accent/50 text-muted-foreground hover:text-foreground! data-[state=active]:text-foreground data-[state=active]:bg-accent/50! data-[state=active]:border-accent!"
                       value="properties"
                     >
-                      <Archive className="w-6! h-6!" />
+                      <Archive className="w-5! h-5!" />
                     </TabsTrigger>
                   </IconTooltip>
                   <IconTooltip label={'Outline of backpressure Handling Pattern'}>
@@ -134,7 +134,7 @@ const RightSidebarTemplate = ({ activeNodeId }: { activeNodeId: string; activeNo
                       className="grow-0 hover:bg-accent/50 text-muted-foreground hover:text-foreground! data-[state=active]:text-foreground data-[state=active]:bg-accent/50! data-[state=active]:border-accent!"
                       value="outline"
                     >
-                      <List className="w-6! h-6!" />
+                      <List className="w-5! h-5!" />
                     </TabsTrigger>
                   </IconTooltip>
                   <IconTooltip label={'Active Users'}>
@@ -142,7 +142,7 @@ const RightSidebarTemplate = ({ activeNodeId }: { activeNodeId: string; activeNo
                       className="grow-0 relative text-muted-foreground hover:text-foreground! data-[state=active]:text-foreground hover:bg-accent/50 data-[state=active]:bg-accent/50! data-[state=active]:border-accent!"
                       value="pressence"
                     >
-                      <Users className="w-6! h-6!" />
+                      <Users className="w-5! h-5!" />
                       {filteredUsers.length > 0 && (
                         <span className="absolute -top-1 -right-1 flex h-3 min-w-3 items-center justify-center rounded-full bg-primary text-[8px] font-bold text-white">
                           {filteredUsers.length}
@@ -156,7 +156,7 @@ const RightSidebarTemplate = ({ activeNodeId }: { activeNodeId: string; activeNo
                         className="grow-0 hover:bg-accent/50 text-muted-foreground hover:text-foreground! data-[state=active]:text-foreground data-[state=active]:bg-accent/50! data-[state=active]:border-accent!"
                         value="mermaid"
                       >
-                        <IconTrident className="w-6! h-6! rotate-45 -ml-1 mt-1" />
+                        <IconTrident className="w-5! h-5! rotate-45 -ml-1 mt-1" />
                       </TabsTrigger>
                     </IconTooltip>
                   )}

@@ -39,7 +39,7 @@ export function LeftSidebarFooter({ projectData }: { projectData: IProject }) {
         </DropdownMenu>
         <div className="flex flex-row gap-x-2">
           <IconTooltip label="Support" className="hover:bg-accent p-1">
-            <CircleQuestionMark className="h-6! w-6!" />
+            <CircleQuestionMark className="w-5! h-5!" />
           </IconTooltip>
           <SettingsFooter />
         </div>
