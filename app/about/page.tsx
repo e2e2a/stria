@@ -16,11 +16,10 @@ export const metadata: Metadata = {
 
 export default function AboutPage() {
   return (
-    <div className="h-auto text-foreground bg-background">
+    <div className="text-foreground bg-background h-screen overflow-y-auto! [&::-webkit-scrollbar-track]:mt-20">
       <Navbar />
 
       <div className="flex flex-col px-6 items-center">
-        {/* HERO: Clean & Personal */}
         <section className="relative w-full max-w-280 pt-24 pb-16">
           <div className="flex flex-col items-start space-y-6 max-w-4xl">
             <span className="text-primary font-mono text-xs uppercase tracking-[0.3em] font-bold">Our Story</span>

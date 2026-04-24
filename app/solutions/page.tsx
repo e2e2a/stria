@@ -15,7 +15,7 @@ export const metadata: Metadata = {
 
 export default function SolutionsPage() {
   return (
-    <div className="h-auto text-foreground bg-background">
+    <div className="h-screen text-foreground bg-background overflow-y-auto! [&::-webkit-scrollbar-track]:mt-20">
       <Navbar />
 
       <div className="flex flex-col px-6 items-center">

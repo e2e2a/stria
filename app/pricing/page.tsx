@@ -42,7 +42,7 @@ const pricingPlans = [
 
 export default function PricingPage() {
   return (
-    <div className="h-auto text-foreground bg-background">
+    <div className="text-foreground bg-background h-screen overflow-y-auto! [&::-webkit-scrollbar-track]:mt-20">
       <Navbar />
 
       <div className="flex flex-col px-6 items-center">

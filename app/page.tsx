@@ -16,7 +16,7 @@ export const metadata: Metadata = {
 
 export default function Home() {
   return (
-    <div className="h-auto text-foreground bg-background">
+    <div className="h-screen text-foreground bg-background overflow-y-auto! [&::-webkit-scrollbar-track]:mt-20">
       <Navbar />
 
       <div className="grid grid-cols-1 px-6 place-items-center flex-col h-auto gap-y-10">
@@ -36,7 +36,7 @@ export default function Home() {
                   <TypingText
                     text={['Write Faster.', 'Preview Instantly.', 'Share Effortlessly.']}
                     className="text-xl md:text-3xl font-medium text-muted-foreground/60 italic"
-                    cursorCharacter={<span className="w-[2px] md:w-[3px] h-6 md:h-8 bg-primary inline-block ml-1" />}
+                    cursorCharacter={<span className="w-0.5 md:w-[3px] h-6 md:h-8 bg-primary inline-block ml-1" />}
                   />
                 </div>
               </div>

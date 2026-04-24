@@ -32,7 +32,7 @@ export const metadata: Metadata = {
 
 export default function EnterprisePage() {
   return (
-    <div className="h-auto text-foreground bg-background">
+    <div className="text-foreground bg-background h-screen overflow-y-auto! [&::-webkit-scrollbar-track]:mt-20">
       <Navbar />
 
       <div className="flex flex-col px-6 items-center">
