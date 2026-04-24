@@ -9,35 +9,11 @@ import { ContextMenu, ContextMenuTrigger } from '@/components/ui/context-menu';
 import ChunkContextMenu from './context-menu/chunk';
 import * as Y from 'yjs';
 
-// const myOwnDarkTheme = createTheme({
-//   theme: 'dark',
-//   settings: {
-//     background: '#191d24',
-//     foreground: '#d4d4d4',
-//     caret: '#ffffff',
-//     selectionMatch: '#3a3a3a',
-//     gutterBackground: '#191d24',
-//     lineHighlight: '#ffffff0f',
-//   },
-//   styles: [
-//     { tag: [t.keyword], color: '#569cd6' },
-//     { tag: [t.string], color: '#ce9178' },
-//     { tag: [t.comment], color: '#6a9955', fontStyle: 'italic' },
-//     { tag: [t.variableName], color: '#9cdcfe' },
-//     { tag: [t.function(t.variableName), t.propertyName], color: '#dcdcaa' },
-//     { tag: [t.typeName, t.className], color: '#4ec9b0' },
-//     { tag: [t.number, t.bool, t.null, t.atom], color: '#b5cea8' },
-//     { tag: t.operator, color: '#d4d4d4' },
-//     { tag: [t.heading], color: '#dcdcaa', fontWeight: 'bold' },
-//   ],
-// });
-
 const myTheme = createTheme({
   theme: 'dark',
   settings: {
     background: 'transparent',
     foreground: '#d4d4d4',
-    // selectionMatch: `${accentColor}40`,
     gutterBackground: '#191d24',
     lineHighlight: '#ffffff0f',
   },
