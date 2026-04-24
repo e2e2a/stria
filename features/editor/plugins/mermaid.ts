@@ -10,6 +10,8 @@ export const mermaidHeightUpdateEffect = StateEffect.define<{ code: string; heig
 export const mermaidHeightCache = new Map<string, number>();
 export const mermaidSvgCache = new Map<string, string>();
 
+export const themeChangedEffect = StateEffect.define<void>();
+
 export const mermaidLivePreviewField = StateField.define<DecorationSet>({
   create() {
     return Decoration.none;

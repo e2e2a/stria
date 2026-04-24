@@ -27,7 +27,6 @@ export function EditorThemeProvider({ children }: { children: ReactNode }) {
   const [activeTheme, setActiveThemeState] = useState<Appearance>(() => {
     if (typeof window !== 'undefined') {
       const saved = (localStorage.getItem('theme-appearance') as Appearance) || 'dark';
-      console.log('[THEME_DEBUG] 1. Initializing activeTheme from LocalStorage:', saved);
       return saved;
     }
     return 'dark';
@@ -36,7 +35,6 @@ export function EditorThemeProvider({ children }: { children: ReactNode }) {
   const [skin, setSkinState] = useState(() => {
     if (typeof window !== 'undefined') {
       const saved = localStorage.getItem('theme-skin') || '';
-      console.log('[THEME_DEBUG] 1. Initializing skin from LocalStorage:', saved || 'DEFAULT');
       return saved;
     }
     return '';
@@ -65,8 +63,6 @@ export function EditorThemeProvider({ children }: { children: ReactNode }) {
 
   useEffect(() => {
     if (!mounted) return;
-    console.log('[THEME_DEBUG] 3. Applying DOM classes...', { activeTheme, skin });
-
     const mq = window.matchMedia('(prefers-color-scheme: dark)');
     const root = document.documentElement;
 
@@ -86,7 +82,6 @@ export function EditorThemeProvider({ children }: { children: ReactNode }) {
     applyThemeToDOM();
 
     const handler = () => {
-      console.log('[THEME_DEBUG] OS System theme changed');
       applyThemeToDOM();
     };
     mq.addEventListener('change', handler);
@@ -104,7 +99,6 @@ export function EditorThemeProvider({ children }: { children: ReactNode }) {
 
     if (zustandTheme || zustandSkin) {
       if (!isZustandLoaded.current) {
-        console.log('[THEME_DEBUG] Zustand Database completely loaded.');
         isZustandLoaded.current = true;
       }
     }
@@ -118,7 +112,6 @@ export function EditorThemeProvider({ children }: { children: ReactNode }) {
     }
 
     if (zustandSkin !== undefined && zustandSkin !== skin) {
-      console.log(`[THEME_DEBUG] Zustand overwriting skin: ${skin} -> ${zustandSkin}`);
       setSkinState(zustandSkin);
       localStorage.setItem('theme-skin', zustandSkin);
     }
@@ -160,13 +153,11 @@ export function EditorThemeProvider({ children }: { children: ReactNode }) {
 
   // Manual Setters
   const setTheme = (t: Appearance) => {
-    console.log('[THEME_DEBUG] Manual Override: Theme ->', t);
     setActiveThemeState(t);
     localStorage.setItem('theme-appearance', t);
   };
 
   const setSkin = (s: string) => {
-    console.log('[THEME_DEBUG] Manual Override: Skin ->', s);
     setSkinState(s);
     localStorage.setItem('theme-skin', s);
   };

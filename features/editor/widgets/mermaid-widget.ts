@@ -3,24 +3,18 @@ import mermaid from 'mermaid';
 import { estimateMermaidHeight } from '../decorations/mermaid-build-decoration';
 import { mermaidHeightCache, mermaidSvgCache } from '../plugins/mermaid';
 
-mermaid.initialize({
-  startOnLoad: false,
-  theme: 'dark',
-  flowchart: {
-    useMaxWidth: false,
-    htmlLabels: true,
-    curve: 'basis',
-    nodeSpacing: 50,
-    rankSpacing: 50,
-  },
-  sequence: { useMaxWidth: false },
-  gantt: { useMaxWidth: false },
-});
+export function resolveTheme(theme: string) {
+  if (theme === 'system') {
+    return window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'default';
+  }
+  return theme === 'dark' || theme === '' ? 'dark' : 'default';
+}
 
 export class MermaidWidget extends WidgetType {
   constructor(
     readonly code: string,
-    readonly pos: number
+    readonly pos: number,
+    readonly theme: string
   ) {
     super();
   }
@@ -47,29 +41,45 @@ export class MermaidWidget extends WidgetType {
     //   }, 30);
     //   return mainContainer;
     // }
-    if (!mermaidSvgCache.has(this.code)) {
-      renderMermaid(this.code, mainContainer, this.pos, view);
+    mermaid.initialize({
+      startOnLoad: false,
+      theme: resolveTheme(this.theme),
+      flowchart: {
+        useMaxWidth: false,
+        htmlLabels: true,
+        curve: 'basis',
+        nodeSpacing: 50,
+        rankSpacing: 50,
+      },
+      sequence: { useMaxWidth: false },
+      gantt: { useMaxWidth: false },
+    });
+
+    const svgCacheKey = `${this.theme}-${this.code}`;
+    if (!mermaidSvgCache.has(svgCacheKey)) {
+      renderMermaid(this.code, mainContainer, this.pos, view, svgCacheKey);
       return mainContainer;
     }
-    mountContent(mainContainer, this.code, this.pos, view);
+    mountContent(mainContainer, this.code, this.pos, view, svgCacheKey);
     return mainContainer;
   }
   eq(other: MermaidWidget) {
     return (
       other.code === this.code &&
       other.pos === this.pos &&
+      other.theme === this.theme &&
       mermaidHeightCache.get(this.code) === mermaidHeightCache.get(other.code) &&
-      mermaidSvgCache.get(this.code) === mermaidSvgCache.get(other.code)
+      mermaidSvgCache.get(`${this.theme}-${this.code}`) === mermaidSvgCache.get(`${other.theme}-${other.code}`)
     );
   }
 }
 
-async function renderMermaid(code: string, container: HTMLElement, pos: number, view: EditorView) {
+async function renderMermaid(code: string, container: HTMLElement, pos: number, view: EditorView, svgCacheKey: string) {
   try {
     const id = `live-${crypto.randomUUID()}`;
     const { svg } = await mermaid.render(id, code);
 
-    mermaidSvgCache.set(code, svg);
+    mermaidSvgCache.set(svgCacheKey, svg);
 
     const temp = document.createElement('div');
     temp.style.cssText = 'position:absolute;visibility:hidden;width:800px';
@@ -84,14 +94,14 @@ async function renderMermaid(code: string, container: HTMLElement, pos: number, 
     container.style.minHeight = `${height}px`;
     container.innerHTML = '';
 
-    mountContent(container, code, pos, view);
+    mountContent(container, code, pos, view, svgCacheKey);
   } catch (e) {
     console.error('Mermaid render failed:', e);
   }
 }
 
-function mountContent(mainContainer: HTMLElement, code: string, pos: number, view: EditorView) {
-  const svg = mermaidSvgCache.get(code)!;
+function mountContent(mainContainer: HTMLElement, code: string, pos: number, view: EditorView, svgCacheKey: string) {
+  const svg = mermaidSvgCache.get(svgCacheKey)!;
 
   const container = document.createElement('div');
   container.className =

@@ -587,64 +587,64 @@ export function getImageDecos(state: EditorState, text: string, lineFrom: number
   return decos;
 }
 
-export function getMermaidDecos(
-  state: EditorState,
-  lineNum: number,
-  activeLineNum: number
-): { decos: StateRange<Decoration>[]; skipToLine: number } | null {
-  const line = state.doc.line(lineNum);
+// export function getMermaidDecos(
+//   state: EditorState,
+//   lineNum: number,
+//   activeLineNum: number
+// ): { decos: StateRange<Decoration>[]; skipToLine: number } | null {
+//   const line = state.doc.line(lineNum);
 
-  if (!line.text.trim().startsWith('```mermaid')) {
-    return null;
-  }
+//   if (!line.text.trim().startsWith('```mermaid')) {
+//     return null;
+//   }
 
-  const decos: StateRange<Decoration>[] = [];
-  const doc = state.doc;
-  const selection = state.selection.main;
-  const sourceMode = state.field(sourceModeField, false);
-  const viewMode = state.facet(EditorState.readOnly);
-  const isChunkMode = state.facet(chunkModeFacet);
+//   const decos: StateRange<Decoration>[] = [];
+//   const doc = state.doc;
+//   const selection = state.selection.main;
+//   const sourceMode = state.field(sourceModeField, false);
+//   const viewMode = state.facet(EditorState.readOnly);
+//   const isChunkMode = state.facet(chunkModeFacet);
 
-  const startLine = lineNum;
-  let endLine = lineNum;
-  const content = [];
+//   const startLine = lineNum;
+//   let endLine = lineNum;
+//   const content = [];
 
-  for (let j = lineNum + 1; j <= doc.lines; j++) {
-    const nextLine = doc.line(j);
-    if (nextLine.text.trim().startsWith('```')) {
-      endLine = j;
-      break;
-    }
-    content.push(nextLine.text);
-  }
+//   for (let j = lineNum + 1; j <= doc.lines; j++) {
+//     const nextLine = doc.line(j);
+//     if (nextLine.text.trim().startsWith('```')) {
+//       endLine = j;
+//       break;
+//     }
+//     content.push(nextLine.text);
+//   }
 
-  const blockFrom = doc.line(startLine).from;
-  const blockTo = doc.line(endLine).to;
-  const isBlockActive = activeLineNum >= startLine && activeLineNum <= endLine;
-  const isSelected = !selection.empty && selection.from < blockTo && selection.to > blockFrom;
+//   const blockFrom = doc.line(startLine).from;
+//   const blockTo = doc.line(endLine).to;
+//   const isBlockActive = activeLineNum >= startLine && activeLineNum <= endLine;
+//   const isSelected = !selection.empty && selection.from < blockTo && selection.to > blockFrom;
 
-  if (viewMode || (!isBlockActive && !isSelected && !sourceMode && !isChunkMode)) {
-    for (let k = startLine; k <= endLine; k++) {
-      decos.push(
-        Decoration.line({
-          attributes: { class: 'cm-syntax-hide' },
-        }).range(doc.line(k).from)
-      );
-    }
+//   if (viewMode || (!isBlockActive && !isSelected && !sourceMode && !isChunkMode)) {
+//     for (let k = startLine; k <= endLine; k++) {
+//       decos.push(
+//         Decoration.line({
+//           attributes: { class: 'cm-syntax-hide' },
+//         }).range(doc.line(k).from)
+//       );
+//     }
 
-    decos.push(
-      Decoration.widget({
-        widget: new MermaidWidget(content.join('\n'), line.from),
-        side: 1,
-        block: true,
-      }).range(doc.line(endLine).to)
-    );
+//     decos.push(
+//       Decoration.widget({
+//         widget: new MermaidWidget(content.join('\n'), line.from),
+//         side: 1,
+//         block: true,
+//       }).range(doc.line(endLine).to)
+//     );
 
-    return { decos, skipToLine: endLine };
-  }
+//     return { decos, skipToLine: endLine };
+//   }
 
-  return null;
-}
+//   return null;
+// }
 
 export function getTagDecos(text: string, lineFrom: number): StateRange<Decoration>[] {
   if (!text.includes('#')) return [];

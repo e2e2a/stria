@@ -46,7 +46,8 @@ import EditorTabTitleBar from './options/appearance/tab-title-bar';
 import EditorInlineTitle from './options/appearance/inline-title';
 import createTheme from '@uiw/codemirror-themes';
 import { tags as t } from '@lezer/highlight';
-import { mermaidLivePreviewField, registerView } from '@/features/editor/plugins/mermaid';
+import { mermaidLivePreviewField, registerView, themeChangedEffect } from '@/features/editor/plugins/mermaid';
+import { useEditorSettings } from '@/features/editor/stores/setting';
 
 const myTheme = createTheme({
   theme: 'dark',
@@ -306,6 +307,22 @@ function MarkdownSection({ node, isDirty, canEditNode, canEditChunk }: { node: I
       }
     }
   }, [synced, pendingScrollHeading, ytext, node._id]);
+
+  useEffect(() => {
+    const unsubscribe = useEditorSettings.subscribe((state, prevState) => {
+      if (state.theme !== prevState?.theme) {
+        if (!editorViewRef.current) return;
+
+        editorViewRef.current.dispatch({
+          effects: themeChangedEffect.of(),
+        });
+      }
+    });
+
+    return () => {
+      unsubscribe();
+    };
+  }, []);
 
   return (
     <>
