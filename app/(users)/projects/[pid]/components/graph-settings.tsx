@@ -27,23 +27,23 @@ export function GraphSettings(props: GraphSettingsProps) {
   const categories = ['Filters', 'Forces'];
 
   return (
-    <div className="absolute top-6 left-6 z-20 flex flex-col items-start gap-2">
+    <div className="absolute top-6 right-6 z-20 flex flex-col items-end gap-2">
       <button
         onClick={() => props.setShowSettings(!props.showSettings)}
-        className="p-2 bg-white/5 border border-white/10 rounded-lg hover:bg-white/10 transition-colors text-white/70"
+        className="p-2 rounded-lg hover:bg-accent/50 dark:hover:bg-accent transition-colors text-foreground"
       >
         <Settings className={`w-5 h-5 ${props.showSettings ? 'rotate-90' : ''} transition-transform duration-300`} />
       </button>
 
       {props.showSettings && (
-        <div className="w-64 bg-background/90 backdrop-blur-xl border border-white/10 rounded-lg overflow-hidden shadow-2xl animate-in fade-in zoom-in-95 duration-200">
-          <div className="flex items-center justify-between p-3 border-b border-white/5">
-            <span className="text-[11px] font-bold uppercase tracking-widest text-white/50">Graph Settings</span>
+        <div className="w-64 bg-background/90 backdrop-blur-xl border border-border rounded-lg overflow-hidden shadow-2xl animate-in fade-in zoom-in-95 duration-200">
+          <div className="flex items-center justify-between p-3 border-b border-border">
+            <span className="text-[11px] font-bold uppercase tracking-widest text-foreground">Graph Settings</span>
             <div className="flex gap-2">
-              <button onClick={props.handleReset} className="p-1 hover:text-blue-400 text-white/30 transition-colors">
+              <button onClick={props.handleReset} className="p-1 hover:text-blue-400 text-muted-foreground transition-colors">
                 <RotateCcw className="w-3.5 h-3.5" />
               </button>
-              <button onClick={() => props.setShowSettings(false)} className="p-1 hover:text-red-400 text-white/30 transition-colors">
+              <button onClick={() => props.setShowSettings(false)} className="p-1 hover:text-red-400 text-muted-foreground transition-colors">
                 <X className="w-3.5 h-3.5" />
               </button>
             </div>
@@ -51,16 +51,16 @@ export function GraphSettings(props: GraphSettingsProps) {
 
           <div className="flex flex-col">
             {categories.map(cat => (
-              <div key={cat} className="border-b border-white/5 last:border-0">
+              <div key={cat} className="border-b border-border last:border-0">
                 <button
                   onClick={() => setExpandedCategory(expandedCategory === cat ? null : cat)}
-                  className="w-full flex items-center justify-between p-3 hover:bg-white/5 text-left group"
+                  className="w-full flex items-center justify-between p-3 dark:hover:bg-accent/50 text-left group"
                 >
                   <div className="flex items-center gap-3">
                     <ChevronRight
-                      className={`w-3 h-3 text-white/20 group-hover:text-blue-500 transition-transform duration-200 ${expandedCategory === cat ? 'rotate-90' : ''}`}
+                      className={`w-3 h-3 text-muted-foreground group-hover:text-(--editor-accent-color) transition-transform duration-200 ${expandedCategory === cat ? 'rotate-90' : ''}`}
                     />
-                    <span className="text-xs font-medium text-white/70 group-hover:text-white transition-colors tracking-wide">{cat}</span>
+                    <span className="text-xs font-medium text-muted-foreground group-hover:text-foreground transition-colors tracking-wide">{cat}</span>
                   </div>
                 </button>
 
@@ -74,10 +74,10 @@ export function GraphSettings(props: GraphSettingsProps) {
                         value={props.searchQuery}
                         onChange={e => props.setSearchQuery(e.target.value)}
                         placeholder={props.showTags ? 'Search tags...' : 'Search files...'}
-                        className="w-full bg-white/5 border border-white/10 rounded py-1.5 pl-9 pr-8 text-xs text-white outline-none focus:border-accent focus:ring-1 focus:ring-accent/70 transition-all"
+                        className="w-full bg-accent dark:bg-accent/50 border border-border rounded py-1.5 pl-9 pr-8 text-xs text-foreground outline-none focus:border-accent focus:ring-1 focus:ring-accent/70 transition-all"
                       />
                       {props.searchQuery && (
-                        <button onClick={() => props.setSearchQuery('')} className="absolute right-2 top-1/2 -translate-y-1/2 text-white/30">
+                        <button onClick={() => props.setSearchQuery('')} className="absolute right-2 top-1/2 -translate-y-1/2 text-muted-foreground">
                           <X className="w-3.5 h-3.5" />
                         </button>
                       )}
@@ -85,32 +85,32 @@ export function GraphSettings(props: GraphSettingsProps) {
 
                     <div className="flex flex-col gap-3">
                       <div className="flex items-center justify-between px-1">
-                        <span className="text-xs font-medium text-white/70">Tags</span>
+                        <span className="text-xs font-medium text-muted-foreground">Tags</span>
                         <button
                           onClick={() => {
                             props.setShowTags(!props.showTags);
                             props.setSearchQuery('');
                           }}
                           className={`relative inline-flex h-4 w-8 items-center rounded-full transition-colors focus:outline-none ${
-                            props.showTags ? 'bg-blue-500' : 'bg-white/10'
+                            props.showTags ? 'bg-(--editor-accent-color)' : 'bg-accent dark:bg-accent/50'
                           }`}
                         >
                           <span
-                            className={`inline-block h-3 w-3 transform rounded-full bg-white transition-transform ${props.showTags ? 'translate-x-4' : 'translate-x-1'}`}
+                            className={`inline-block h-3 w-3 transform rounded-full bg-foreground transition-transform ${props.showTags ? 'translate-x-4' : 'translate-x-1'}`}
                           />
                         </button>
                       </div>
 
                       <div className="flex items-center justify-between px-1">
-                        <span className="text-xs font-medium text-white/70">Orphans</span>
+                        <span className="text-xs font-medium text-muted-foreground">Orphans</span>
                         <button
                           onClick={() => props.setShowOrphans(!props.showOrphans)}
                           className={`relative inline-flex h-4 w-8 items-center rounded-full transition-colors focus:outline-none ${
-                            props.showOrphans ? 'bg-blue-500' : 'bg-white/10'
+                            props.showOrphans ? 'bg-(--editor-accent-color)' : 'bg-accent dark:bg-accent/50'
                           }`}
                         >
                           <span
-                            className={`inline-block h-3 w-3 transform rounded-full bg-white transition-transform ${props.showOrphans ? 'translate-x-4' : 'translate-x-1'}`}
+                            className={`inline-block h-3 w-3 transform rounded-full bg-foreground transition-transform ${props.showOrphans ? 'translate-x-4' : 'translate-x-1'}`}
                           />
                         </button>
                       </div>
@@ -128,7 +128,14 @@ export function GraphSettings(props: GraphSettingsProps) {
                           {props.centerForce.toFixed(2)}
                         </span>
                       </div>
-                      <Slider value={[props.centerForce]} onValueChange={v => props.setCenterForce(v[0])} min={0} max={2} step={0.01} />
+                      <Slider
+                        value={[props.centerForce]}
+                        className="**:data-[slot=slider-range]:bg-(--editor-accent-color)"
+                        onValueChange={v => props.setCenterForce(v[0])}
+                        min={0}
+                        max={10}
+                        step={0.01}
+                      />
                     </div>
 
                     <div className="flex flex-col gap-3 group/slider">
@@ -138,7 +145,13 @@ export function GraphSettings(props: GraphSettingsProps) {
                           {props.repelForce}
                         </span>
                       </div>
-                      <Slider value={[props.repelForce]} onValueChange={v => props.setRepelForce(v[0])} max={200} step={1} />
+                      <Slider
+                        value={[props.repelForce]}
+                        className="**:data-[slot=slider-range]:bg-(--editor-accent-color)"
+                        onValueChange={v => props.setRepelForce(v[0])}
+                        max={1000}
+                        step={1}
+                      />
                     </div>
 
                     <div className="flex flex-col gap-3 group/slider">
@@ -148,7 +161,13 @@ export function GraphSettings(props: GraphSettingsProps) {
                           {props.linkForce.toFixed(2)}
                         </span>
                       </div>
-                      <Slider value={[props.linkForce]} onValueChange={v => props.setLinkForce(v[0])} max={1} step={0.05} />
+                      <Slider
+                        value={[props.linkForce]}
+                        className="**:data-[slot=slider-range]:bg-(--editor-accent-color)"
+                        onValueChange={v => props.setLinkForce(v[0])}
+                        max={5}
+                        step={0.05}
+                      />
                     </div>
 
                     <div className="flex flex-col gap-3 group/slider">
@@ -158,7 +177,14 @@ export function GraphSettings(props: GraphSettingsProps) {
                           {props.linkDistance}
                         </span>
                       </div>
-                      <Slider value={[props.linkDistance]} onValueChange={v => props.setLinkDistance(v[0])} min={30} max={500} step={1} />
+                      <Slider
+                        value={[props.linkDistance]}
+                        className="**:data-[slot=slider-range]:bg-(--editor-accent-color)"
+                        onValueChange={v => props.setLinkDistance(v[0])}
+                        min={30}
+                        max={500}
+                        step={1}
+                      />
                     </div>
                   </div>
                 )}

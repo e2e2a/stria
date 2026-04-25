@@ -53,18 +53,18 @@ function GraphViewSection({
   const [showTags, setShowTags] = useState(false);
 
   const [centerForce, setCenterForce] = useState(1);
-  const [repelForce, setRepelForce] = useState(120);
-  const [linkForce, setLinkForce] = useState(0.15);
-  const [linkDistance, setLinkDistance] = useState(50);
+  const [repelForce, setRepelForce] = useState(1000);
+  const [linkForce, setLinkForce] = useState(1);
+  const [linkDistance, setLinkDistance] = useState(200);
 
   const handleReset = () => {
     setSearchQuery('');
     setShowOrphans(true);
     setShowTags(false);
     setCenterForce(1);
-    setRepelForce(120);
-    setLinkForce(0.15);
-    setLinkDistance(50);
+    setRepelForce(1000);
+    setLinkForce(1);
+    setLinkDistance(200);
   };
 
   const { filteredNodes, filteredLinks, adjacency } = useFilteredGraph(data, searchQuery, showOrphans, showTags);
@@ -216,7 +216,12 @@ function GraphViewSection({
         }
       }
 
-      const COLOR_PRIMARY = 'oklch(0.5337 0.2808 293.24)';
+      const styles = getComputedStyle(document.documentElement);
+
+      const accent = styles.getPropertyValue('--editor-accent-color').trim();
+      const font = styles.getPropertyValue('--editor-font-text').trim();
+
+      const COLOR_PRIMARY = accent;
       const COLOR_NEIGHBOR = '#60a5fa';
       const COLOR_TAG = '#fbbf24';
       const COLOR_IDLE = 'rgba(200, 200, 200, 0.8)';
@@ -278,6 +283,8 @@ function GraphViewSection({
           ctx.shadowBlur = 15;
           ctx.shadowColor = isTag ? COLOR_TAG : isMain ? COLOR_PRIMARY : COLOR_NEIGHBOR;
         }
+
+        // ctx.font = `${isMain ? 'bold' : 'normal'} ${16}px ${font}`;
         ctx.fill();
         ctx.shadowBlur = 0;
 
@@ -286,7 +293,7 @@ function GraphViewSection({
           if (showLabel) {
             const isBig = isMain && t.k <= 0.8;
             const fontSize = isBig ? 22 / t.k : 12 / t.k;
-            ctx.font = `${isMain ? 'bold' : 'normal'} ${fontSize}px Inter, sans-serif`;
+            ctx.font = `${isMain ? 'bold' : 'normal'} ${fontSize}px ${font}`;
             ctx.textAlign = 'center';
 
             if (isMain) {
@@ -487,17 +494,17 @@ function GraphViewSection({
       <canvas ref={canvasRef} className="block cursor-crosshair outline-none" />
 
       <div className="absolute bottom-6 left-6 flex items-end gap-4 pointer-events-none z-10">
-        <div className="flex flex-col gap-1 border-l border-blue-500/50 pl-4 py-1 bg-background/20 backdrop-blur-sm rounded-r-md">
-          <h2 className="text-[10px] font-bold text-blue-400/80 uppercase tracking-[0.2em]">Database Index</h2>
+        <div className="flex flex-col gap-1 border-l border-(--editor-accent-color)/50 pl-4 py-1 bg-background/20 backdrop-blur-sm rounded-r-md">
+          <h2 className="text-[10px] font-bold text-(--editor-accent-color) uppercase tracking-[0.2em]">Database Index</h2>
           <div className="flex items-baseline gap-2">
-            <span className="text-3xl font-light tracking-tighter text-white/90">{filteredNodes.length}</span>
-            <span className="text-[10px] text-white/30 uppercase font-medium tracking-widest">Visible Nodes</span>
+            <span className="text-3xl font-light tracking-tighter text-foreground">{filteredNodes.length}</span>
+            <span className="text-[10px] text-muted-foreground uppercase font-medium tracking-widest">Visible Nodes</span>
           </div>
         </div>
 
-        <div className="mb-1 flex items-center gap-2 bg-white/5 px-2 py-1 rounded-md border border-white/5 backdrop-blur-sm">
-          <div className="w-1.5 h-1.5 rounded-full bg-blue-500 animate-pulse" />
-          <span className="text-[9px] text-white/40 font-mono uppercase tracking-tight">Synced</span>
+        <div className="mb-1 flex items-center gap-2 bg-secondary/50 px-2 py-1 rounded-md border border-white/5 backdrop-blur-sm">
+          <div className="w-1.5 h-1.5 rounded-full bg-(--editor-accent-color) animate-pulse" />
+          <span className="text-[9px] text-muted-foreground font-mono uppercase tracking-tight">Synced</span>
         </div>
       </div>
     </div>
