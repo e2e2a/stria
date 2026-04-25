@@ -42,7 +42,12 @@ export async function prerenderThenBuild(state: EditorState, from: number, to: n
     blocks.map(async ({ code }) => {
       const svgCacheKey = `${resolvedTheme}-${code}`;
       const cachedSvg = mermaidSvgCache.get(svgCacheKey);
+      if (mermaidSvgCache.has(svgCacheKey) && mermaidHeightCache.has(code)) return;
 
+      // Only set height estimate as placeholder — don't bother rendering svg
+      if (!mermaidHeightCache.has(code)) {
+        mermaidHeightCache.set(code, estimateMermaidHeight(code));
+      }
       if (cachedSvg) return;
       try {
         const id = `pre-${crypto.randomUUID()}`;
