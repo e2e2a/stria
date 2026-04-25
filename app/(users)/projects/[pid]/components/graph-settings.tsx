@@ -40,10 +40,10 @@ export function GraphSettings(props: GraphSettingsProps) {
           <div className="flex items-center justify-between p-3 border-b border-border">
             <span className="text-[11px] font-bold uppercase tracking-widest text-foreground">Graph Settings</span>
             <div className="flex gap-2">
-              <button onClick={props.handleReset} className="p-1 hover:text-blue-400 text-muted-foreground transition-colors">
+              <button onClick={props.handleReset} className="p-1 hover:text-foreground text-muted-foreground transition-colors">
                 <RotateCcw className="w-3.5 h-3.5" />
               </button>
-              <button onClick={() => props.setShowSettings(false)} className="p-1 hover:text-red-400 text-muted-foreground transition-colors">
+              <button onClick={() => props.setShowSettings(false)} className="p-1 hover:text-foreground text-muted-foreground transition-colors">
                 <X className="w-3.5 h-3.5" />
               </button>
             </div>
@@ -74,7 +74,7 @@ export function GraphSettings(props: GraphSettingsProps) {
                         value={props.searchQuery}
                         onChange={e => props.setSearchQuery(e.target.value)}
                         placeholder={props.showTags ? 'Search tags...' : 'Search files...'}
-                        className="w-full bg-accent dark:bg-accent/50 border border-border rounded py-1.5 pl-9 pr-8 text-xs text-foreground outline-none focus:border-accent focus:ring-1 focus:ring-accent/70 transition-all"
+                        className="w-full bg-input dark:bg-accent/50 border border-border rounded py-1.5 pl-9 pr-8 text-xs text-foreground outline-none focus:border-accent focus:ring-1 focus:ring-accent/70 transition-all"
                       />
                       {props.searchQuery && (
                         <button onClick={() => props.setSearchQuery('')} className="absolute right-2 top-1/2 -translate-y-1/2 text-muted-foreground">
@@ -91,12 +91,12 @@ export function GraphSettings(props: GraphSettingsProps) {
                             props.setShowTags(!props.showTags);
                             props.setSearchQuery('');
                           }}
-                          className={`relative inline-flex h-4 w-8 items-center rounded-full transition-colors focus:outline-none ${
-                            props.showTags ? 'bg-(--editor-accent-color)' : 'bg-accent dark:bg-accent/50'
+                          className={`relative inline-flex h-4 w-8 items-center border border-border rounded-full transition-colors focus:outline-none ${
+                            props.showTags ? 'bg-(--editor-accent-color)' : 'bg-input'
                           }`}
                         >
                           <span
-                            className={`inline-block h-3 w-3 transform rounded-full bg-foreground transition-transform ${props.showTags ? 'translate-x-4' : 'translate-x-1'}`}
+                            className={`inline-block h-3 w-3 transform rounded-full bg-foreground ring-1 ring-foreground transition-transform ${props.showTags ? 'translate-x-4' : 'translate-x-1'}`}
                           />
                         </button>
                       </div>
@@ -105,12 +105,12 @@ export function GraphSettings(props: GraphSettingsProps) {
                         <span className="text-xs font-medium text-muted-foreground">Orphans</span>
                         <button
                           onClick={() => props.setShowOrphans(!props.showOrphans)}
-                          className={`relative inline-flex h-4 w-8 items-center rounded-full transition-colors focus:outline-none ${
-                            props.showOrphans ? 'bg-(--editor-accent-color)' : 'bg-accent dark:bg-accent/50'
+                          className={`relative inline-flex h-4 w-8 items-center border border-border rounded-full transition-colors focus:outline-none ${
+                            props.showOrphans ? 'bg-(--editor-accent-color)' : 'bg-input'
                           }`}
                         >
                           <span
-                            className={`inline-block h-3 w-3 transform rounded-full bg-foreground transition-transform ${props.showOrphans ? 'translate-x-4' : 'translate-x-1'}`}
+                            className={`inline-block h-3 w-3 transform rounded-full bg-foreground ring-1 ring-foreground transition-transform ${props.showOrphans ? 'translate-x-4' : 'translate-x-1'}`}
                           />
                         </button>
                       </div>
@@ -123,8 +123,8 @@ export function GraphSettings(props: GraphSettingsProps) {
                   <div className="p-3 pt-0 animate-in fade-in slide-in-from-top-2 duration-200 flex flex-col gap-5 mt-2">
                     <div className="flex flex-col gap-3 group/slider">
                       <div className="flex items-center justify-between">
-                        <span className="text-[10px] font-mono text-white/50 uppercase tracking-wider">Center force</span>
-                        <span className="text-[10px] font-mono text-blue-400 opacity-0 group-hover/slider:opacity-100 transition-opacity">
+                        <span className="text-[10px] font-mono text-muted-foreground uppercase tracking-wider">Center force</span>
+                        <span className="text-[10px] font-mono text-(--editor-accent-color) opacity-0 group-hover/slider:opacity-100 transition-opacity">
                           {props.centerForce.toFixed(2)}
                         </span>
                       </div>
@@ -140,8 +140,8 @@ export function GraphSettings(props: GraphSettingsProps) {
 
                     <div className="flex flex-col gap-3 group/slider">
                       <div className="flex items-center justify-between">
-                        <span className="text-[10px] font-mono text-white/50 uppercase tracking-wider">Repel force</span>
-                        <span className="text-[10px] font-mono text-blue-400 opacity-0 group-hover/slider:opacity-100 transition-opacity">
+                        <span className="text-[10px] font-mono text-muted-foreground uppercase tracking-wider">Repel force</span>
+                        <span className="text-[10px] font-mono text-(--editor-accent-color) opacity-0 group-hover/slider:opacity-100 transition-opacity">
                           {props.repelForce}
                         </span>
                       </div>
@@ -156,8 +156,8 @@ export function GraphSettings(props: GraphSettingsProps) {
 
                     <div className="flex flex-col gap-3 group/slider">
                       <div className="flex items-center justify-between">
-                        <span className="text-[10px] font-mono text-white/50 uppercase tracking-wider">Link force</span>
-                        <span className="text-[10px] font-mono text-blue-400 opacity-0 group-hover/slider:opacity-100 transition-opacity">
+                        <span className="text-[10px] font-mono text-muted-foreground uppercase tracking-wider">Link force</span>
+                        <span className="text-[10px] font-mono text-(--editor-accent-color) opacity-0 group-hover/slider:opacity-100 transition-opacity">
                           {props.linkForce.toFixed(2)}
                         </span>
                       </div>
@@ -172,8 +172,8 @@ export function GraphSettings(props: GraphSettingsProps) {
 
                     <div className="flex flex-col gap-3 group/slider">
                       <div className="flex items-center justify-between">
-                        <span className="text-[10px] font-mono text-white/50 uppercase tracking-wider">Link distance</span>
-                        <span className="text-[10px] font-mono text-blue-400 opacity-0 group-hover/slider:opacity-100 transition-opacity">
+                        <span className="text-[10px] font-mono text-muted-foreground uppercase tracking-wider">Link distance</span>
+                        <span className="text-[10px] font-mono text-(--editor-accent-color) opacity-0 group-hover/slider:opacity-100 transition-opacity">
                           {props.linkDistance}
                         </span>
                       </div>

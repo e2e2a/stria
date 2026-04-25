@@ -215,19 +215,20 @@ function GraphViewSection({
           if (tId === hoverId) dynamicNeighbors.add(sId);
         }
       }
-
       const styles = getComputedStyle(document.documentElement);
-
       const accent = styles.getPropertyValue('--editor-accent-color').trim();
       const font = styles.getPropertyValue('--editor-font-text').trim();
+      const bg = styles.getPropertyValue('--background').trim();
+      const mutedForeground = styles.getPropertyValue('--muted-foreground').trim();
+      const foreground = styles.getPropertyValue('--foreground').trim();
 
       const COLOR_PRIMARY = accent;
-      const COLOR_NEIGHBOR = '#60a5fa';
+      const COLOR_NEIGHBOR = mutedForeground;
       const COLOR_TAG = '#fbbf24';
-      const COLOR_IDLE = 'rgba(200, 200, 200, 0.8)';
-      const COLOR_MUTED = 'rgba(255, 255, 255, 0.05)';
+      const COLOR_IDLE = `color-mix(in oklch, ${foreground} 50%, transparent)`;
+      const COLOR_MUTED = `color-mix(in oklch, ${mutedForeground} 50%, transparent)`;
 
-      ctx.fillStyle = 'oklch(0.2293 0.0153 264.2095)';
+      ctx.fillStyle = bg;
       ctx.fillRect(0, 0, canvas.width, canvas.height);
 
       ctx.save();
@@ -249,12 +250,12 @@ function GraphViewSection({
         ctx.lineTo(targetNode.x, targetNode.y);
 
         if (hoverId) {
-          ctx.strokeStyle = isRelated ? (isTagLink ? COLOR_TAG : COLOR_NEIGHBOR) : 'rgba(255, 255, 255, 0.01)';
+          ctx.strokeStyle = isRelated ? (isTagLink ? COLOR_TAG : accent) : COLOR_MUTED;
         } else {
-          ctx.strokeStyle = 'rgba(255, 255, 255, 0.1)';
+          ctx.strokeStyle = COLOR_MUTED;
         }
 
-        ctx.lineWidth = isRelated ? 2 / t.k : 0.8 / t.k;
+        ctx.lineWidth = isRelated ? 0.5 / t.k : 0.25 / t.k;
         ctx.stroke();
         ctx.beginPath();
       }
@@ -284,7 +285,6 @@ function GraphViewSection({
           ctx.shadowColor = isTag ? COLOR_TAG : isMain ? COLOR_PRIMARY : COLOR_NEIGHBOR;
         }
 
-        // ctx.font = `${isMain ? 'bold' : 'normal'} ${16}px ${font}`;
         ctx.fill();
         ctx.shadowBlur = 0;
 
@@ -297,11 +297,11 @@ function GraphViewSection({
             ctx.textAlign = 'center';
 
             if (isMain) {
-              ctx.fillStyle = '#ffffff';
+              ctx.fillStyle = foreground;
             } else if (isNeighbor) {
-              ctx.fillStyle = isTag ? COLOR_TAG : 'rgba(255,255,255,0.9)';
+              ctx.fillStyle = isTag ? COLOR_TAG : foreground;
             } else {
-              ctx.fillStyle = 'rgba(255,255,255,0.4)';
+              ctx.fillStyle = COLOR_MUTED;
             }
 
             ctx.fillText(n.title, n.x, n.y + (n.radius || 10) + (isBig ? 35 : 15) / t.k);
@@ -463,7 +463,7 @@ function GraphViewSection({
     return (
       <div className="h-full bg-background flex items-center justify-center text-muted-foreground animate-pulse">
         <div className="flex flex-col items-center gap-2">
-          <div className="w-8 h-8 border-2 border-blue-500/30 border-t-blue-500 rounded-full animate-spin" />
+          <div className="w-8 h-8 border-2 border-(--editor-accent-color/30 border-t-(--editor-accent-color) rounded-full animate-spin" />
           <span className="text-xs font-mono tracking-tighter uppercase">Initializing Graph...</span>
         </div>
       </div>
