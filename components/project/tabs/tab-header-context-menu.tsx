@@ -13,7 +13,7 @@ const TabHeaderContextMenu = ({ children, tab, pid, canEditChunk }: { children: 
     );
   };
 
-  if (tab.nodeId === 'graph-view') return children;
+  if (tab.nodeId === 'graph-view') return <div className="w-fit">{children}</div>;
 
   return (
     <ContextMenu>
