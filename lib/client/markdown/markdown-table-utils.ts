@@ -1,4 +1,4 @@
-import { TablePreviewWidget } from '@/features/editor/widgets';
+import { TablePreviewWidget } from '@/features/editor/widgets/table';
 import { EditorState, EditorView } from '@uiw/react-codemirror';
 export type PendingTableFocus = {
   row: number;

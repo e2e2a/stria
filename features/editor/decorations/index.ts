@@ -1,15 +1,6 @@
 import { Decoration, EditorView } from '@codemirror/view';
 import { Range as StateRange, EditorState, RangeSet } from '@codemirror/state';
-import {
-  BulletWidget,
-  CalloutWidget,
-  CheckboxWidget,
-  FenchCodeWidget,
-  ImageWidget,
-  InlineMathWidget,
-  MathWidget,
-  TablePreviewWidget,
-} from '@/features/editor/widgets';
+import { BulletWidget, CalloutWidget, CheckboxWidget, FenchCodeWidget, ImageWidget, InlineMathWidget, MathWidget } from '@/features/editor/widgets';
 import { getTableRange, isValidTable } from '@/lib/client/markdown/markdown-table-utils';
 // import { MermaidWidget } from '../widgets/mermaid-widget';
 import { chunkModeFacet, sourceModeField } from '../plugins';
@@ -17,6 +8,7 @@ import { FrontmatterWidget } from '../widgets/front-matter-widget';
 import { syntaxTree } from '@codemirror/language';
 import { SyntaxNode } from '@lezer/common';
 import { DragHandleWidget } from '../widgets/chunk-widget';
+import { TablePreviewWidget } from '../widgets/table';
 
 // REGEX
 const BOLD_ITALIC_REGEX = /(?<![\*_])(\*\*\*|___)(.+?)\1(?![\*_])/g;
@@ -954,7 +946,7 @@ export function getFrontmatterDecos(state: EditorState, activeLineNum: number): 
     for (let i = 1; i <= endLineNum; i++) decos.push(Decoration.line({ attributes: { class: 'cm-syntax-hide' } }).range(doc.line(i).from));
 
     decos.push(
-      Decoration.widget({
+      Decoration.replace({
         widget: new FrontmatterWidget(rawContent, from),
         side: -1,
         block: true,
@@ -1072,20 +1064,117 @@ export function getFrontmatterDecos(state: EditorState, activeLineNum: number): 
 //   );
 // }
 
+// export function buildDecorations(state: EditorState, from: number, to: number): RangeSet<Decoration> {
+//   from = Math.max(1, Math.min(from, state.doc.lines));
+//   to = Math.max(1, Math.min(to, state.doc.lines));
+//   const allDecos: StateRange<Decoration>[] = [];
+//   const activeLineNum = state.doc.lineAt(state.selection.main.head).number;
+
+//   // We ask CodeMirror's AST if our current 'from' position is inside a FencedCode block.
+//   let logicStart = from;
+//   const pos = state.doc.line(from).from;
+//   const tree = syntaxTree(state);
+//   let node: SyntaxNode | null = tree.resolveInner(pos, -1);
+
+//   while (node) {
+//     // "FencedCode" is the official Lezer AST name for ``` blocks.
+//     if (node.name === 'FencedCode') {
+//       logicStart = state.doc.lineAt(node.from).number;
+//       break;
+//     }
+//     node = node.parent;
+//   }
+
+//   // Fallback ONLY for $$ Math blocks (if Lezer doesn't parse them natively)
+//   if (logicStart === from) {
+//     for (let j = from; j >= Math.max(1, from - 200); j--) {
+//       if (state.doc.line(j).text.trim().startsWith('$$')) {
+//         logicStart = j;
+//         break;
+//       }
+//     }
+//   }
+
+//   const BUFFER = 10;
+//   const endLine = Math.min(state.doc.lines, to + BUFFER);
+//   let skipUntil = -1;
+
+//   const frontmatter = getFrontmatterDecos(state, activeLineNum);
+//   if (frontmatter) {
+//     allDecos.push(...frontmatter.decos);
+//     skipUntil = frontmatter.skipToLine;
+//   }
+
+//   // MAIN PROCESSING LOOP (Proceeds normally, but guaranteed correct starting point)
+//   for (let i = logicStart; i <= endLine; i++) {
+//     if (i <= skipUntil) continue;
+
+//     const line = state.doc.line(i);
+//     const text = line.text;
+
+//     if (text.trim() === '') continue;
+
+//     const isActive = i === activeLineNum;
+//     const lineDecos: StateRange<Decoration>[] = [];
+//     let skipToLine = i;
+
+//     const fence = getFenceDecos(state, i, activeLineNum) ?? null;
+//     const table = !fence ? getTableDecos(state, i) : null;
+//     const mathBlock = !fence ? getMathBlockDecos(state, i, activeLineNum) : null;
+//     const callout = !fence && !table ? getCalloutDecos(state, i, activeLineNum) : null;
+
+//     if (fence || table || callout || mathBlock) {
+//       const block = fence || table || callout || mathBlock;
+//       // Only push if it overlaps the viewport
+//       if (block!.skipToLine >= from) {
+//         lineDecos.push(...block!.decos);
+//       }
+//       skipToLine = block!.skipToLine;
+//     } else if (i >= from - BUFFER) {
+//       // INLINE LEVEL
+//       if (text.length > 0) {
+//         lineDecos.push(...getHeadingDecos(state, text, line.from, isActive));
+//         lineDecos.push(...getBoldItalicDecos(state, text, line.from, isActive));
+//         lineDecos.push(...getInternalLinkDecos(state, text, line.from, isActive));
+//         lineDecos.push(...getLinkDecos(state, text, line.from, isActive));
+//         lineDecos.push(...getImageDecos(state, text, line.from, line.to, isActive));
+//         lineDecos.push(...getBoldDecos(state, text, line.from, isActive));
+//         lineDecos.push(...getItalicDecos(state, text, line.from, isActive));
+//         lineDecos.push(...getBulletListDecos(state, text, line.from, isActive));
+//         lineDecos.push(...getInlineCodeDecos(state, text, line.from, isActive));
+//         lineDecos.push(...getNumberedListDecos(text, line.from));
+//         lineDecos.push(...getStrikethroughDecos(state, text, line.from, isActive));
+//         lineDecos.push(...getTagDecos(text, line.from));
+//         lineDecos.push(...getHighlightDecos(state, text, line.from, isActive));
+//         lineDecos.push(...getInlineMathDecos(state, text, line.from, isActive));
+//         lineDecos.push(...getBlockquoteDecos(state, text, line.from, isActive));
+//         lineDecos.push(...getTaskDecos(state, text, line.from, isActive));
+//         lineDecos.push(...getHRDecos(state, text, line.from, line.to, isActive));
+//       }
+//     }
+
+//     allDecos.push(...lineDecos);
+//     i = skipToLine;
+//   }
+
+//   return RangeSet.of(
+//     allDecos.sort((a, b) => a.from - b.from),
+//     true
+//   );
+// }
 export function buildDecorations(state: EditorState, from: number, to: number): RangeSet<Decoration> {
   from = Math.max(1, Math.min(from, state.doc.lines));
   to = Math.max(1, Math.min(to, state.doc.lines));
   const allDecos: StateRange<Decoration>[] = [];
   const activeLineNum = state.doc.lineAt(state.selection.main.head).number;
 
-  // We ask CodeMirror's AST if our current 'from' position is inside a FencedCode block.
+  // Ask CodeMirror's AST if our current 'from' position is inside a FencedCode block.
   let logicStart = from;
   const pos = state.doc.line(from).from;
   const tree = syntaxTree(state);
   let node: SyntaxNode | null = tree.resolveInner(pos, -1);
 
   while (node) {
-    // "FencedCode" is the official Lezer AST name for ``` blocks.
     if (node.name === 'FencedCode') {
       logicStart = state.doc.lineAt(node.from).number;
       break;
@@ -1093,7 +1182,7 @@ export function buildDecorations(state: EditorState, from: number, to: number): 
     node = node.parent;
   }
 
-  // Fallback ONLY for $$ Math blocks (if Lezer doesn't parse them natively)
+  // Fallback ONLY for $$ Math blocks
   if (logicStart === from) {
     for (let j = from; j >= Math.max(1, from - 200); j--) {
       if (state.doc.line(j).text.trim().startsWith('$$')) {
@@ -1113,7 +1202,7 @@ export function buildDecorations(state: EditorState, from: number, to: number): 
     skipUntil = frontmatter.skipToLine;
   }
 
-  // MAIN PROCESSING LOOP (Proceeds normally, but guaranteed correct starting point)
+  // MAIN PROCESSING LOOP
   for (let i = logicStart; i <= endLine; i++) {
     if (i <= skipUntil) continue;
 
@@ -1125,14 +1214,27 @@ export function buildDecorations(state: EditorState, from: number, to: number): 
     const isActive = i === activeLineNum;
     const lineDecos: StateRange<Decoration>[] = [];
     let skipToLine = i;
+    // const table = !fence ? getTableDecos(state, i) : null;
 
     const fence = getFenceDecos(state, i, activeLineNum) ?? null;
-    const table = !fence ? getTableDecos(state, i) : null;
-    const mathBlock = !fence ? getMathBlockDecos(state, i, activeLineNum) : null;
-    const callout = !fence && !table ? getCalloutDecos(state, i, activeLineNum) : null;
 
-    if (fence || table || callout || mathBlock) {
-      const block = fence || table || callout || mathBlock;
+    let isTable = false;
+    if (!fence && text.trim().startsWith('|')) {
+      const tableRange = getTableRange(state, i);
+      skipToLine = tableRange.end;
+      isTable = true;
+    }
+
+    const mathBlock = !fence ? getMathBlockDecos(state, i, activeLineNum) : null;
+    const callout = !fence && !isTable ? getCalloutDecos(state, i, activeLineNum) : null;
+
+    if (isTable) {
+      // REMOVAL: We intentionally do NOT push table.decos here.
+      // We only grab the skipToLine to jump over the table block,
+      // letting buildTableDecorations handle the actual widgets.
+      // skipToLine = isTable.skipToLine;
+    } else if (fence || callout || mathBlock) {
+      const block = fence || callout || mathBlock;
       // Only push if it overlaps the viewport
       if (block!.skipToLine >= from) {
         lineDecos.push(...block!.decos);
@@ -1170,7 +1272,6 @@ export function buildDecorations(state: EditorState, from: number, to: number): 
     true
   );
 }
-
 export function getFullSplits(customSplits: number[], docLength: number) {
   const safeSplits: number[] = [];
   let currentStart = 0;

@@ -7,7 +7,6 @@ import { markdown, markdownLanguage } from '@codemirror/lang-markdown';
 import { INode } from '@/types';
 import {
   chunkModeFacet,
-  columnSelectionField,
   createEditorStatsPlugin,
   dragStatusField,
   lineLimitGuard,
@@ -15,7 +14,6 @@ import {
   permissionGuard,
   setupDragTracking,
   sourceModeField,
-  tableSelectionHighlighter,
   viewportLinesField,
   viewportLinesPlugin,
 } from '@/features/editor/plugins';
@@ -48,6 +46,7 @@ import createTheme from '@uiw/codemirror-themes';
 import { tags as t } from '@lezer/highlight';
 import { mermaidLivePreviewField, registerView, themeChangedEffect } from '@/features/editor/plugins/mermaid';
 import { useEditorSettings } from '@/features/editor/stores/setting';
+import { tableLivePreviewField, columnSelectionField, tableSelectionHighlighter, scrollStabilityPlugin } from '@/features/editor/plugins/table';
 
 const myTheme = createTheme({
   theme: 'dark',
@@ -160,47 +159,49 @@ function MarkdownSection({ node, isDirty, canEditNode, canEditChunk }: { node: I
     if (!instance || !ytext || !undoManager) return [];
 
     return [
-      EditorView.domEventHandlers({
-        mousedown: event => {
-          React.startTransition(() => setActiveNode(node._id));
-          const target = event.target as HTMLElement;
+      // EditorView.domEventHandlers({
+      //   mousedown: event => {
+      //     React.startTransition(() => setActiveNode(node._id));
+      //     const target = event.target as HTMLElement;
 
-          if (target.classList.contains('cm-hashtag')) {
-            const tag = target.getAttribute('data-tag');
-            if (tag) {
-              useProjectUIStore.getState().setSearchQuery(`tag:${tag}`);
-              useProjectUIStore.getState().setLeftSidebarTab('search');
-            }
-          }
-        },
-        focus: () => {
-          React.startTransition(() => setActiveNode(node._id));
-        },
-        contextmenu: (event, view) => {
-          const pos = view.posAtCoords({ x: event.clientX, y: event.clientY });
-          if (pos !== null) {
-            const line = view.state.doc.lineAt(pos);
-            setContextType(line.text.trim().startsWith('[!') ? 'callout' : 'general');
-          }
-          return false;
-        },
-      }),
+      //     if (target.classList.contains('cm-hashtag')) {
+      //       const tag = target.getAttribute('data-tag');
+      //       if (tag) {
+      //         useProjectUIStore.getState().setSearchQuery(`tag:${tag}`);
+      //         useProjectUIStore.getState().setLeftSidebarTab('search');
+      //       }
+      //     }
+      //   },
+      //   focus: () => {
+      //     React.startTransition(() => setActiveNode(node._id));
+      //   },
+      //   contextmenu: (event, view) => {
+      //     const pos = view.posAtCoords({ x: event.clientX, y: event.clientY });
+      //     if (pos !== null) {
+      //       const line = view.state.doc.lineAt(pos);
+      //       setContextType(line.text.trim().startsWith('[!') ? 'callout' : 'general');
+      //     }
+      //     return false;
+      //   },
+      // }),
       myTheme,
-      internalLinkCompletion,
-      internalLinkClickHandler,
-      linkClickHandler,
-      EditorState.readOnly.of(isReadOnly || isChunkActive),
-      isChunkActive ? chunkModeFacet.of(true) : [],
-      EditorView.editorAttributes.of({ class: isChunkActive ? 'cm-chunk-mode-active' : '' }),
-      lineLimitGuard,
-      permissionGuard(canEditNode),
-      markdownLivePreviewField,
-      mermaidLivePreviewField,
-      onDocChange,
-      tableBackspace,
+      // internalLinkCompletion,
+      // internalLinkClickHandler,
+      // linkClickHandler,
+      // EditorState.readOnly.of(isReadOnly || isChunkActive),
+      // isChunkActive ? chunkModeFacet.of(true) : [],
+      // EditorView.editorAttributes.of({ class: isChunkActive ? 'cm-chunk-mode-active' : '' }),
+      // lineLimitGuard,
+      // permissionGuard(canEditNode),
+      // markdownLivePreviewField,
+      // scrollStabilityPlugin,
+      // mermaidLivePreviewField,
+      // onDocChange,
+      tableLivePreviewField,
+      // tableBackspace,
       sourceModeField,
-      tableSelectionHighlighter,
-      tableKeyboardHandler,
+      // tableSelectionHighlighter,
+      // tableKeyboardHandler,
       keymap.of([{ key: 'Mod-a', run: selectAllToTop }, ...yUndoManagerKeymap]),
       drawSelection(),
       dropCursor(),
@@ -352,6 +353,7 @@ function MarkdownSection({ node, isDirty, canEditNode, canEditChunk }: { node: I
 
       <div
         tabIndex={-1}
+        style={{ overflowAnchor: 'none' }}
         className={cn(
           'hoverable-scrollbar editor-font-text',
           'h-full! grid grid-cols-1 max-h-full min-w-0! max-w-full w-full px-10 overflow-y-auto overflow-x-auto relative',
@@ -402,7 +404,7 @@ function MarkdownSection({ node, isDirty, canEditNode, canEditChunk }: { node: I
                   theme="none"
                   basicSetup={false}
                   extensions={editorExtensions}
-                  className="h-auto!"
+                  className="h-auto! w-full! min-w-full!"
                 />
               ) : (
                 <div className="min-h-[30vh] flex items-center justify-center text-5xl leading-1 w-full">Syncing Document...</div>
