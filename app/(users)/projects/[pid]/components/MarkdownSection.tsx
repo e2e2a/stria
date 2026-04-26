@@ -1,7 +1,7 @@
 'use client';
 import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { drawSelection, dropCursor, EditorView, keymap } from '@codemirror/view';
-import CodeMirror, { EditorState } from '@uiw/react-codemirror';
+import CodeMirror, { Compartment, EditorState } from '@uiw/react-codemirror';
 import { yCollab, yUndoManagerKeymap } from 'y-codemirror.next';
 import { markdown, markdownLanguage } from '@codemirror/lang-markdown';
 import { INode } from '@/types';
@@ -12,6 +12,7 @@ import {
   lineLimitGuard,
   markdownLivePreviewField,
   permissionGuard,
+  scrollStabilityPlugin,
   setupDragTracking,
   sourceModeField,
   viewportLinesField,
@@ -46,7 +47,9 @@ import createTheme from '@uiw/codemirror-themes';
 import { tags as t } from '@lezer/highlight';
 import { mermaidLivePreviewField, registerView, themeChangedEffect } from '@/features/editor/plugins/mermaid';
 import { useEditorSettings } from '@/features/editor/stores/setting';
-import { tableLivePreviewField, columnSelectionField, tableSelectionHighlighter, scrollStabilityPlugin } from '@/features/editor/plugins/table';
+import { tableLivePreviewField, columnSelectionField, tableSelectionHighlighter } from '@/features/editor/plugins/table';
+
+export const lineWrappingCompartment = new Compartment();
 
 const myTheme = createTheme({
   theme: 'dark',
@@ -159,49 +162,49 @@ function MarkdownSection({ node, isDirty, canEditNode, canEditChunk }: { node: I
     if (!instance || !ytext || !undoManager) return [];
 
     return [
-      // EditorView.domEventHandlers({
-      //   mousedown: event => {
-      //     React.startTransition(() => setActiveNode(node._id));
-      //     const target = event.target as HTMLElement;
+      EditorView.domEventHandlers({
+        mousedown: event => {
+          React.startTransition(() => setActiveNode(node._id));
+          const target = event.target as HTMLElement;
 
-      //     if (target.classList.contains('cm-hashtag')) {
-      //       const tag = target.getAttribute('data-tag');
-      //       if (tag) {
-      //         useProjectUIStore.getState().setSearchQuery(`tag:${tag}`);
-      //         useProjectUIStore.getState().setLeftSidebarTab('search');
-      //       }
-      //     }
-      //   },
-      //   focus: () => {
-      //     React.startTransition(() => setActiveNode(node._id));
-      //   },
-      //   contextmenu: (event, view) => {
-      //     const pos = view.posAtCoords({ x: event.clientX, y: event.clientY });
-      //     if (pos !== null) {
-      //       const line = view.state.doc.lineAt(pos);
-      //       setContextType(line.text.trim().startsWith('[!') ? 'callout' : 'general');
-      //     }
-      //     return false;
-      //   },
-      // }),
+          if (target.classList.contains('cm-hashtag')) {
+            const tag = target.getAttribute('data-tag');
+            if (tag) {
+              useProjectUIStore.getState().setSearchQuery(`tag:${tag}`);
+              useProjectUIStore.getState().setLeftSidebarTab('search');
+            }
+          }
+        },
+        focus: () => {
+          React.startTransition(() => setActiveNode(node._id));
+        },
+        contextmenu: (event, view) => {
+          const pos = view.posAtCoords({ x: event.clientX, y: event.clientY });
+          if (pos !== null) {
+            const line = view.state.doc.lineAt(pos);
+            setContextType(line.text.trim().startsWith('[!') ? 'callout' : 'general');
+          }
+          return false;
+        },
+      }),
       myTheme,
-      // internalLinkCompletion,
-      // internalLinkClickHandler,
-      // linkClickHandler,
-      // EditorState.readOnly.of(isReadOnly || isChunkActive),
-      // isChunkActive ? chunkModeFacet.of(true) : [],
-      // EditorView.editorAttributes.of({ class: isChunkActive ? 'cm-chunk-mode-active' : '' }),
-      // lineLimitGuard,
-      // permissionGuard(canEditNode),
-      // markdownLivePreviewField,
-      // scrollStabilityPlugin,
-      // mermaidLivePreviewField,
-      // onDocChange,
+      internalLinkCompletion,
+      internalLinkClickHandler,
+      linkClickHandler,
+      EditorState.readOnly.of(isReadOnly || isChunkActive),
+      isChunkActive ? chunkModeFacet.of(true) : [],
+      EditorView.editorAttributes.of({ class: isChunkActive ? 'cm-chunk-mode-active' : '' }),
+      lineLimitGuard,
+      permissionGuard(canEditNode),
+      markdownLivePreviewField,
+      mermaidLivePreviewField,
+      onDocChange,
       tableLivePreviewField,
-      // tableBackspace,
+      scrollStabilityPlugin,
+      tableBackspace,
       sourceModeField,
-      // tableSelectionHighlighter,
-      // tableKeyboardHandler,
+      tableSelectionHighlighter,
+      tableKeyboardHandler,
       keymap.of([{ key: 'Mod-a', run: selectAllToTop }, ...yUndoManagerKeymap]),
       drawSelection(),
       dropCursor(),
@@ -211,7 +214,7 @@ function MarkdownSection({ node, isDirty, canEditNode, canEditChunk }: { node: I
         addKeymap: true,
       }),
       yCollab(ytext, instance.provider.awareness, { undoManager }),
-      EditorView.lineWrapping,
+      lineWrappingCompartment.of(EditorView.lineWrapping),
       dragStatusField,
       columnSelectionField,
       viewportLinesField,

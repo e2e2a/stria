@@ -12,45 +12,17 @@ export const tableLivePreviewField = StateField.define<RangeSet<Decoration>>({
   update(decos, tr) {
     const oldViewMode = tr.startState.facet(EditorState.readOnly);
     const newViewMode = tr.state.facet(EditorState.readOnly);
-
     const oldSourceMode = tr.startState.field(sourceModeField, false);
     const newSourceMode = tr.state.field(sourceModeField, false);
-
     const modeToggled = oldViewMode !== newViewMode || oldSourceMode !== newSourceMode;
-    decos = decos.map(tr.changes);
 
     if (!tr.docChanged && !modeToggled) return decos;
-    if (modeToggled && !tr.docChanged) {
-      console.log('viewModeToggled', modeToggled);
-      const allNewDecos = buildTableDecorations(tr.state, 1, tr.state.doc.lines);
-      return RangeSet.of(allNewDecos, true);
-    }
-    let minFrom = Infinity;
-    let maxTo = -Infinity;
 
-    tr.changes.iterChanges((fromA, toA, fromB, toB) => {
-      minFrom = Math.min(minFrom, fromB);
-      maxTo = Math.max(maxTo, toB);
-    });
+    const sourceMode = tr.state.field(sourceModeField, false);
+    if (sourceMode) return RangeSet.empty;
 
-    if (minFrom === Infinity) return decos;
-
-    const doc = tr.state.doc;
-    const fromLine = Math.max(1, doc.lineAt(minFrom).number);
-    const toLine = Math.min(doc.lines, doc.lineAt(maxTo).number);
-
-    const updateFrom = doc.line(fromLine).from;
-    const updateTo = doc.line(toLine).to;
-
-    const newDecos = buildTableDecorations(tr.state, fromLine, toLine);
-
-    return decos.update({
-      filterFrom: updateFrom,
-      filterTo: updateTo,
-      filter: () => false,
-      add: newDecos,
-      sort: true,
-    });
+    const allNewDecos = buildTableDecorations(tr.state, 1, tr.state.doc.lines);
+    return RangeSet.of(allNewDecos, true);
   },
 
   provide: f => EditorView.decorations.from(f),
@@ -86,42 +58,6 @@ export const tableSelectionHighlighter = ViewPlugin.fromClass(
           const widget = container.__widget;
           if (widget && widget.selectedColumn !== null) widget.selectedColumn = null;
         }
-      });
-    }
-  }
-);
-
-export const scrollStabilityPlugin = ViewPlugin.fromClass(
-  class {
-    private view: EditorView;
-    private pending = false;
-
-    constructor(view: EditorView) {
-      this.view = view;
-    }
-
-    update(update: ViewUpdate) {
-      const oldSource = update.startState.field(sourceModeField, false);
-      const newSource = update.state.field(sourceModeField, false);
-
-      if (oldSource === newSource) return;
-
-      this.pending = true;
-
-      // 1. immediately freeze layout changes
-      this.view.dom.style.pointerEvents = 'none';
-      this.view.dom.style.visibility = 'hidden';
-
-      requestAnimationFrame(() => {
-        // 2. let CM settle layout first
-        this.view.requestMeasure();
-
-        requestAnimationFrame(() => {
-          // 3. re-enable interaction AFTER layout stabilizes
-          this.view.dom.style.visibility = '';
-          this.view.dom.style.pointerEvents = '';
-          this.pending = false;
-        });
       });
     }
   }
