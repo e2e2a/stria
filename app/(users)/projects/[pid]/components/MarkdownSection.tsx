@@ -1,21 +1,20 @@
 'use client';
 import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { drawSelection, dropCursor, EditorView, keymap } from '@codemirror/view';
-import CodeMirror, { EditorState } from '@uiw/react-codemirror';
+import CodeMirror, { Compartment, EditorState } from '@uiw/react-codemirror';
 import { yCollab, yUndoManagerKeymap } from 'y-codemirror.next';
 import { markdown, markdownLanguage } from '@codemirror/lang-markdown';
 import { INode } from '@/types';
 import {
   chunkModeFacet,
-  columnSelectionField,
   createEditorStatsPlugin,
   dragStatusField,
   lineLimitGuard,
   markdownLivePreviewField,
   permissionGuard,
+  scrollStabilityPlugin,
   setupDragTracking,
   sourceModeField,
-  tableSelectionHighlighter,
   viewportLinesField,
   viewportLinesPlugin,
 } from '@/features/editor/plugins';
@@ -48,6 +47,9 @@ import createTheme from '@uiw/codemirror-themes';
 import { tags as t } from '@lezer/highlight';
 import { mermaidLivePreviewField, registerView, themeChangedEffect } from '@/features/editor/plugins/mermaid';
 import { useEditorSettings } from '@/features/editor/stores/setting';
+import { tableLivePreviewField, columnSelectionField, tableSelectionHighlighter } from '@/features/editor/plugins/table';
+
+export const lineWrappingCompartment = new Compartment();
 
 const myTheme = createTheme({
   theme: 'dark',
@@ -197,6 +199,8 @@ function MarkdownSection({ node, isDirty, canEditNode, canEditChunk }: { node: I
       markdownLivePreviewField,
       mermaidLivePreviewField,
       onDocChange,
+      tableLivePreviewField,
+      scrollStabilityPlugin,
       tableBackspace,
       sourceModeField,
       tableSelectionHighlighter,
@@ -210,7 +214,7 @@ function MarkdownSection({ node, isDirty, canEditNode, canEditChunk }: { node: I
         addKeymap: true,
       }),
       yCollab(ytext, instance.provider.awareness, { undoManager }),
-      EditorView.lineWrapping,
+      lineWrappingCompartment.of(EditorView.lineWrapping),
       dragStatusField,
       columnSelectionField,
       viewportLinesField,
@@ -352,6 +356,7 @@ function MarkdownSection({ node, isDirty, canEditNode, canEditChunk }: { node: I
 
       <div
         tabIndex={-1}
+        style={{ overflowAnchor: 'none' }}
         className={cn(
           'hoverable-scrollbar editor-font-text',
           'h-full! grid grid-cols-1 max-h-full min-w-0! max-w-full w-full px-10 overflow-y-auto overflow-x-auto relative',
@@ -402,7 +407,7 @@ function MarkdownSection({ node, isDirty, canEditNode, canEditChunk }: { node: I
                   theme="none"
                   basicSetup={false}
                   extensions={editorExtensions}
-                  className="h-auto!"
+                  className="h-auto! w-full! min-w-full!"
                 />
               ) : (
                 <div className="min-h-[30vh] flex items-center justify-center text-5xl leading-1 w-full">Syncing Document...</div>

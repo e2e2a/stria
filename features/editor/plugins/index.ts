@@ -1,8 +1,8 @@
 import { EditorView, Decoration, ViewPlugin, ViewUpdate, DecorationSet } from '@codemirror/view';
-import { StateField, RangeSet, EditorState, StateEffect, Facet } from '@codemirror/state';
+import { StateField, RangeSet, EditorState, StateEffect, Facet, Transaction } from '@codemirror/state';
 import { buildChunkDecorations, buildDecorations } from '../decorations';
-import { TablePreviewWidget } from '../widgets';
 import { makeToastError } from '@/lib/toast';
+import { lineWrappingCompartment } from '@/app/(users)/projects/[pid]/components/MarkdownSection';
 
 export const setViewportLinesEffect = StateEffect.define<{ from: number; to: number }>();
 
@@ -40,20 +40,6 @@ export const viewportLinesPlugin = ViewPlugin.fromClass(
   }
 );
 
-export const setColumnSelection = StateEffect.define<{ from: number; col: number | null }>();
-export const columnSelectionField = StateField.define<{ from: number; col: number | null } | null>({
-  create() {
-    return null;
-  },
-  update(value, tr) {
-    for (const e of tr.effects) {
-      if (e.is(setColumnSelection)) return e.value;
-    }
-    if (tr.docChanged) return null;
-    return value;
-  },
-});
-
 export const toggleSourceMode = StateEffect.define<boolean>();
 export const sourceModeField = StateField.define<boolean>({
   create() {
@@ -65,6 +51,14 @@ export const sourceModeField = StateField.define<boolean>({
     }
     return value;
   },
+  // tell CM this field's changes should never be part of undo history
+  provide: () =>
+    EditorState.transactionExtender.of(tr => {
+      if (tr.effects.some(e => e.is(toggleSourceMode))) {
+        return { annotations: Transaction.addToHistory.of(false) };
+      }
+      return null;
+    }),
 });
 
 export const setDraggingEffect = StateEffect.define<boolean>();
@@ -135,21 +129,42 @@ export const markdownLivePreviewField = StateField.define<RangeSet<Decoration>>(
   provide: f => EditorView.decorations.from(f),
 });
 
-// export const chunkLivePreviewPlugin = ViewPlugin.fromClass(
-//   class {
-//     decorations: DecorationSet;
-//     constructor(view: EditorView) {
-//       this.decorations = buildChunkDecorations(view, view.state.field(chunkSplitsField));
-//     }
-//     update(update: ViewUpdate) {
-//       const splitsChanged = update.state.field(chunkSplitsField) !== update.startState.field(chunkSplitsField);
-//       if (update.docChanged || update.viewportChanged || splitsChanged) {
-//         this.decorations = buildChunkDecorations(update.view, update.view.state.field(chunkSplitsField));
-//       }
-//     }
-//   },
-//   { decorations: v => v.decorations }
-// );
+export const scrollStabilityPlugin = ViewPlugin.fromClass(
+  class {
+    private view: EditorView;
+    private timer: ReturnType<typeof setTimeout> | null = null;
+
+    constructor(view: EditorView) {
+      this.view = view;
+    }
+
+    update(update: ViewUpdate) {
+      const oldSource = update.startState.field(sourceModeField, false);
+      const newSource = update.state.field(sourceModeField, false);
+      if (oldSource === newSource) return;
+
+      queueMicrotask(() => {
+        this.view.dispatch({
+          effects: lineWrappingCompartment.reconfigure([]),
+          annotations: [Transaction.addToHistory.of(false)],
+        });
+      });
+
+      if (this.timer) clearTimeout(this.timer);
+      this.timer = setTimeout(() => {
+        this.view.dispatch({
+          effects: lineWrappingCompartment.reconfigure(EditorView.lineWrapping),
+          annotations: [Transaction.addToHistory.of(false)],
+        });
+        this.timer = null;
+      }, 50);
+    }
+
+    destroy() {
+      if (this.timer) clearTimeout(this.timer);
+    }
+  }
+);
 
 export function chunkLivePreviewPlugin(canEditChunk: boolean) {
   return ViewPlugin.fromClass(
@@ -169,41 +184,6 @@ export function chunkLivePreviewPlugin(canEditChunk: boolean) {
     { decorations: v => v.decorations }
   );
 }
-
-export const tableSelectionHighlighter = ViewPlugin.fromClass(
-  class {
-    constructor(readonly view: EditorView) {
-      this.sync();
-    }
-    update(update: ViewUpdate) {
-      if (update.selectionSet || update.docChanged || update.viewportChanged) {
-        // requestAnimationFrame(() => this.sync());
-        Promise.resolve().then(() => this.sync());
-      }
-    }
-    sync() {
-      const sel = this.view.state.selection.main;
-      const isEditingAnyCell = document.activeElement?.closest('.cm-table-cell-editor');
-
-      this.view.dom.querySelectorAll<HTMLElement & { __widget?: TablePreviewWidget }>('.cm-table-widget-container').forEach(container => {
-        const from = parseInt(container.getAttribute('data-from') || '0');
-        const to = parseInt(container.getAttribute('data-to') || '0');
-        const table = container.querySelector('.cm-interactive-table');
-
-        const isInside = !isEditingAnyCell && !sel.empty && sel.from < to && sel.to > from;
-
-        table?.classList.toggle('is-selected', isInside);
-
-        if (!isInside) {
-          container.querySelectorAll('.cm-table-col-selected').forEach(el => el.classList.remove('cm-table-col-selected'));
-          table?.classList.remove('has-selection');
-          const widget = container.__widget;
-          if (widget && widget.selectedColumn !== null) widget.selectedColumn = null;
-        }
-      });
-    }
-  }
-);
 
 export const createEditorStatsPlugin = (nodeId: string) => {
   let currentWordCount = 0;
