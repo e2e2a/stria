@@ -69,11 +69,11 @@ export default function AppearanceTabContent() {
         <div className="w-full space-y-8">
           <div>
             <h2 className="text-2xl font-semibold text-foreground tracking-tight">Appearance</h2>
-            <p className="text-muted-foreground mt-1 text-sm">Manage your workspace aesthetics and interface layout.</p>
+            <p className="text-muted-foreground mt-1 text-sm">Manage editor aesthetics and interface layout.</p>
           </div>
 
           <div className="space-y-6">
-            <SettingsCard title="Theme & Colors" description="Customize the visual appearance of your workspace.">
+            <SettingsCard title="Theme & Colors" description="Customize the visual appearance of the editor.">
               <SettingRow title="Appearance" description="Choose between light, dark, or system default.">
                 <Select
                   value={theme}
@@ -182,7 +182,7 @@ export default function AppearanceTabContent() {
               </SettingRow>
             </SettingsCard>
 
-            <SettingsCard title="Typography" description="Customize the text rendering and styling across your workspace.">
+            <SettingsCard title="Typography" description="Customize text rendering and styling across the editor.">
               <SettingRow
                 title="Interface typography"
                 description="Choose the primary typeface used throughout the editors's menus, sidebars, and panels."

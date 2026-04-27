@@ -22,7 +22,6 @@ const DEFAULT_CORE_PLUGINS = {
   'word-count': true,
   slides: false,
   'audio-recorder': false,
-  workspaces: false,
   'file-recovery': true,
   publish: false,
   sync: false,

@@ -2,7 +2,7 @@ import { EditorView, Decoration, ViewPlugin, ViewUpdate, DecorationSet } from '@
 import { StateField, RangeSet, EditorState, StateEffect, Facet, Transaction } from '@codemirror/state';
 import { buildChunkDecorations, buildDecorations } from '../decorations';
 import { makeToastError } from '@/lib/toast';
-import { lineWrappingCompartment } from '@/app/(users)/projects/[pid]/components/MarkdownSection';
+import { lineWrappingCompartment } from '@/components/project/editor/MarkdownSection';
 
 export const setViewportLinesEffect = StateEffect.define<{ from: number; to: number }>();
 

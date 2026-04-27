@@ -1,7 +1,7 @@
 import { useMemo, useState, useEffect } from 'react';
 import { Virtuoso } from 'react-virtuoso';
 import { ChevronRight, Loader2 } from 'lucide-react';
-import { useParams } from 'next/navigation';
+import { useParams } from 'react-router-dom';
 import { useProjectTagsQuery } from '@/hooks/project/useProjectQuery';
 import { useProjectUIStore } from '@/features/editor/stores/project-ui';
 
@@ -90,7 +90,7 @@ const HighlightedText = ({ text, highlight }: { text: string; highlight: string 
 
 export const TagsTabContent = ({ searchQuery, defaultExpand, isNestedView }: { searchQuery: string; defaultExpand: boolean; isNestedView: boolean }) => {
   const params = useParams();
-  const projectId = params.pid as string;
+  const projectId = params.pid || '';
   const { setSearchQuery, setLeftSidebarTab } = useProjectUIStore();
   const { data, isLoading, isError } = useProjectTagsQuery(projectId);
   const rawFlatData: ResponseFlatTag[] = data || EMPTY_DATA;

@@ -3,7 +3,7 @@
 import { useEffect, useState, useCallback, useMemo, memo, ReactElement, useDeferredValue } from 'react';
 import { Virtuoso } from 'react-virtuoso';
 import { ChevronDown, ChevronRight } from 'lucide-react';
-import { useParams } from 'next/navigation';
+import { useParams } from 'react-router-dom';
 import { INode } from '@/types';
 import { SearchMatch, SearchResult, searchSingleNode } from '@/utils/client/search-nodes-utils';
 import { useProjectSearchQuery } from '@/hooks/project/useProjectQuery';
@@ -81,7 +81,7 @@ function renderLine(text: string, indices: number[], len: number): ReactElement[
 
 function SearchTabContentComponent({ query, onResultClick }: { query: string; onResultClick: (id: string) => void }) {
   const params = useParams();
-  const projectId = params.pid as string;
+  const projectId = params.pid || '';
 
   const debouncedQuery = useDeferredValue(query);
   const { data: backendData, isFetching } = useProjectSearchQuery(projectId, debouncedQuery);

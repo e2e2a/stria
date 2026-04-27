@@ -12,7 +12,6 @@ import { groupNodes } from '@/utils/client/node-utils';
 import SidebarCreateFolderItem from './sidebar-create-folder-item';
 import SidebarFolderItem from './sidebar-folder-item';
 import { clearAllFolderDragOver } from '@/components/project/left-sidebar/nav-main';
-import { IMyMembership } from '@/lib/client/api/projectMemberClient';
 
 function isDescendant(draggedId: string, targetId: string, nodesById: Record<string, INode>) {
   let current = nodesById[targetId];
@@ -45,7 +44,6 @@ interface IProps {
   canMoveNode: boolean;
   onDragStart: (node: INode) => void;
   onDragEnd: () => void;
-  mData: IMyMembership | undefined;
 }
 
 function SidebarItem({
@@ -59,7 +57,6 @@ function SidebarItem({
   isParentDragging = false,
   onDragStart,
   onDragEnd,
-  mData,
 }: IProps) {
   const localStorageKey = `sidebar-folder-open-${item._id}`;
   const hoverTimeoutRef = useRef<number | null>(null);
@@ -217,7 +214,7 @@ function SidebarItem({
   const { folders, files } = useMemo(() => groupNodes(item.children), [item.children]);
   if (item.type === 'file') {
     return (
-      <SidebarContextMenu node={item} mData={mData}>
+      <SidebarContextMenu node={item}>
         <div
           onDragStart={handleDragStart}
           draggable={isUpdatingNode || isCreating ? 'false' : 'true'}
@@ -253,7 +250,7 @@ function SidebarItem({
         >
           <CollapsibleTrigger disabled={isUpdatingNode?._id === item._id} asChild>
             <div className="w-full focus:outline-none gap-0 cursor-pointer" onDragStart={handleDragStart} draggable="true" {...commonDragEvents}>
-              <SidebarContextMenu node={item} mData={mData}>
+              <SidebarContextMenu node={item}>
                 <div className="">
                   <SidebarFolderItem item={item} isOpen={isOpen} depth={depth} />
                 </div>
@@ -288,7 +285,6 @@ function SidebarItem({
                     isParentDragging={isInForbiddenZone}
                     onDragStart={onDragStart}
                     onDragEnd={onDragEnd}
-                    mData={mData}
                   />
                 ))}
                 {isCreatingHere && isCreating.type === 'file' && <SidebarCreateFileItem depth={depth + 3} />}
@@ -305,7 +301,6 @@ function SidebarItem({
                     isParentDragging={isInForbiddenZone}
                     onDragStart={onDragStart}
                     onDragEnd={onDragEnd}
-                    mData={mData}
                   />
                 ))}
               </SidebarMenu>

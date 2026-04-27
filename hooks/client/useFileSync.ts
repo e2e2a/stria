@@ -18,7 +18,8 @@ const ensureNode = async (
   const existing = findChild(children, title, type);
   if (existing) return existing;
   const res = await mutation.create.mutateAsync({ projectId, parentId, type, title }).catch(() => null);
-  return (res && 'data' in res ? res.data : res) as INode | null;
+  if (!res) return null;
+  return 'data' in res ? res.data : res;
 };
 
 export interface UseFileSyncProps {

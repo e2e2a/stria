@@ -5,15 +5,13 @@ import { memo, ReactNode } from 'react';
 import { DangerConfirmDialog } from '../../danger-confirm-dialog';
 import { useNodeStore } from '@/features/editor/stores/nodes';
 import { cn } from '@/lib/utils';
-import { IMyMembership } from '@/lib/client/api/projectMemberClient';
 
 interface ContainerProps {
   children: ReactNode;
   node: INode | null;
-  mData: IMyMembership | undefined;
 }
 
-function SidebarContextMenuComponent({ children, node, mData }: ContainerProps) {
+function SidebarContextMenuComponent({ children, node }: ContainerProps) {
   const isUpdatingNode = useNodeStore(state => state.isUpdatingNode);
   const selectedNode = useNodeStore(state => state.selectedNode);
   const setIsUpdatingNode = useNodeStore(state => state.setIsUpdatingNode);
@@ -52,7 +50,7 @@ function SidebarContextMenuComponent({ children, node, mData }: ContainerProps) 
       }}
       modal={true}
     >
-      <ContextMenuTrigger className={cn('h-auto w-full contents')} asChild disabled={mData && mData?.role === 'viewer' ? true : false}>
+      <ContextMenuTrigger className={cn('h-auto w-full contents')} asChild>
         {children}
       </ContextMenuTrigger>
       <ContextMenuContent

@@ -6,12 +6,11 @@ import { Button } from '../ui/button';
 import { IconTrident } from '@tabler/icons-react';
 import { useProjectUIStore } from '@/features/editor/stores/project-ui';
 import { useTabStore } from '@/features/editor/stores/tabs';
-import { useParams } from 'next/navigation';
+import { useParams } from 'react-router-dom';
 import { IconTooltip } from './icon-tooltip';
 import { flattenNodeTree } from '@/utils/client/node-utils';
 import React, { useDeferredValue, useMemo, useRef } from 'react';
 import { useNodeStore } from '@/features/editor/stores/nodes';
-import { useGetMyProjectMembership } from '@/hooks/projectMember/useQueries';
 
 export const CustomDotsIcon = ({ className }: { className?: string }) => {
   return (
@@ -30,9 +29,8 @@ interface IProps {
 }
 const MiniSidebarTemplate = ({ LeftSidebarRef, isLeftCollapsed, RightSidebarRef }: IProps) => {
   const params = useParams();
-  const pid = params.pid as string;
+  const pid = params.pid || '';
   const nodes = useNodeStore(state => state.nodes);
-  const { data: mData } = useGetMyProjectMembership(pid);
 
   const setActiveNode = useNodeStore(state => state.setActiveNode);
   const openTab = useTabStore(state => state.openTab);
@@ -97,24 +95,22 @@ const MiniSidebarTemplate = ({ LeftSidebarRef, isLeftCollapsed, RightSidebarRef 
                 </IconTooltip>
               </SidebarMenuItem>
 
-              {mData?.permissions.canEditNode && (
-                <SidebarMenuItem
-                  onClick={() => {
-                    const panel = RightSidebarRef?.current;
-                    if (!panel) return;
-                    if (panel.isCollapsed()) panel.expand();
-                    requestAnimationFrame(() => {
-                      setRightSidebarTab('mermaid');
-                    });
-                  }}
-                >
-                  <IconTooltip label={'Mermaid'} side="right">
-                    <Button type="button" tabIndex={-1} variant={'ghost'} className="cursor-pointer py-1 hover:bg-transparent!">
-                      <IconTrident className="w-5! h-5! rotate-45 -ml-1 mt-1 stroke-[1px]" />
-                    </Button>
-                  </IconTooltip>
-                </SidebarMenuItem>
-              )}
+              <SidebarMenuItem
+                onClick={() => {
+                  const panel = RightSidebarRef?.current;
+                  if (!panel) return;
+                  if (panel.isCollapsed()) panel.expand();
+                  requestAnimationFrame(() => {
+                    setRightSidebarTab('mermaid');
+                  });
+                }}
+              >
+                <IconTooltip label={'Mermaid'} side="right">
+                  <Button type="button" tabIndex={-1} variant={'ghost'} className="cursor-pointer py-1 hover:bg-transparent!">
+                    <IconTrident className="w-5! h-5! rotate-45 -ml-1 mt-1 stroke-[1px]" />
+                  </Button>
+                </IconTooltip>
+              </SidebarMenuItem>
             </SidebarMenu>
           </SidebarGroup>
         </SidebarContent>

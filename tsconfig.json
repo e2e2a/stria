@@ -14,25 +14,11 @@
     "isolatedModules": true,
     "jsx": "react-jsx",
     "incremental": true,
-    "plugins": [
-      {
-        "name": "next"
-      }
-    ],
+    "types": ["vite/client", "jest", "@testing-library/jest-dom"],
     "paths": {
       "@/*": ["./*"]
     }
   },
-  "include": [
-    "next-env.d.ts",
-    "**/*.ts",
-    "**/*.tsx",
-    ".next/types/**/*.ts",
-    ".next/dev/types/**/*.ts",
-    "**/*.mts",
-    ".next\\dev/types/**/*.ts",
-    ".next\\dev/types/**/*.ts",
-    "jest.setup.ts"
-  ],
-  "exclude": ["node_modules"]
+  "include": ["src", "components", "features", "hooks", "lib", "types", "utils", "jest.setup.ts", "vite.config.ts", "jest.config.ts"],
+  "exclude": ["node_modules", "dist"]
 }

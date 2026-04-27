@@ -11,13 +11,12 @@ import SidebarCreateFileItem from '../nodes/sidebar-create-file-item';
 import { makeToastError } from '@/lib/toast';
 import { useNodeMutations } from '@/hooks/node/useNodeMutations';
 import { sortNodeTree } from '@/utils/client/sortNode';
-import { IMyMembership } from '@/lib/client/api/projectMemberClient';
 
 export function clearAllFolderDragOver() {
   document.querySelectorAll('[data-drag-over]').forEach(el => el.removeAttribute('data-drag-over'));
 }
 
-export function NavMain({ canMoveNode, mData }: { canMoveNode: boolean; mData: IMyMembership | undefined }) {
+export function NavMain({ canMoveNode }: { canMoveNode: boolean }) {
   const nodes = useNodeStore(state => state.nodes);
   const isCreating = useNodeStore(state => state.isCreating);
   const activeDrag = useNodeStore(state => state.activeDrag);
@@ -141,7 +140,6 @@ export function NavMain({ canMoveNode, mData }: { canMoveNode: boolean; mData: I
             canMoveNode={canMoveNode}
             onDragStart={setActiveDrag}
             onDragEnd={handleDragFinished}
-            mData={mData}
           />
         ))}
 
@@ -158,7 +156,6 @@ export function NavMain({ canMoveNode, mData }: { canMoveNode: boolean; mData: I
             canMoveNode={canMoveNode}
             onDragStart={setActiveDrag}
             onDragEnd={handleDragFinished}
-            mData={mData}
           />
         ))}
 

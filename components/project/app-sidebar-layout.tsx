@@ -8,7 +8,7 @@ import LeftSidebarTemplate from './left-sidebar/left-sidebar-template';
 import RightSidebarTemplate from './right-sidebar/right-sidebar-template';
 import MiniSidebarTemplate from './mini-left-sidebar';
 import { useNodeStore } from '@/features/editor/stores/nodes';
-import { notFound, useParams } from 'next/navigation';
+import { useParams } from 'react-router-dom';
 import { TabsHeader } from './tabs/tab-header';
 import { useProjectByIdQuery } from '@/hooks/project/useProjectQuery';
 import { useNodesProjectIdQuery } from '@/hooks/node/useNodeQuery';
@@ -29,7 +29,7 @@ interface MainContentAreaProps {
 
 const MainContentArea = memo(function MainContentArea({ children, RightSidebarRef, isRightCollapsed }: MainContentAreaProps) {
   const params = useParams();
-  const pid = params.pid as string;
+  const pid = params.pid || '';
 
   const toggleRightSidebar = () => {
     const panel = RightSidebarRef.current;
@@ -70,7 +70,7 @@ const RightSidebarArea = ({ activeNodeId, activeNodeType }: { activeNodeId: stri
 
 export default function AppSidebarLayout({ children }: { children: React.ReactNode }) {
   const params = useParams();
-  const pid = params.pid as string;
+  const pid = params.pid || '';
   const { data: pData, isLoading: pLoading, error: pError } = useProjectByIdQuery(pid);
   const { data: nData, isLoading: nLoading } = useNodesProjectIdQuery(pid);
   const activeNode = useNodeStore(state => state.activeNode);
@@ -162,7 +162,16 @@ export default function AppSidebarLayout({ children }: { children: React.ReactNo
     };
   }, [updatePanelConstraints]);
 
-  if (pError) return notFound();
+  if (pError) {
+    return (
+      <div className="flex h-full w-full items-center justify-center bg-background text-muted-foreground">
+        <div className="rounded-md border border-border bg-card p-6 text-center">
+          <p className="text-sm font-medium text-foreground">File scope unavailable</p>
+          <p className="mt-1 text-xs">Check `VITE_API_BASE_URL` and the selected file scope.</p>
+        </div>
+      </div>
+    );
+  }
   return (
     <div ref={containerRef} className="h-full w-full overflow-hidden">
       {!projectLoadingReady && <ProjectLoadingScreen steps={steps} pct={pct} />}

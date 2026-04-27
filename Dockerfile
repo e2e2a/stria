@@ -9,8 +9,7 @@ RUN npm install
 # Copy the rest of the code
 COPY . .
 
-# Next.js dev port
-EXPOSE 3000
+# Vite dev port
+EXPOSE 5173
 
-# Change to npm run dev if you want to enable nextjs development logs
 CMD ["npm", "run", "dev"]

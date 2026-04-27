@@ -1,7 +1,7 @@
 import { useProjectUIStore } from '@/features/editor/stores/project-ui';
 import { useMemo } from 'react';
 import { useProjectPropertiesQuery } from '@/hooks/project/useProjectQuery';
-import { useParams } from 'next/navigation';
+import { useParams } from 'react-router-dom';
 
 const ICON_MAP: Record<string, string> = {
   tags: '🏷',
@@ -18,7 +18,7 @@ interface IProps {
 
 export const PropertyTabItems = ({ sortMode, searchQuery }: IProps) => {
   const params = useParams();
-  const projectId = params.pid as string;
+  const projectId = params.pid || '';
 
   const { setSearchQuery, setLeftSidebarTab } = useProjectUIStore();
   const { data } = useProjectPropertiesQuery(projectId);

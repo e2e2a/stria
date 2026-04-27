@@ -3,7 +3,6 @@ import { cn } from '@/lib/utils';
 import { ChevronRight } from 'lucide-react';
 import { useNodeStore } from '@/features/editor/stores/nodes';
 import { memo, useState } from 'react';
-import Image from 'next/image';
 import { useNodeMutations } from '@/hooks/node/useNodeMutations';
 import { makeToastError } from '@/lib/toast';
 import { Input } from '@/components/ui/input';
@@ -103,7 +102,7 @@ const SidebarFolderItemComponent = ({ item, isOpen, depth }: IProps) => {
         }}
       >
         <ChevronRight className={`${isOpen ? 'rotate-90' : 'rotate-0'}`} />
-        <Image src={isOpen ? '/images/opened-folder.svg' : '/images/closed-folder.svg'} alt="Folder Icon" className="w-4.5 h-4.5" width={20} height={20} />
+        <img src={isOpen ? '/images/opened-folder.svg' : '/images/closed-folder.svg'} alt="Folder Icon" className="w-4.5 h-4.5" />
         <div className="truncate bg-transparent w-full">
           <Input
             onBlur={update}
@@ -135,7 +134,7 @@ const SidebarFolderItemComponent = ({ item, isOpen, depth }: IProps) => {
       }}
     >
       <ChevronRight className={`${isOpen ? 'rotate-90' : 'rotate-0'}`} />
-      <Image src={isOpen ? '/images/opened-folder.svg' : '/images/closed-folder.svg'} alt="Folder Icon" className="w-4.5 h-4.5" width={20} height={20} />
+      <img src={isOpen ? '/images/opened-folder.svg' : '/images/closed-folder.svg'} alt="Folder Icon" className="w-4.5 h-4.5" />
       <p className="truncate">{title || item.title}</p>
     </Button>
   );

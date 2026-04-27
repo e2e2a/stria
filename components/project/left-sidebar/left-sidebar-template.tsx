@@ -18,7 +18,6 @@ import { SearchTabContent } from './search-tab-content';
 import { cn } from '@/lib/utils';
 import NodeTabHeader from './node-tab-header';
 import { IconTooltip } from '../icon-tooltip';
-import { useGetMyProjectMembership } from '@/hooks/projectMember/useQueries';
 
 function LeftSidebarTemplate({ projectData }: { projectData: IProject }) {
   const nodes = useNodeStore(state => state.nodes);
@@ -31,8 +30,6 @@ function LeftSidebarTemplate({ projectData }: { projectData: IProject }) {
   const leftSidebarTab = useProjectUIStore(state => state.leftSidebarTab);
   const setSearchQuery = useProjectUIStore(state => state.setSearchQuery);
   const setLeftSidebarTab = useProjectUIStore(state => state.setLeftSidebarTab);
-
-  const { data: mData } = useGetMyProjectMembership(projectData._id);
 
   const [history, setHistory] = useState<string[]>([]);
   const STORAGE_KEY = 'left_sidebar_search_history';
@@ -125,7 +122,6 @@ function LeftSidebarTemplate({ projectData }: { projectData: IProject }) {
     openTab(projectData._id, node, true);
     setActiveNode(node._id);
   };
-  if (!mData) return;
   return (
     <Sidebar
       id="sidebar-tree-nodes"
@@ -229,13 +225,13 @@ function LeftSidebarTemplate({ projectData }: { projectData: IProject }) {
             </SidebarHeader>
             <div className="min-h-0 flex-1 overflow-hidden!">
               <SidebarContent className="ml-0 p-0! space-y-0! h-full flex">
-                <SidebarContextMenu node={null} mData={mData}>
+                <SidebarContextMenu node={null}>
                   <TabsContent
                     forceMount
                     className={cn('h-full min-h-0 p-0! gap-0! space-x-0 space-y-0! m-0!', leftSidebarTab !== 'nodes' && 'hidden')}
                     value="nodes"
                   >
-                    <NavMain canMoveNode={!!mData?.permissions.canMoveNode} mData={mData} />
+                    <NavMain canMoveNode={true} />
                   </TabsContent>
                 </SidebarContextMenu>
 

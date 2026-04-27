@@ -1,10 +1,9 @@
 import { cn } from '@/lib/utils';
 import { useNodeStore } from '@/features/editor/stores/nodes';
 import { useState } from 'react';
-import Image from 'next/image';
 import { useNodeMutations } from '@/hooks/node/useNodeMutations';
 import { makeToastError } from '@/lib/toast';
-import { useParams } from 'next/navigation';
+import { useParams } from 'react-router-dom';
 import { Input } from '@/components/ui/input';
 
 interface IProps {
@@ -15,7 +14,7 @@ const SidebarCreateFileItem = ({ depth }: IProps) => {
   const isCreating = useNodeStore(state => state.isCreating);
   const setIsCreating = useNodeStore(state => state.setIsCreating);
   const params = useParams();
-  const pid = params.pid as string;
+  const pid = params.pid || '';
   const [title, setTitle] = useState('');
   const [disabled, setDisabled] = useState(false);
 
@@ -39,7 +38,7 @@ const SidebarCreateFileItem = ({ depth }: IProps) => {
 
     mutation.create.mutate(payload, {
       onSuccess: data => {
-        useNodeStore.getState().createNodeWithUndo(data);
+        useNodeStore.getState().createNodeWithUndo('data' in data ? data.data : data);
         setTimeout(() => {
           setIsCreating(null);
         }, 100);
@@ -78,7 +77,7 @@ const SidebarCreateFileItem = ({ depth }: IProps) => {
         paddingLeft: `${depth * 8}px`,
       }}
     >
-      <Image src={'/images/file.svg'} alt="File Icon" className="w-4.5! h-4.5" width={5} height={5} />
+      <img src="/images/file.svg" alt="File Icon" className="w-4.5! h-4.5" />
       <div className="truncate bg-transparent w-full">
         <Input
           onBlur={create}

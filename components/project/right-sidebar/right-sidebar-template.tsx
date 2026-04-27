@@ -3,8 +3,6 @@
 import { memo, useMemo, useState } from 'react';
 import { Sidebar, SidebarContent, SidebarHeader } from '@/components/ui/sidebar';
 import { useProjectPresence } from '@/features/editor/stores/project-pressence';
-import { useSession } from 'next-auth/react';
-import { NavUser } from '../../nav-user';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { List, Users, Link, ArrowDownLeft, Archive, Tags } from 'lucide-react';
 import { useProjectUIStore } from '@/features/editor/stores/project-ui';
@@ -16,8 +14,7 @@ import { LinkTabHeader } from './link-tab-header';
 import LinkTabContent from './link-tab-content';
 import MermaidTabContent from './mermaid/mermaid-tab-content';
 import { IconTooltip } from '../icon-tooltip';
-import { useParams } from 'next/navigation';
-import { useGetMyProjectMembership } from '@/hooks/projectMember/useQueries';
+import { useParams } from 'react-router-dom';
 import { TagsTabHeader } from './tags-tab-header';
 import { TagsTabContent } from './tags-tab-content';
 import OutlineTabContent from './outline-tab-content';
@@ -39,15 +36,12 @@ const InboundLinkIcon = ({ className }: { className?: string }) => (
 type ISortMode = 'name-asc' | 'name-desc' | 'freq-high' | 'freq-low';
 
 const RightSidebarTemplate = ({ activeNodeId }: { activeNodeId: string; activeNodeType: string }) => {
-  const { data } = useSession();
-
   const rightSidebarTab = useProjectUIStore(state => state.rightSidebarTab);
   const setRightSidebarTab = useProjectUIStore(state => state.setRightSidebarTab);
 
   const activeUsers = useProjectPresence(state => state.activeUsers);
   const params = useParams();
-  const projectId = params.pid as string;
-  const { data: mData } = useGetMyProjectMembership(projectId);
+  const projectId = params.pid || '';
 
   // --- TAG STATES ---
   const [isSearchingInTags, setIsSearchingInTags] = useState(false);
@@ -85,8 +79,8 @@ const RightSidebarTemplate = ({ activeNodeId }: { activeNodeId: string; activeNo
   };
 
   const filteredUsers = useMemo(() => {
-    return Array.from(activeUsers.values()).filter(user => user.id !== data?.user?._id);
-  }, [activeUsers, data?.user?._id]);
+    return Array.from(activeUsers.values());
+  }, [activeUsers]);
 
   return (
     <Sidebar side="right" className="right-0 border-l p-0 w-full app-font-interface" collapsible="none" variant="inset">
@@ -150,21 +144,15 @@ const RightSidebarTemplate = ({ activeNodeId }: { activeNodeId: string; activeNo
                       )}
                     </TabsTrigger>
                   </IconTooltip>
-                  {mData?.permissions.canEditNode && (
-                    <IconTooltip label={'Mermaid'}>
-                      <TabsTrigger
-                        className="grow-0 hover:bg-accent/50 text-muted-foreground hover:text-foreground! data-[state=active]:text-foreground data-[state=active]:bg-accent/50! data-[state=active]:border-accent!"
-                        value="mermaid"
-                      >
-                        <IconTrident className="w-5! h-5! rotate-45 -ml-1 mt-1" />
-                      </TabsTrigger>
-                    </IconTooltip>
-                  )}
+                  <IconTooltip label={'Mermaid'}>
+                    <TabsTrigger
+                      className="grow-0 hover:bg-accent/50 text-muted-foreground hover:text-foreground! data-[state=active]:text-foreground data-[state=active]:bg-accent/50! data-[state=active]:border-accent!"
+                      value="mermaid"
+                    >
+                      <IconTrident className="w-5! h-5! rotate-45 -ml-1 mt-1" />
+                    </TabsTrigger>
+                  </IconTooltip>
                 </TabsList>
-              </div>
-
-              <div className="shrink-0 ml-2">
-                <NavUser />
               </div>
             </div>
           </SidebarHeader>
@@ -265,7 +253,7 @@ const RightSidebarTemplate = ({ activeNodeId }: { activeNodeId: string; activeNo
           <TabsContent value="pressence" className="m-0 flex-1 overflow-y-auto bg-sidebar/80">
             <div className="p-6">
               <div className="flex items-center justify-between mb-6">
-                <h1 className="text-xl font-bold tracking-tight text-foreground">Project Presence</h1>
+                <h1 className="text-xl font-bold tracking-tight text-foreground">File Presence</h1>
               </div>
               <section>
                 <div className="flex items-center justify-between mb-4">
@@ -293,11 +281,9 @@ const RightSidebarTemplate = ({ activeNodeId }: { activeNodeId: string; activeNo
               </section>
             </div>
           </TabsContent>
-          {mData?.permissions.canEditNode && (
-            <TabsContent value="mermaid" className="m-0 flex-1 overflow-y-auto bg-sidebar/80">
-              <MermaidTabContent />
-            </TabsContent>
-          )}
+          <TabsContent value="mermaid" className="m-0 flex-1 overflow-y-auto bg-sidebar/80">
+            <MermaidTabContent />
+          </TabsContent>
         </Tabs>
       </SidebarContent>
     </Sidebar>

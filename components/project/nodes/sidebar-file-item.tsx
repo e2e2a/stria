@@ -2,7 +2,6 @@ import { INode } from '@/types';
 import { cn } from '@/lib/utils';
 import { useNodeStore } from '@/features/editor/stores/nodes';
 import { memo, useState } from 'react';
-import Image from 'next/image';
 import { useNodeMutations } from '@/hooks/node/useNodeMutations';
 import { makeToastError } from '@/lib/toast';
 import { Input } from '@/components/ui/input';
@@ -99,7 +98,7 @@ const SidebarFileItemComponent = ({ item, depth }: IProps) => {
           paddingLeft: `${depth * 8}px`,
         }}
       >
-        <Image src={'/images/file.svg'} alt="File Icon" className="w-4.5! h-4.5" width={5} height={5} />
+        <img src="/images/file.svg" alt="File Icon" className="w-4.5! h-4.5" />
         <div className="truncate bg-transparent w-full">
           <Input
             onBlur={update}
@@ -129,7 +128,7 @@ const SidebarFileItemComponent = ({ item, depth }: IProps) => {
         paddingLeft: `${depth * 8}px`,
       }}
     >
-      <Image src={'/images/file.svg'} alt="File Icon" className="w-4.5! h-4.5" width={5} height={5} />
+      <img src="/images/file.svg" alt="File Icon" className="w-4.5! h-4.5" />
       <p className="truncate">{item.title}</p>
     </Button>
   );

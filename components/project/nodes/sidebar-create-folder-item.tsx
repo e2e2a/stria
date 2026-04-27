@@ -2,10 +2,9 @@ import { cn } from '@/lib/utils';
 import { ChevronRight } from 'lucide-react';
 import { useNodeStore } from '@/features/editor/stores/nodes';
 import { useState } from 'react';
-import Image from 'next/image';
 import { useNodeMutations } from '@/hooks/node/useNodeMutations';
 import { makeToastError } from '@/lib/toast';
-import { useParams } from 'next/navigation';
+import { useParams } from 'react-router-dom';
 import { Input } from '@/components/ui/input';
 
 interface IProps {
@@ -16,7 +15,7 @@ const SidebarCreateFolderItem = ({ depth }: IProps) => {
   const isCreating = useNodeStore(state => state.isCreating);
   const setIsCreating = useNodeStore(state => state.setIsCreating);
   const params = useParams();
-  const pid = params.pid as string;
+  const pid = params.pid || '';
   const [title, setTitle] = useState('');
   const [disabled, setDisabled] = useState(false);
 
@@ -42,7 +41,7 @@ const SidebarCreateFolderItem = ({ depth }: IProps) => {
         setTimeout(() => {
           setIsCreating(null);
         }, 100);
-        useNodeStore.getState().createNodeWithUndo(data);
+        useNodeStore.getState().createNodeWithUndo('data' in data ? data.data : data);
         return;
       },
       onError: err => {
@@ -79,7 +78,7 @@ const SidebarCreateFolderItem = ({ depth }: IProps) => {
       }}
     >
       <ChevronRight className="rotate-0" />
-      <Image src="/images/closed-folder.svg" alt="Folder Icon" className="w-4.5 h-4.5" width={20} height={20} />
+      <img src="/images/closed-folder.svg" alt="Folder Icon" className="w-4.5 h-4.5" />
       <div className="truncate bg-transparent w-full">
         <Input
           onBlur={create}
