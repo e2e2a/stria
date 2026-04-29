@@ -359,14 +359,7 @@ body {
     contain: layout style;
   }
 
-  .cm-editor .cm-content .cm-wrap-line {
-    white-space: pre-wrap !important;
-    overflow-wrap: anywhere !important;
-  }
-
   .cm-content {
-    white-space: pre !important;
-    overflow-wrap: anywhere !important;
     font-family: var(--editor-font-text) !important;
     height: auto !important;
     line-height: 1.25rem;

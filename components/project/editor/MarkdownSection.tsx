@@ -46,11 +46,9 @@ import createTheme from '@uiw/codemirror-themes';
 import { tags as t } from '@lezer/highlight';
 import { mermaidLivePreviewField, registerView, themeChangedEffect } from '@/features/editor/plugins/mermaid';
 import { useEditorSettings } from '@/features/editor/stores/setting';
-import { tableLivePreviewField, columnSelectionField, tableSelectionHighlighter } from '@/features/editor/plugins/table';
+import { columnSelectionField, tableSelectionHighlighter } from '@/features/editor/plugins/table';
 import { useNodeByIdQuery } from '@/hooks/node/useNodeQuery';
 import { nodeClient } from '@/lib/client/api/nodeClient';
-import { selectiveWrapPlugin } from '@/features/editor/plugins/no-wrap';
-import { fenceLivePreviewField } from '@/features/editor/plugins/fence-code';
 
 const myTheme = createTheme({
   theme: 'dark',
@@ -208,14 +206,12 @@ function MarkdownSection({ node, isDirty, canEditNode, canEditChunk }: { node: I
       EditorState.readOnly.of(isReadOnly || isChunkActive),
       isChunkActive ? chunkModeFacet.of(true) : [],
       EditorView.editorAttributes.of({ class: isChunkActive ? 'cm-chunk-mode-active' : '' }),
-      selectiveWrapPlugin,
+      EditorView.lineWrapping,
       lineLimitGuard,
       permissionGuard(canEditNode),
       markdownLivePreviewField,
-      fenceLivePreviewField,
       mermaidLivePreviewField,
       onDocChange,
-      tableLivePreviewField,
       tableBackspace,
       sourceModeField,
       tableSelectionHighlighter,

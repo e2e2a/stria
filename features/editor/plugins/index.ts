@@ -3,6 +3,8 @@ import { StateField, RangeSet, EditorState, StateEffect, Facet, Transaction } fr
 import { buildChunkDecorations, buildDecorations } from '../decorations';
 import { makeToastError } from '@/lib/toast';
 
+export const fenceCodeHeightCache = new Map<string, number>();
+
 export const setViewportLinesEffect = StateEffect.define<{ from: number; to: number }>();
 
 export const viewportLinesField = StateField.define<{ from: number; to: number }>({

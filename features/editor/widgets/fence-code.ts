@@ -1,6 +1,6 @@
 import { getLanguageLabel } from '@/features/helpers/editor/getLanguageLabel';
 import { WidgetType } from '@uiw/react-codemirror';
-import { fenceCodeHeightCache } from '../plugins/fence-code';
+import { fenceCodeHeightCache } from '../plugins';
 
 export function estimateFenceCodeHeight(code: string): number {
   const lines = code.split('\n').length;

@@ -1,49 +1,7 @@
-import { Decoration, EditorState, EditorView, RangeSet, StateEffect, StateField, ViewPlugin, ViewUpdate } from '@uiw/react-codemirror';
-import { buildTableDecorations } from '../decorations/table';
+import { EditorView, StateEffect, StateField, ViewPlugin, ViewUpdate } from '@uiw/react-codemirror';
 import { TablePreviewWidget } from '../widgets/table';
-import { setViewportLinesEffect, sourceModeField, viewportLinesField } from '.';
 
 export const tableHeightCache = new Map<string, number>();
-
-export const tableLivePreviewField = StateField.define<RangeSet<Decoration>>({
-  create(state) {
-    const sourceMode = state.field(sourceModeField, false);
-    if (sourceMode) return RangeSet.empty;
-    const vLines = state.field(viewportLinesField);
-    return RangeSet.of(buildTableDecorations(state, vLines.from, vLines.to), true);
-  },
-
-  update(decos, tr) {
-    const oldSourceMode = tr.startState.field(sourceModeField, false);
-    const newSourceMode = tr.state.field(sourceModeField, false);
-    const modeToggled = oldSourceMode !== newSourceMode;
-    const oldViewMode = tr.startState.facet(EditorState.readOnly);
-    const newViewMode = tr.state.facet(EditorState.readOnly);
-    const viewModeToggled = oldViewMode !== newViewMode;
-
-    const viewportChanged = tr.effects.some(e => e.is(setViewportLinesEffect));
-    const vLines = tr.state.field(viewportLinesField);
-
-    const sourceMode = tr.state.field(sourceModeField, false);
-
-    const from = Math.max(1, vLines.from - 250);
-    const to = Math.min(tr.state.doc.lines, vLines.to + 250);
-
-    if (modeToggled || viewModeToggled) {
-      if (sourceMode) return RangeSet.empty;
-      return RangeSet.of(buildTableDecorations(tr.state, from, to), true);
-    }
-
-    if (tr.docChanged || viewportChanged) {
-      if (sourceMode) return RangeSet.empty;
-      return RangeSet.of(buildTableDecorations(tr.state, from, to), true);
-    }
-
-    return decos.map(tr.changes);
-  },
-
-  provide: f => EditorView.decorations.from(f),
-});
 
 export const tableSelectionHighlighter = ViewPlugin.fromClass(
   class {

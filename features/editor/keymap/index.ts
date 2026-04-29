@@ -10,7 +10,7 @@ import { classifyLink } from '@/features/helpers/editor/parse-link';
 import { handleInternalLink, openRelativeFile } from '@/features/helpers/editor/link-actions';
 import { extractHeadings, getCachedNodes, getSearchIndex } from '@/features/helpers/editor/node-cache';
 import { TablePreviewWidget } from '../widgets/table';
-import { tableLivePreviewField } from '../plugins/table';
+import { markdownLivePreviewField } from '../plugins';
 
 interface LinkCompletion extends Completion {
   type: 'file' | 'folder' | 'heading';
@@ -31,7 +31,7 @@ export const tableBackspace = keymap.of([
     run(view: EditorView) {
       const { state } = view;
       const { main } = state.selection;
-      const decoSet = state.field(tableLivePreviewField, false);
+      const decoSet = state.field(markdownLivePreviewField, false);
       if (!decoSet) return false;
 
       if (!main.empty) {

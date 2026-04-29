@@ -6,7 +6,7 @@ import { chunkModeFacet, sourceModeField } from '../plugins';
 import { FrontmatterWidget } from '../widgets/front-matter-widget';
 import { DragHandleWidget } from '../widgets/chunk-widget';
 import { TablePreviewWidget } from '../widgets/table';
-import { getFenceDecos } from './fence-code';
+import { FenchCodeWidget } from '../widgets/fence-code';
 
 // REGEX
 const BOLD_ITALIC_REGEX = /(?<![\*_])(\*\*\*|___)(.+?)\1(?![\*_])/g;
@@ -813,6 +813,70 @@ export function getFrontmatterDecos(state: EditorState, activeLineNum: number): 
   return { decos: [], skipToLine: endLineNum };
 }
 
+export function getFenceDecos(state: EditorState, lineNum: number, activeLineNum: number) {
+  const line = state.doc.line(lineNum);
+  const text = line.text;
+
+  // STRICT ROOT CHECK: No leading spaces allowed
+  if (!text.startsWith('```')) return null;
+
+  const decos: StateRange<Decoration>[] = [];
+  const sourceMode = state.field(sourceModeField, false);
+  const viewMode = state.facet(EditorState.readOnly);
+  const isChunkMode = state.facet(chunkModeFacet);
+
+  let closingLine = lineNum;
+  const content = [];
+
+  for (let j = lineNum + 1; j <= state.doc.lines; j++) {
+    const nextLine = state.doc.line(j);
+
+    if (nextLine.text === '```') {
+      closingLine = j;
+      break;
+    }
+    content.push(nextLine.text);
+  }
+
+  const isBlockActive = activeLineNum >= lineNum && activeLineNum <= closingLine;
+  const isSelected = isRangeSelected(state, line.from, state.doc.line(closingLine).to);
+
+  // Extract the language string (e.g., "yaml", "json") cleanly
+  const language = text.slice(3).trim();
+
+  // 2. Decorate the Widget (Hidden in Source Mode)
+  if (!sourceMode) {
+    decos.push(
+      Decoration.widget({
+        widget: new FenchCodeWidget(language, content.join('\n')),
+        side: -1,
+      }).range(line.from)
+    );
+  }
+
+  // 3. Decorate the Start Fence
+  decos.push(Decoration.line({ attributes: { class: 'cm-code-block-fence cm-code-block-start' } }).range(line.from));
+  if (viewMode || (!isBlockActive && !isSelected && !sourceMode && !isChunkMode)) {
+    decos.push(Decoration.mark({ class: 'cm-syntax-hide' }).range(line.from, line.to));
+  }
+
+  // 4. Decorate the Inner Content Lines
+  for (let m = lineNum + 1; m < closingLine; m++) {
+    decos.push(Decoration.line({ attributes: { class: 'cm-code-block-line' } }).range(state.doc.line(m).from));
+  }
+
+  // 5. Decorate the End Fence
+  if (closingLine > lineNum) {
+    const lastLine = state.doc.line(closingLine);
+    decos.push(Decoration.line({ attributes: { class: 'cm-code-block-fence cm-code-block-end' } }).range(lastLine.from));
+    if (viewMode || (!isBlockActive && !isSelected && !sourceMode)) {
+      decos.push(Decoration.mark({ class: 'cm-syntax-hide' }).range(lastLine.from, lastLine.to));
+    }
+  }
+
+  return { decos, skipToLine: closingLine };
+}
+
 export function buildDecorations(state: EditorState, from: number, to: number): RangeSet<Decoration> {
   from = Math.max(1, Math.min(from, state.doc.lines));
   to = Math.max(1, Math.min(to, state.doc.lines));
@@ -886,30 +950,24 @@ export function buildDecorations(state: EditorState, from: number, to: number): 
     const isActive = i === activeLineNum;
     const lineDecos: StateRange<Decoration>[] = [];
     let skipToLine = i;
-    // const table = !fence ? getTableDecos(state, i) : null;
 
     const fence = getFenceDecos(state, i, activeLineNum) ?? null;
-
-    let isTable = false;
-    if (!fence && text.trim().startsWith('|')) {
-      const tableRange = getTableRange(state, i);
-      skipToLine = tableRange.end;
-      isTable = true;
-    }
-
-    const mathBlock = !fence ? getMathBlockDecos(state, i, activeLineNum) : null;
-    const callout = !fence && !isTable ? getCalloutDecos(state, i, activeLineNum) : null;
+    const table = !fence ? getTableDecos(state, i) : null;
+    const mathBlock = !fence && !table ? getMathBlockDecos(state, i, activeLineNum) : null;
+    const callout = !fence && !table ? getCalloutDecos(state, i, activeLineNum) : null;
 
     if (fence) {
+      if (fence.skipToLine >= from) {
+        lineDecos.push(...fence.decos);
+      }
       skipToLine = fence.skipToLine;
-    } else if (isTable) {
-      // REMOVAL: We intentionally do NOT push table.decos here.
-      // We only grab the skipToLine to jump over the table block,
-      // letting buildTableDecorations handle the actual widgets.
-      // skipToLine = isTable.skipToLine;
+    } else if (table) {
+      if (table.skipToLine >= from) {
+        lineDecos.push(...table.decos);
+      }
+      skipToLine = table.skipToLine;
     } else if (callout || mathBlock) {
       const block = callout || mathBlock;
-      // Only push if it overlaps the viewport
       if (block!.skipToLine >= from) {
         lineDecos.push(...block!.decos);
       }
