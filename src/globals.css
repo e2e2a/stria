@@ -206,7 +206,7 @@ body {
     @apply overflow-hidden;
   }
   body {
-    font-family: var(--font-sans);
+    font-family: var(--font-dm-sans);
     @apply bg-background text-foreground;
   }
 
@@ -359,7 +359,14 @@ body {
     contain: layout style;
   }
 
+  .cm-editor .cm-content .cm-wrap-line {
+    white-space: pre-wrap !important;
+    overflow-wrap: anywhere !important;
+  }
+
   .cm-content {
+    white-space: pre !important;
+    overflow-wrap: anywhere !important;
     font-family: var(--editor-font-text) !important;
     height: auto !important;
     line-height: 1.25rem;
