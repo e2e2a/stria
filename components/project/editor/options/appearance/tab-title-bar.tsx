@@ -36,6 +36,10 @@ const EditorTabTitleBar = ({
   const tabTitleBar = useEditorSettings(state => state.tabTitleBar);
   if (!tabTitleBar) return null;
 
+  const pathSegments = (node.path || '').split('/').filter(Boolean);
+  const parentSegments = pathSegments.slice(0, -1);
+  const breadcrumbText = parentSegments.join(' / ');
+
   const update = () => {
     const trimmed = title.trim();
     if (!trimmed || node.title === trimmed) return setIsUpdatingNode(null);
@@ -75,16 +79,36 @@ const EditorTabTitleBar = ({
 
   return (
     <>
-      <div className="absolute top-13 left-0 right-0 h-14 z-50 flex items-center px-10 border-b border-border bg-sidebar/80 backdrop-blur-sm pointer-events-auto cursor-default drop-shadow-xs shadow-xs">
-        <div className="flex justify-between items-center w-full">
+      <div
+        className="absolute top-11 left-0 right-0 h-10 z-50 grid items-center px-10 border-b border-border bg-sidebar/80 backdrop-blur-sm pointer-events-auto cursor-default drop-shadow-xs shadow-xs"
+        style={{ gridTemplateColumns: '1fr minmax(0, auto) 1fr' }}
+      >
+        <div className="min-w-0" />
+        <div className="flex items-center justify-center min-w-0 w-full">
+          {parentSegments.length > 0 && (
+            <>
+              <div
+                className="truncate text-xs text-muted-foreground bg-muted/40 px-2 py-0.5 rounded-md shrink-10 min-w-0 font-medium"
+                title={breadcrumbText}
+              >
+                {breadcrumbText}
+              </div>
+              <span className="text-muted-foreground/40 mx-2 shrink-0">/</span>
+            </>
+          )}
+
           <input
             type="text"
             value={title}
             onChange={e => setTitle(e.target.value)}
             onBlur={update}
             disabled={isReadOnly}
-            className="flex-1 text-5xl font-bold tracking-tighter text-foreground bg-transparent border-none outline-none focus:outline-none focus:ring-0 p-0 m-0 w-full text-ellipsis overflow-hidden whitespace-nowrap min-w-0"
+            size={Math.max(1, title.length)}
+            className="font-bold text-sm tracking-tighter text-foreground bg-transparent border-none outline-none focus:outline-none focus:ring-0 p-0 m-0 text-ellipsis overflow-hidden shrink min-w-[50px] max-w-full"
           />
+        </div>
+
+        <div className="flex justify-end shrink-0 min-w-0">
           <EditorOptions
             editorViewRef={editorViewRef}
             isReadOnly={isReadOnly}

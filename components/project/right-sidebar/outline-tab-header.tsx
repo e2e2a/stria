@@ -66,7 +66,7 @@ export const OutlineTabHeader = ({
               placeholder="Filter..."
               value={searchQueryInOutline}
               onChange={e => onSearchChange(e.target.value)}
-              className="w-full bg-background/50 border border-border/80 rounded-md py-1.5 pl-9 pr-8 text-sm focus:outline-none focus:ring-1 focus:ring-primary/50 transition-all"
+              className="w-full bg-background/50 border border-border/80 rounded-md py-1 pl-9 pr-8 text-sm focus:outline-none focus:ring-1 focus:ring-primary/50 transition-all"
             />
             <button
               onClick={() => {

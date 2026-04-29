@@ -91,7 +91,7 @@ const RightSidebarTemplate = ({ activeNodeId }: { activeNodeId: string; activeNo
           onValueChange={e => setRightSidebarTab(e as 'pressence' | 'properties' | 'outline' | 'link' | 'outgoing' | 'mermaid')}
           className="flex flex-col h-screen min-h-0 gap-y-0 w-full"
         >
-          <SidebarHeader className="h-12 bg-sidebar flex text-xs text-muted-foreground border-b border-white/5 p-0!">
+          <SidebarHeader className="h-10 bg-sidebar flex text-xs text-muted-foreground border-b border-white/5 p-0!">
             <div className="flex items-center h-full justify-between w-full overflow-hidden">
               <div className="flex-1 min-w-0 h-full flex items-center overflow-x-auto overflow-y-hidden [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden">
                 <TabsList className="bg-transparent flex items-center gap-x-1 w-max">
@@ -160,7 +160,7 @@ const RightSidebarTemplate = ({ activeNodeId }: { activeNodeId: string; activeNo
           <div className="h-1! w-full bg-border dark:bg-border/50" />
 
           {rightSidebarTab !== 'pressence' && rightSidebarTab !== 'mermaid' && (
-            <div className="h-14 flex items-center border-b text-muted-foreground border-border w-full">
+            <div className="h-10 flex items-center border-b text-muted-foreground border-border w-full">
               {/* Link Header Content */}
               <LinkTabHeader
                 isSearching={isSearchingInLink}

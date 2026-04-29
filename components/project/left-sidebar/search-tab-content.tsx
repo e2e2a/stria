@@ -179,7 +179,7 @@ function SearchTabContentComponent({ query, onResultClick }: { query: string; on
 
   return (
     <div className="flex-1 flex flex-col overflow-hidden select-none bg-sidebar">
-      <div className="pt-16 px-4 pb-2 text-[10px] uppercase tracking-wider opacity-50 font-bold flex items-center justify-between">
+      <div className="pt-12 px-4 pb-2 text-[10px] uppercase tracking-wider opacity-50 font-bold flex items-center justify-between">
         <span>{totalFound} results</span>
         {isFetching && <div className="w-3 h-3 border-2 border-primary/50 border-t-primary rounded-full animate-spin" />}
       </div>

@@ -126,7 +126,7 @@ export function NavMain({ canMoveNode }: { canMoveNode: boolean }) {
           'has-[[data-id="root"][data-drag-over="true"]]:bg-accent/50 has-[[data-id="root"][data-drag-over="true"]]:ring-1 has-[[data-id="root"][data-drag-over="true"]]:ring-inset has-[[data-id="root"][data-drag-over="true"]]:ring-accent'
       )}
     >
-      <SidebarGroup className="flex-1 flex px-0 pb-0 flex-col pt-16 hoverable-scrollbar overflow-y-auto relative [&::-webkit-scrollbar-track]:mt-[60px]">
+      <SidebarGroup className="flex-1 flex px-0 pb-0 flex-col pt-12 hoverable-scrollbar overflow-y-auto relative [&::-webkit-scrollbar-track]:mt-11">
         {isCreatingAtRoot && isCreating.type === 'folder' && <SidebarCreateFolderItem depth={0} />}
         {folders.map(item => (
           <SidebarItem

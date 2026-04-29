@@ -400,10 +400,10 @@ function MarkdownSection({ node, isDirty, canEditNode, canEditChunk }: { node: I
           tabIndex={-1}
           className={cn(
             'absolute inset-0 z-30 bg-background hoverable-scrollbar editor-font-text',
-            'h-full! grid grid-cols-1 max-h-full w-full overflow-y-auto overflow-x-hidden relative [&::-webkit-scrollbar-track]:mt-14 [&::-webkit-scrollbar-track]:mb-5'
+            'h-full! grid grid-cols-1 max-h-full w-full overflow-y-auto overflow-x-hidden relative [&::-webkit-scrollbar-track]:mt-8 [&::-webkit-scrollbar-track]:mb-5'
           )}
         >
-          <div className="w-full h-auto pb-4 flex flex-col pt-16" tabIndex={-1}>
+          <div className="w-full h-auto pb-4 px-10 flex flex-col pt-9" tabIndex={-1}>
             <ChunkEditor text={isRealtimeEnabled ? ytext?.toString() || '' : localContent} splits={[]} ydoc={instance?.ydoc} canEditChunk={canEditChunk} />
           </div>
         </div>
@@ -415,7 +415,7 @@ function MarkdownSection({ node, isDirty, canEditNode, canEditChunk }: { node: I
         className={cn(
           'hoverable-scrollbar editor-font-text',
           'h-full! grid grid-cols-1 max-h-full min-w-0! max-w-full w-full px-10 overflow-y-auto overflow-x-auto relative',
-          '[&::-webkit-scrollbar-track]:mt-14 [&::-webkit-scrollbar-track]:mb-5',
+          '[&::-webkit-scrollbar-track]:mt-8 [&::-webkit-scrollbar-track]:mb-5',
           isChunkActive ? 'hidden' : ''
         )}
       >

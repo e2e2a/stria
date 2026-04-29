@@ -54,7 +54,7 @@ const EditorInlineTitle = ({ node }: { node: INode }) => {
     }
   };
   return (
-    <div className="pt-16">
+    <div className="pt-9">
       {inlineTitle && (
         <textarea
           value={title}

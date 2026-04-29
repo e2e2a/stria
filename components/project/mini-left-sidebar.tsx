@@ -72,7 +72,7 @@ const MiniSidebarTemplate = ({ LeftSidebarRef, isLeftCollapsed, RightSidebarRef 
         <SidebarContent className="ml-0 p-0 overflow-x-hidden bg-background/50">
           <SidebarGroup className="gap-0 p-0">
             <IconTooltip label={'Collapse'} side="right">
-              <div className="h-12 flex items-center justify-center w-10">
+              <div className="h-10 flex items-center justify-center w-10">
                 <Button type="button" tabIndex={-1} variant={'ghost'} onClick={toggleRightSidebar} className="w-6 h-6 cursor-pointer ">
                   {isLeftCollapsed ? <PanelLeftOpenIcon className="w-5! h-5!" /> : <PanelLeftCloseIcon className="w-5! h-5!" />}
                 </Button>

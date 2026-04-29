@@ -119,7 +119,7 @@ export const TabsHeader = ({ pid }: TabsHeaderProps) => {
       onDrop={handleDrop}
       onDragEnter={e => e.preventDefault()}
       onWheel={handleWheel}
-      className={cn('flex flex-row items-end h-12 w-full overflow-x-auto overflow-y-hidden', 'pl-3')}
+      className={cn('flex flex-row items-end h-10 w-full overflow-x-auto overflow-y-hidden', 'pl-3')}
     >
       {tabs.map((tab, i) => {
         const isActive = activeTabId === tab.nodeId;

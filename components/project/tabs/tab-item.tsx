@@ -75,7 +75,7 @@ export const TabItem = ({ tab, isActive, isDropBefore, pid, canEditChunk, onDrag
       >
         <div
           className={cn(
-            'group relative inline-flex items-center h-10 px-3 min-w-[140px] max-w-[220px] cursor-pointer transition-all duration-200 ease-in-out',
+            'group relative inline-flex items-center h-8 px-3 min-w-[140px] max-w-[220px] cursor-pointer transition-all duration-200 ease-in-out',
             'rounded-t-lg',
             isActive
               ? 'bg-background text-foreground z-20 border-t border-l border-r border-border shadow-[0_-2px_10px_-2px_rgba(0,0,0,0.08)]'

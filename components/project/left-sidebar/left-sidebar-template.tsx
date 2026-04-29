@@ -139,8 +139,8 @@ function LeftSidebarTemplate({ projectData }: { projectData: IProject }) {
             onValueChange={e => setLeftSidebarTab(e as 'search' | 'nodes' | 'bookmarks')}
             className="w-full flex flex-col flex-1 min-h-0 gap-y-0"
           >
-            <SidebarHeader className="h-12 p-0">
-              <SidebarMenu className="h-12 flex w-full flex-row items-center justify-center px-2 relative">
+            <SidebarHeader className="h-10 p-0">
+              <SidebarMenu className="h-10 flex w-full flex-row items-center justify-center px-2 relative">
                 <TabsList className="bg-transparent w-full flex items-start gap-x-3 justify-start">
                   <IconTooltip label={'Files'}>
                     <TabsTrigger
@@ -168,8 +168,8 @@ function LeftSidebarTemplate({ projectData }: { projectData: IProject }) {
                   </IconTooltip>
                 </TabsList>
 
-                <div className="absolute top-12 left-0 right-0 h-1 z-12 w-full bg-border dark:bg-border/50" />
-                <div className="absolute top-13 left-0 right-0 h-14 z-50 flex px-3 items-center border-b border-border bg-sidebar/80 backdrop-blur-lg pointer-events-auto cursor-default">
+                <div className="absolute top-10 left-0 right-0 h-1 z-12 w-full bg-border dark:bg-border/50" />
+                <div className="absolute top-11 left-0 right-0 h-10 z-50 flex px-3 items-center border-b border-border bg-sidebar/80 backdrop-blur-lg pointer-events-auto cursor-default">
                   <div className="flex w-full">
                     <NodeTabHeader projectData={projectData} />
 
@@ -198,7 +198,7 @@ function LeftSidebarTemplate({ projectData }: { projectData: IProject }) {
                             setIsDropdownOpen(false);
                           }}
                           placeholder="Search content..."
-                          className="w-full bg-background/50 border border-border/80 rounded-md py-1.5 pl-9 pr-8 text-sm focus:outline-none focus:ring-1 focus:ring-primary/50 transition-all"
+                          className="w-full bg-background/50 border border-border/80 rounded-md py-1 pl-9 pr-8 text-sm focus:outline-none focus:ring-1 focus:ring-primary/50 transition-all"
                         />
                         {searchQuery && (
                           <button onClick={() => setSearchQuery('')} className="absolute right-3 top-1/2 -translate-y-1/2 hover:text-foreground">
@@ -244,7 +244,7 @@ function LeftSidebarTemplate({ projectData }: { projectData: IProject }) {
                   <SearchTabContent query={searchQuery} onResultClick={handleSearchResultClick} />
                 </TabsContent>
 
-                <TabsContent value="bookmarks" className="text-foreground text-center pt-16">
+                <TabsContent value="bookmarks" className="text-foreground text-center pt-12">
                   Bookmarks
                 </TabsContent>
               </SidebarContent>
