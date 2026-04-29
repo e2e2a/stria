@@ -213,7 +213,7 @@ export default function AppSidebarLayout({ children }: { children: React.ReactNo
                   document.documentElement.classList.remove('is-dragging-panels');
                 }
               }}
-              className="p-0 w-px custom-resize-handle group relative "
+              className="p-0 w-[1.1px] min-w-[1.1px] shrink-0 custom-resize-handle group relative"
               withHandle={isLeftCollapsed}
             />
 
@@ -234,7 +234,7 @@ export default function AppSidebarLayout({ children }: { children: React.ReactNo
                   document.documentElement.classList.remove('is-dragging-panels');
                 }
               }}
-              className="p-0 w-px custom-resize-handle group relative "
+              className="p-0 w-[1.5px] min-w-[1.5px] shrink-0 custom-resize-handle group relative"
               withHandle={isRightCollapsed}
             />
 
