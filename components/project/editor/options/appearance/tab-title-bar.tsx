@@ -80,10 +80,11 @@ const EditorTabTitleBar = ({
   return (
     <>
       <div
-        className="absolute top-11 left-0 right-0 h-10 z-50 grid items-center px-10 border-b border-border bg-sidebar/80 backdrop-blur-sm pointer-events-auto cursor-default drop-shadow-xs shadow-xs"
+        className="absolute top-11 left-0 right-0 h-10 z-50 grid items-center px-10 gap-4 border-b border-border bg-sidebar/80 backdrop-blur-sm pointer-events-auto cursor-default drop-shadow-xs shadow-xs"
         style={{ gridTemplateColumns: '1fr minmax(0, auto) 1fr' }}
       >
         <div className="min-w-0" />
+
         <div className="flex items-center justify-center min-w-0 w-full">
           {parentSegments.length > 0 && (
             <>
@@ -108,7 +109,7 @@ const EditorTabTitleBar = ({
           />
         </div>
 
-        <div className="flex justify-end shrink-0 min-w-0">
+        <div className="flex justify-end shrink-0">
           <EditorOptions
             editorViewRef={editorViewRef}
             isReadOnly={isReadOnly}
