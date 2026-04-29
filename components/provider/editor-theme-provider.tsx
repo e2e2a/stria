@@ -26,10 +26,10 @@ export const useThemeContext = () => useContext(ThemeContext);
 export function EditorThemeProvider({ children }: { children: ReactNode }) {
   const [activeTheme, setActiveThemeState] = useState<Appearance>(() => {
     if (typeof window !== 'undefined') {
-      const saved = (localStorage.getItem('theme-appearance') as Appearance) || 'dark';
+      const saved = (localStorage.getItem('theme-appearance') as Appearance) || 'light';
       return saved;
     }
-    return 'dark';
+    return 'light';
   });
 
   const [skin, setSkinState] = useState(() => {

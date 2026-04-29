@@ -11,13 +11,11 @@ export interface LoadStep {
 export function useProjectLoader({
   pLoading,
   nLoading,
-  isSettingsLoading,
   pData,
   nData,
 }: {
   pLoading: boolean;
   nLoading: boolean;
-  isSettingsLoading: boolean;
   pData: { project: IProject } | null | undefined;
   nData: { nodes: INode[] } | null | undefined;
 }) {
@@ -27,18 +25,17 @@ export function useProjectLoader({
   const steps: LoadStep[] = [
     { key: 'project', label: 'Loading project', done: !!pData?.project, active: pLoading },
     { key: 'nodes', label: 'Loading files & folders', done: !!nData?.nodes, active: nLoading },
-    { key: 'settings', label: 'Syncing settings', done: !isSettingsLoading, active: isSettingsLoading },
-    { key: 'editor', label: 'Preparing editor', done: false, active: !isSettingsLoading && !!nData?.nodes },
+    { key: 'editor', label: 'Preparing editor', done: false, active: !!nData?.nodes },
     { key: 'finalize', label: 'Finalizing editor', done: false, active: false },
   ];
 
-  const allReady = steps.slice(0, 3).every(s => s.done);
+  const allReady = steps.slice(0, 2).every(s => s.done);
 
   if (allReady) {
-    steps[3].done = true;
-    steps[3].active = false;
-    steps[4].active = !isFullyDone;
-    steps[4].done = isFullyDone;
+    steps[2].done = true;
+    steps[2].active = false;
+    steps[3].active = !isFullyDone;
+    steps[3].done = isFullyDone;
   }
 
   const doneCount = steps.filter(s => s.done).length;
