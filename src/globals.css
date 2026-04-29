@@ -1125,7 +1125,7 @@ body {
   }
 
   .cm-tooltip.cm-tooltip-autocomplete {
-    @apply z-100 overflow-hidden! border border-border rounded-md flex flex-col p-0! m-0!;
+    @apply z-100 overflow-hidden! bg-background! border border-border rounded-md flex flex-col p-0! m-0!;
   }
 
   .cm-file-option {
@@ -1141,7 +1141,7 @@ body {
 
   .cm-file-option .cm-completionDetail {
     font-size: calc(var(--editor-font-size) * 0.75);
-    color: #a1a1aa !important;
+    color: var(--foreground) !important;
     opacity: 0.7;
     font-style: normal !important;
     @apply m-0!;
@@ -1162,7 +1162,7 @@ body {
     display: inline-block !important;
     line-height: 1.2 !important;
     margin: 0 !important;
-    @apply text-start;
+    @apply text-foreground text-start;
   }
 
   .cm-heading-option .cm-completionDetail {
@@ -1171,8 +1171,9 @@ body {
     margin-left: auto; /* push to right */
     @apply text-end w-full! -mt-4;
   }
+
   .cm-tooltip-autocomplete ul li[aria-selected] {
-    @apply bg-accent/60 text-accent;
+    @apply bg-(--editor-accent-color)/40! text-foreground;
   }
 
   .cm-editor.cm-chunk-mode-active .cm-cursor {
