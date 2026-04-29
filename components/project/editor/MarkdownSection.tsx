@@ -13,7 +13,6 @@ import {
   lineLimitGuard,
   markdownLivePreviewField,
   permissionGuard,
-  scrollStabilityPlugin,
   setupDragTracking,
   sourceModeField,
   viewportLinesField,
@@ -50,8 +49,8 @@ import { useEditorSettings } from '@/features/editor/stores/setting';
 import { tableLivePreviewField, columnSelectionField, tableSelectionHighlighter } from '@/features/editor/plugins/table';
 import { useNodeByIdQuery } from '@/hooks/node/useNodeQuery';
 import { nodeClient } from '@/lib/client/api/nodeClient';
-
-export const lineWrappingCompartment = new Compartment();
+import { selectiveWrapPlugin } from '@/features/editor/plugins/no-wrap';
+import { fenceLivePreviewField } from '@/features/editor/plugins/fence-code';
 
 const myTheme = createTheme({
   theme: 'dark',
@@ -205,16 +204,18 @@ function MarkdownSection({ node, isDirty, canEditNode, canEditChunk }: { node: I
       internalLinkCompletion,
       internalLinkClickHandler,
       linkClickHandler,
+      EditorView.contentAttributes.of({ style: 'line-height: calc(var(--editor-font-size) * 1.5)' }),
       EditorState.readOnly.of(isReadOnly || isChunkActive),
       isChunkActive ? chunkModeFacet.of(true) : [],
       EditorView.editorAttributes.of({ class: isChunkActive ? 'cm-chunk-mode-active' : '' }),
+      selectiveWrapPlugin,
       lineLimitGuard,
       permissionGuard(canEditNode),
       markdownLivePreviewField,
+      fenceLivePreviewField,
       mermaidLivePreviewField,
       onDocChange,
       tableLivePreviewField,
-      scrollStabilityPlugin,
       tableBackspace,
       sourceModeField,
       tableSelectionHighlighter,
@@ -229,7 +230,6 @@ function MarkdownSection({ node, isDirty, canEditNode, canEditChunk }: { node: I
         addKeymap: true,
       }),
       isRealtimeEnabled && ytext && instance && undoManager ? yCollab(ytext, instance.provider.awareness, { undoManager }) : [],
-      lineWrappingCompartment.of(EditorView.lineWrapping),
       dragStatusField,
       columnSelectionField,
       viewportLinesField,
@@ -404,15 +404,10 @@ function MarkdownSection({ node, isDirty, canEditNode, canEditChunk }: { node: I
           )}
         >
           <div className="w-full h-auto pb-4 flex flex-col pt-16" tabIndex={-1}>
-            <ChunkEditor
-              text={isRealtimeEnabled ? ytext?.toString() || '' : localContent}
-              splits={[]}
-              ydoc={instance?.ydoc}
-              canEditChunk={canEditChunk}
-            />
+            <ChunkEditor text={isRealtimeEnabled ? ytext?.toString() || '' : localContent} splits={[]} ydoc={instance?.ydoc} canEditChunk={canEditChunk} />
           </div>
-            </div>
-          )}
+        </div>
+      )}
 
       <div
         tabIndex={-1}

@@ -1,6 +1,5 @@
 import { EditorView, WidgetType } from '@codemirror/view';
 import { marked } from 'marked';
-import { getLanguageLabel } from '../../helpers/editor/getLanguageLabel';
 import katex from 'katex';
 import 'katex/dist/katex.min.css';
 
@@ -64,45 +63,6 @@ export class MarkdownLivePreviewWidget extends WidgetType {
 
   eq(other: MarkdownLivePreviewWidget) {
     return other.content === this.content && other.pos === this.pos;
-  }
-}
-
-export class FenchCodeWidget extends WidgetType {
-  constructor(
-    readonly lang: string,
-    readonly code: string
-  ) {
-    super();
-  }
-
-  toDOM() {
-    const wrapper = document.createElement('div');
-    wrapper.className = 'cm-code-header-container';
-
-    const button = document.createElement('button');
-    button.className = 'cm-code-copy-btn';
-
-    const labelText = getLanguageLabel(this.lang);
-    button.textContent = labelText;
-
-    button.onclick = e => {
-      e.preventDefault();
-      navigator.clipboard.writeText(this.code);
-
-      const originalText = button.textContent;
-      button.textContent = 'copied!';
-      button.classList.add('copied');
-
-      setTimeout(() => {
-        button.textContent = originalText;
-        button.classList.remove('copied');
-      }, 2000);
-    };
-    wrapper.append(button);
-    return wrapper;
-  }
-  eq(other: FenchCodeWidget) {
-    return other.lang === this.lang;
   }
 }
 

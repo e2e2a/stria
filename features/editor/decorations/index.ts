@@ -1,14 +1,12 @@
 import { Decoration, EditorView } from '@codemirror/view';
 import { Range as StateRange, EditorState, RangeSet } from '@codemirror/state';
-import { BulletWidget, CalloutWidget, CheckboxWidget, FenchCodeWidget, ImageWidget, InlineMathWidget, MathWidget } from '@/features/editor/widgets';
+import { BulletWidget, CalloutWidget, CheckboxWidget, ImageWidget, InlineMathWidget, MathWidget } from '@/features/editor/widgets';
 import { getTableRange, isValidTable } from '@/lib/client/markdown/markdown-table-utils';
-// import { MermaidWidget } from '../widgets/mermaid-widget';
 import { chunkModeFacet, sourceModeField } from '../plugins';
 import { FrontmatterWidget } from '../widgets/front-matter-widget';
-import { syntaxTree } from '@codemirror/language';
-import { SyntaxNode } from '@lezer/common';
 import { DragHandleWidget } from '../widgets/chunk-widget';
 import { TablePreviewWidget } from '../widgets/table';
+import { getFenceDecos } from './fence-code';
 
 // REGEX
 const BOLD_ITALIC_REGEX = /(?<![\*_])(\*\*\*|___)(.+?)\1(?![\*_])/g;
@@ -234,92 +232,6 @@ export function getNumberedListDecos(text: string, lineFrom: number): StateRange
   return decos;
 }
 
-export function getFenceDecos(state: EditorState, lineNum: number, activeLineNum: number) {
-  const line = state.doc.line(lineNum);
-  const text = line.text;
-  const trimmedText = text.trim();
-
-  if (!trimmedText.startsWith('```')) return null;
-
-  const decos: StateRange<Decoration>[] = [];
-  const sourceMode = state.field(sourceModeField, false);
-  const viewMode = state.facet(EditorState.readOnly);
-  const isChunkMode = state.facet(chunkModeFacet);
-
-  const firstMatch = text.indexOf('```');
-  const secondMatch = text.indexOf('```', firstMatch + 3);
-
-  if (secondMatch !== -1) {
-    let searchIndex = 0;
-    while (searchIndex < text.length) {
-      const openingIndex = text.indexOf('```', searchIndex);
-      if (openingIndex === -1) break;
-      const closingIndex = text.indexOf('```', openingIndex + 3);
-      if (closingIndex === -1) break;
-
-      const isBlockActive = activeLineNum === lineNum;
-      const isSelected = isRangeSelected(state, line.from, line.to);
-
-      const openingStart = line.from + openingIndex;
-      const openingEnd = openingStart + 3;
-      const closingStart = line.from + closingIndex;
-      const closingEnd = closingStart + 3;
-
-      if (viewMode || (!isBlockActive && !isSelected && !sourceMode && !isChunkMode)) {
-        decos.push(Decoration.mark({ class: 'cm-syntax-hide' }).range(openingStart, openingEnd));
-        decos.push(Decoration.mark({ class: 'cm-syntax-hide' }).range(closingStart, closingEnd));
-        decos.push(Decoration.mark({ class: 'cm-fenced-inline-code' }).range(openingEnd, closingStart));
-      } else {
-        decos.push(Decoration.mark({ class: 'cm-code-fence-marker' }).range(openingStart, openingEnd));
-        decos.push(Decoration.mark({ class: 'cm-code-fence-marker' }).range(closingStart, closingEnd));
-      }
-      searchIndex = closingIndex + 3;
-    }
-    return { decos, skipToLine: lineNum };
-  }
-
-  let closingLine = lineNum;
-  const content = [];
-
-  for (let j = lineNum + 1; j <= state.doc.lines; j++) {
-    const nextLine = state.doc.line(j);
-    if (nextLine.text.trim().startsWith('```')) {
-      closingLine = j;
-      break;
-    }
-    content.push(nextLine.text);
-  }
-
-  const isBlockActive = activeLineNum >= lineNum && activeLineNum <= closingLine;
-  const isSelected = isRangeSelected(state, line.from, state.doc.line(closingLine).to);
-  const language = trimmedText.slice(3).trim();
-
-  decos.push(
-    Decoration.widget({
-      widget: new FenchCodeWidget(language, content.join('\n')),
-      side: -1,
-    }).range(line.from)
-  );
-
-  decos.push(Decoration.line({ attributes: { class: 'cm-code-block-fence cm-code-block-start' } }).range(line.from));
-  if (viewMode || (!isBlockActive && !isSelected && !sourceMode && !isChunkMode)) {
-    decos.push(Decoration.mark({ class: 'cm-syntax-hide' }).range(line.from, line.to));
-  }
-
-  for (let m = lineNum + 1; m < closingLine; m++) {
-    decos.push(Decoration.line({ attributes: { class: 'cm-code-block-line' } }).range(state.doc.line(m).from));
-  }
-
-  if (closingLine > lineNum) {
-    const lastLine = state.doc.line(closingLine);
-    decos.push(Decoration.line({ attributes: { class: 'cm-code-block-fence cm-code-block-end' } }).range(lastLine.from));
-    if (viewMode || (!isBlockActive && !isSelected && !sourceMode)) {
-      decos.push(Decoration.mark({ class: 'cm-syntax-hide' }).range(lastLine.from, lastLine.to));
-    }
-  }
-
-  return { decos, skipToLine: closingLine };
-}
 export function getTableDecos(state: EditorState, startLine: number) {
   const line = state.doc.line(startLine);
   if (!line.text.trim().startsWith('|')) return null;
@@ -578,65 +490,6 @@ export function getImageDecos(state: EditorState, text: string, lineFrom: number
 
   return decos;
 }
-
-// export function getMermaidDecos(
-//   state: EditorState,
-//   lineNum: number,
-//   activeLineNum: number
-// ): { decos: StateRange<Decoration>[]; skipToLine: number } | null {
-//   const line = state.doc.line(lineNum);
-
-//   if (!line.text.trim().startsWith('```mermaid')) {
-//     return null;
-//   }
-
-//   const decos: StateRange<Decoration>[] = [];
-//   const doc = state.doc;
-//   const selection = state.selection.main;
-//   const sourceMode = state.field(sourceModeField, false);
-//   const viewMode = state.facet(EditorState.readOnly);
-//   const isChunkMode = state.facet(chunkModeFacet);
-
-//   const startLine = lineNum;
-//   let endLine = lineNum;
-//   const content = [];
-
-//   for (let j = lineNum + 1; j <= doc.lines; j++) {
-//     const nextLine = doc.line(j);
-//     if (nextLine.text.trim().startsWith('```')) {
-//       endLine = j;
-//       break;
-//     }
-//     content.push(nextLine.text);
-//   }
-
-//   const blockFrom = doc.line(startLine).from;
-//   const blockTo = doc.line(endLine).to;
-//   const isBlockActive = activeLineNum >= startLine && activeLineNum <= endLine;
-//   const isSelected = !selection.empty && selection.from < blockTo && selection.to > blockFrom;
-
-//   if (viewMode || (!isBlockActive && !isSelected && !sourceMode && !isChunkMode)) {
-//     for (let k = startLine; k <= endLine; k++) {
-//       decos.push(
-//         Decoration.line({
-//           attributes: { class: 'cm-syntax-hide' },
-//         }).range(doc.line(k).from)
-//       );
-//     }
-
-//     decos.push(
-//       Decoration.widget({
-//         widget: new MermaidWidget(content.join('\n'), line.from),
-//         side: 1,
-//         block: true,
-//       }).range(doc.line(endLine).to)
-//     );
-
-//     return { decos, skipToLine: endLine };
-//   }
-
-//   return null;
-// }
 
 export function getTagDecos(text: string, lineFrom: number): StateRange<Decoration>[] {
   if (!text.includes('#')) return [];
@@ -960,208 +813,6 @@ export function getFrontmatterDecos(state: EditorState, activeLineNum: number): 
   return { decos: [], skipToLine: endLineNum };
 }
 
-// export function buildDecorations(state: EditorState, from: number, to: number): RangeSet<Decoration> {
-//   const BUFFER = 500;
-//   from = Math.max(1, from - BUFFER);
-//   to = Math.max(1, Math.min(to + BUFFER, state.doc.lines));
-//   // from = Math.max(1, Math.min(from, state.doc.lines));
-//   // to = Math.max(1, Math.min(to, state.doc.lines));
-//   const allDecos: StateRange<Decoration>[] = [];
-//   const activeLineNum = state.doc.lineAt(state.selection.main.head).number;
-
-//   // We ask CodeMirror's AST if our current 'from' position is inside a FencedCode block.
-//   let logicStart = from;
-//   const pos = state.doc.line(from).from;
-//   const tree = syntaxTree(state);
-//   let node: SyntaxNode | null = tree.resolveInner(pos, -1);
-
-//   while (node) {
-//     // "FencedCode" is the official Lezer AST name for ``` blocks.
-//     if (node.name === 'FencedCode') {
-//       logicStart = state.doc.lineAt(node.from).number;
-//       break;
-//     }
-//     node = node.parent;
-//   }
-
-//   // Fallback ONLY for $$ Math blocks (if Lezer doesn't parse them natively)
-//   if (logicStart === from) {
-//     for (let j = from; j >= Math.max(1, from - 200); j--) {
-//       if (state.doc.line(j).text.trim().startsWith('$$')) {
-//         logicStart = j;
-//         break;
-//       }
-//     }
-//   }
-
-//   // const BUFFER = 10;
-//   const endLine = Math.min(state.doc.lines, to + BUFFER);
-//   let skipUntil = -1;
-
-//   const frontmatter = getFrontmatterDecos(state, activeLineNum);
-//   if (frontmatter) {
-//     allDecos.push(...frontmatter.decos);
-//     skipUntil = frontmatter.skipToLine;
-//   }
-
-//   // MAIN PROCESSING LOOP (Proceeds normally, but guaranteed correct starting point)
-//   for (let i = logicStart; i <= endLine; i++) {
-//     if (i <= skipUntil) continue;
-
-//     const line = state.doc.line(i);
-//     const text = line.text;
-
-//     if (text.trim() === '') continue;
-
-//     const isActive = i === activeLineNum;
-//     const lineDecos: StateRange<Decoration>[] = [];
-//     let skipToLine = i;
-
-//     // BLOCK LEVEL
-//     const mermaid = getMermaidDecos(state, i, activeLineNum);
-//     const fence = !mermaid ? getFenceDecos(state, i, activeLineNum) : null;
-//     const table = !fence && !mermaid ? getTableDecos(state, i) : null;
-//     const mathBlock = !fence && !mermaid ? getMathBlockDecos(state, i, activeLineNum) : null;
-//     const callout = !fence && !mermaid && !table ? getCalloutDecos(state, i, activeLineNum) : null;
-
-//     if (fence || mermaid || table || callout || mathBlock) {
-//       const block = mermaid || fence || table || callout || mathBlock;
-//       // Only push if it overlaps the viewport
-//       if (block!.skipToLine >= from) {
-//         lineDecos.push(...block!.decos);
-//       }
-//       skipToLine = block!.skipToLine;
-//     } else if (i >= from - BUFFER) {
-//       // INLINE LEVEL
-//       if (text.length > 0) {
-//         lineDecos.push(...getHeadingDecos(state, text, line.from, isActive));
-//         lineDecos.push(...getBoldItalicDecos(state, text, line.from, isActive));
-//         lineDecos.push(...getInternalLinkDecos(state, text, line.from, isActive));
-//         lineDecos.push(...getLinkDecos(state, text, line.from, isActive));
-//         lineDecos.push(...getImageDecos(state, text, line.from, line.to, isActive));
-//         lineDecos.push(...getBoldDecos(state, text, line.from, isActive));
-//         lineDecos.push(...getItalicDecos(state, text, line.from, isActive));
-//         lineDecos.push(...getBulletListDecos(state, text, line.from, isActive));
-//         lineDecos.push(...getInlineCodeDecos(state, text, line.from, isActive));
-//         lineDecos.push(...getNumberedListDecos(text, line.from));
-//         lineDecos.push(...getStrikethroughDecos(state, text, line.from, isActive));
-//         lineDecos.push(...getTagDecos(text, line.from));
-//         lineDecos.push(...getHighlightDecos(state, text, line.from, isActive));
-//         lineDecos.push(...getInlineMathDecos(state, text, line.from, isActive));
-//         lineDecos.push(...getBlockquoteDecos(state, text, line.from, isActive));
-//         lineDecos.push(...getTaskDecos(state, text, line.from, isActive));
-//         lineDecos.push(...getHRDecos(state, text, line.from, line.to, isActive));
-//       }
-//     }
-
-//     allDecos.push(...lineDecos);
-//     i = skipToLine;
-//   }
-
-//   return RangeSet.of(
-//     allDecos.sort((a, b) => a.from - b.from),
-//     true
-//   );
-// }
-
-// export function buildDecorations(state: EditorState, from: number, to: number): RangeSet<Decoration> {
-//   from = Math.max(1, Math.min(from, state.doc.lines));
-//   to = Math.max(1, Math.min(to, state.doc.lines));
-//   const allDecos: StateRange<Decoration>[] = [];
-//   const activeLineNum = state.doc.lineAt(state.selection.main.head).number;
-
-//   // We ask CodeMirror's AST if our current 'from' position is inside a FencedCode block.
-//   let logicStart = from;
-//   const pos = state.doc.line(from).from;
-//   const tree = syntaxTree(state);
-//   let node: SyntaxNode | null = tree.resolveInner(pos, -1);
-
-//   while (node) {
-//     // "FencedCode" is the official Lezer AST name for ``` blocks.
-//     if (node.name === 'FencedCode') {
-//       logicStart = state.doc.lineAt(node.from).number;
-//       break;
-//     }
-//     node = node.parent;
-//   }
-
-//   // Fallback ONLY for $$ Math blocks (if Lezer doesn't parse them natively)
-//   if (logicStart === from) {
-//     for (let j = from; j >= Math.max(1, from - 200); j--) {
-//       if (state.doc.line(j).text.trim().startsWith('$$')) {
-//         logicStart = j;
-//         break;
-//       }
-//     }
-//   }
-
-//   const BUFFER = 10;
-//   const endLine = Math.min(state.doc.lines, to + BUFFER);
-//   let skipUntil = -1;
-
-//   const frontmatter = getFrontmatterDecos(state, activeLineNum);
-//   if (frontmatter) {
-//     allDecos.push(...frontmatter.decos);
-//     skipUntil = frontmatter.skipToLine;
-//   }
-
-//   // MAIN PROCESSING LOOP (Proceeds normally, but guaranteed correct starting point)
-//   for (let i = logicStart; i <= endLine; i++) {
-//     if (i <= skipUntil) continue;
-
-//     const line = state.doc.line(i);
-//     const text = line.text;
-
-//     if (text.trim() === '') continue;
-
-//     const isActive = i === activeLineNum;
-//     const lineDecos: StateRange<Decoration>[] = [];
-//     let skipToLine = i;
-
-//     const fence = getFenceDecos(state, i, activeLineNum) ?? null;
-//     const table = !fence ? getTableDecos(state, i) : null;
-//     const mathBlock = !fence ? getMathBlockDecos(state, i, activeLineNum) : null;
-//     const callout = !fence && !table ? getCalloutDecos(state, i, activeLineNum) : null;
-
-//     if (fence || table || callout || mathBlock) {
-//       const block = fence || table || callout || mathBlock;
-//       // Only push if it overlaps the viewport
-//       if (block!.skipToLine >= from) {
-//         lineDecos.push(...block!.decos);
-//       }
-//       skipToLine = block!.skipToLine;
-//     } else if (i >= from - BUFFER) {
-//       // INLINE LEVEL
-//       if (text.length > 0) {
-//         lineDecos.push(...getHeadingDecos(state, text, line.from, isActive));
-//         lineDecos.push(...getBoldItalicDecos(state, text, line.from, isActive));
-//         lineDecos.push(...getInternalLinkDecos(state, text, line.from, isActive));
-//         lineDecos.push(...getLinkDecos(state, text, line.from, isActive));
-//         lineDecos.push(...getImageDecos(state, text, line.from, line.to, isActive));
-//         lineDecos.push(...getBoldDecos(state, text, line.from, isActive));
-//         lineDecos.push(...getItalicDecos(state, text, line.from, isActive));
-//         lineDecos.push(...getBulletListDecos(state, text, line.from, isActive));
-//         lineDecos.push(...getInlineCodeDecos(state, text, line.from, isActive));
-//         lineDecos.push(...getNumberedListDecos(text, line.from));
-//         lineDecos.push(...getStrikethroughDecos(state, text, line.from, isActive));
-//         lineDecos.push(...getTagDecos(text, line.from));
-//         lineDecos.push(...getHighlightDecos(state, text, line.from, isActive));
-//         lineDecos.push(...getInlineMathDecos(state, text, line.from, isActive));
-//         lineDecos.push(...getBlockquoteDecos(state, text, line.from, isActive));
-//         lineDecos.push(...getTaskDecos(state, text, line.from, isActive));
-//         lineDecos.push(...getHRDecos(state, text, line.from, line.to, isActive));
-//       }
-//     }
-
-//     allDecos.push(...lineDecos);
-//     i = skipToLine;
-//   }
-
-//   return RangeSet.of(
-//     allDecos.sort((a, b) => a.from - b.from),
-//     true
-//   );
-// }
 export function buildDecorations(state: EditorState, from: number, to: number): RangeSet<Decoration> {
   from = Math.max(1, Math.min(from, state.doc.lines));
   to = Math.max(1, Math.min(to, state.doc.lines));
@@ -1170,19 +821,40 @@ export function buildDecorations(state: EditorState, from: number, to: number): 
 
   // Ask CodeMirror's AST if our current 'from' position is inside a FencedCode block.
   let logicStart = from;
-  const pos = state.doc.line(from).from;
-  const tree = syntaxTree(state);
-  let node: SyntaxNode | null = tree.resolveInner(pos, -1);
+  // const pos = state.doc.line(from).from;
+  // const tree = syntaxTree(state);
+  // let node: SyntaxNode | null = tree.resolveInner(pos, -1);
 
-  while (node) {
-    if (node.name === 'FencedCode') {
-      logicStart = state.doc.lineAt(node.from).number;
-      break;
+  let inFence = false;
+  let lastFenceStartLine = -1;
+
+  for (let i = 1; i <= from; i++) {
+    const text = state.doc.line(i).text;
+
+    // STRICT ROOT CHECK: Must start exactly with ``` (0 spaces)
+    if (text.startsWith('```')) {
+      if (!inFence) {
+        inFence = true;
+        lastFenceStartLine = i;
+      } else {
+        if (text === '```') {
+          // It's a closing root fence
+          inFence = false;
+          lastFenceStartLine = -1;
+        }
+      }
     }
-    node = node.parent;
   }
 
-  // Fallback ONLY for $$ Math blocks
+  // If viewport starts inside a root fence, rewind to its exact start line
+  if (inFence && lastFenceStartLine !== -1) {
+    logicStart = lastFenceStartLine;
+  }
+
+  /**
+   * @Todo
+   * This fallback in math blocks is not trustworthy.
+   */
   if (logicStart === from) {
     for (let j = from; j >= Math.max(1, from - 200); j--) {
       if (state.doc.line(j).text.trim().startsWith('$$')) {
@@ -1228,13 +900,15 @@ export function buildDecorations(state: EditorState, from: number, to: number): 
     const mathBlock = !fence ? getMathBlockDecos(state, i, activeLineNum) : null;
     const callout = !fence && !isTable ? getCalloutDecos(state, i, activeLineNum) : null;
 
-    if (isTable) {
+    if (fence) {
+      skipToLine = fence.skipToLine;
+    } else if (isTable) {
       // REMOVAL: We intentionally do NOT push table.decos here.
       // We only grab the skipToLine to jump over the table block,
       // letting buildTableDecorations handle the actual widgets.
       // skipToLine = isTable.skipToLine;
-    } else if (fence || callout || mathBlock) {
-      const block = fence || callout || mathBlock;
+    } else if (callout || mathBlock) {
+      const block = callout || mathBlock;
       // Only push if it overlaps the viewport
       if (block!.skipToLine >= from) {
         lineDecos.push(...block!.decos);

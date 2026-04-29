@@ -43,18 +43,6 @@ export class MermaidWidget extends WidgetType {
     const cachedHeight = mermaidHeightCache.get(this.code);
     mainContainer.style.minHeight = `${cachedHeight ?? estimateMermaidHeight(this.code)}px`;
 
-    // if (!mermaidSvgCache.has(this.code)) {
-    //   // not ready yet — wait for prerenderAllThenBuild to fill cache
-    //   const interval = setInterval(() => {
-    //     const svg = mermaidSvgCache.get(this.code);
-    //     if (!svg) return;
-    //     clearInterval(interval);
-    //     const h = mermaidHeightCache.get(this.code);
-    //     if (h) mainContainer.style.minHeight = `${h}px`;
-    //     mountContent(mainContainer, this.code, this.pos, view);
-    //   }, 30);
-    //   return mainContainer;
-    // }
     mermaid.initialize({
       startOnLoad: false,
       theme: resolveTheme(this.theme),

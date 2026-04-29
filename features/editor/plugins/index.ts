@@ -2,7 +2,6 @@ import { EditorView, Decoration, ViewPlugin, ViewUpdate, DecorationSet } from '@
 import { StateField, RangeSet, EditorState, StateEffect, Facet, Transaction } from '@codemirror/state';
 import { buildChunkDecorations, buildDecorations } from '../decorations';
 import { makeToastError } from '@/lib/toast';
-import { lineWrappingCompartment } from '@/components/project/editor/MarkdownSection';
 
 export const setViewportLinesEffect = StateEffect.define<{ from: number; to: number }>();
 
@@ -128,43 +127,6 @@ export const markdownLivePreviewField = StateField.define<RangeSet<Decoration>>(
   },
   provide: f => EditorView.decorations.from(f),
 });
-
-export const scrollStabilityPlugin = ViewPlugin.fromClass(
-  class {
-    private view: EditorView;
-    private timer: ReturnType<typeof setTimeout> | null = null;
-
-    constructor(view: EditorView) {
-      this.view = view;
-    }
-
-    update(update: ViewUpdate) {
-      const oldSource = update.startState.field(sourceModeField, false);
-      const newSource = update.state.field(sourceModeField, false);
-      if (oldSource === newSource) return;
-
-      queueMicrotask(() => {
-        this.view.dispatch({
-          effects: lineWrappingCompartment.reconfigure([]),
-          annotations: [Transaction.addToHistory.of(false)],
-        });
-      });
-
-      if (this.timer) clearTimeout(this.timer);
-      this.timer = setTimeout(() => {
-        this.view.dispatch({
-          effects: lineWrappingCompartment.reconfigure(EditorView.lineWrapping),
-          annotations: [Transaction.addToHistory.of(false)],
-        });
-        this.timer = null;
-      }, 50);
-    }
-
-    destroy() {
-      if (this.timer) clearTimeout(this.timer);
-    }
-  }
-);
 
 export function chunkLivePreviewPlugin(canEditChunk: boolean) {
   return ViewPlugin.fromClass(

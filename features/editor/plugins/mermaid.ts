@@ -3,7 +3,7 @@ import { Decoration, DecorationSet, EditorView, StateEffect, StateField } from '
 export let initView: EditorView | null = null;
 
 let isPrerendering = false;
-import { setViewportLinesEffect, viewportLinesField } from '@/features/editor/plugins';
+import { setViewportLinesEffect, sourceModeField, viewportLinesField } from '@/features/editor/plugins';
 import { buildMermaidDecorations, prerenderThenBuild } from '../decorations/mermaid-build-decoration';
 
 export const mermaidHeightUpdateEffect = StateEffect.define<{ code: string; height: number }>();
@@ -18,6 +18,9 @@ export const mermaidLivePreviewField = StateField.define<DecorationSet>({
   },
 
   update(decos, tr) {
+    const sourceMode = tr.state.field(sourceModeField, false);
+    if (sourceMode) return Decoration.none;
+
     if (tr.state.doc.length === 0) return decos;
     const viewportChanged = tr.effects.some(e => e.is(setViewportLinesEffect));
 
@@ -42,7 +45,6 @@ export const mermaidLivePreviewField = StateField.define<DecorationSet>({
       // nothing special, just fall through
     }
 
-    // ALWAYS BUILD DECORATIONS
     return buildMermaidDecorations(tr.state, 1, tr.state.doc.lines);
   },
 

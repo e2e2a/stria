@@ -15,15 +15,20 @@ export function extractAllMermaidBlocks(doc: Text, from = 1, to = doc.lines) {
 
     let j = i + 1;
     const content: string[] = [];
+    let isClosed = false;
 
     while (j <= doc.lines) {
       const l = doc.line(j);
-      if (l.text.trim().startsWith('```')) break;
+      if (l.text.trim().startsWith('```')) {
+        isClosed = true;
+        break;
+      }
       content.push(l.text);
       j++;
     }
 
-    blocks.push({ code: content.join('\n'), startLine: i, endLine: j });
+    const code = content.join('\n');
+    if (isClosed && code.trim() !== '') blocks.push({ code: content.join('\n'), startLine: i, endLine: j });
     i = j;
   }
 
@@ -86,20 +91,29 @@ export function buildMermaidDecorations(state: EditorState, from: number, to: nu
 
     let j = i + 1;
     const content: string[] = [];
+    let isClosed = false;
 
     while (j <= doc.lines) {
       const l = doc.line(j);
-      if (l.text.trim().startsWith('```')) break;
+      if (l.text.trim().startsWith('```')) {
+        isClosed = true;
+        break;
+      }
       content.push(l.text);
       j++;
+    }
+
+    const code = content.join('\n');
+
+    if (!isClosed || code.trim() === '') {
+      i = j;
+      continue;
     }
 
     const endLine = j <= doc.lines ? j : i;
 
     const fromPos = doc.line(i).from;
     const toPos = doc.line(endLine).to;
-
-    const code = content.join('\n');
 
     const isBlockActive = activeLine >= i && activeLine <= endLine;
     const sourceMode = state.field(sourceModeField, false);

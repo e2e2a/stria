@@ -271,6 +271,25 @@ export class TablePreviewWidget extends WidgetType {
           liveTableData[rIdx][cIdx] = newText;
 
           updateTable(view, bounds.liveFrom, bounds.liveTo, liveTableData);
+
+          requestAnimationFrame(() => {
+            const sel = window.getSelection();
+            if (!sel || sel.rangeCount === 0) return;
+
+            const range = sel.getRangeAt(0);
+            const caretRect = range.getBoundingClientRect();
+            const wrapperRect = scrollWrapper.getBoundingClientRect();
+
+            if (caretRect.width === 0 && caretRect.height === 0) return;
+
+            const caretRelativeX = caretRect.left - wrapperRect.left + scrollWrapper.scrollLeft;
+            const targetScrollLeft = caretRelativeX - wrapperRect.width / 2;
+
+            scrollWrapper.scrollTo({
+              left: Math.max(0, targetScrollLeft),
+              behavior: 'smooth',
+            });
+          });
         });
         editor.addEventListener('copy', e => {
           e.stopPropagation();
@@ -476,28 +495,6 @@ export class TablePreviewWidget extends WidgetType {
         });
     });
 
-    // if (!this.isViewMode) {
-    //   inner.appendChild(
-    //     createTableActionButton('col', () => {
-    //       const bounds = this.getLiveBounds(view, container);
-    //       if (!bounds) return;
-    //       const next = addTableColumn(tableData);
-    //       updateTable(view, bounds.liveFrom, bounds.liveTo, next);
-    //       focusTableCell(view, bounds.liveFrom, 0, next[0].length - 1);
-    //     })
-    //   );
-
-    //   inner.appendChild(
-    //     createTableActionButton('row', () => {
-    //       // ✅ Use live bounds
-    //       const bounds = this.getLiveBounds(view, container);
-    //       if (!bounds) return;
-    //       const next = addTableRow(tableData);
-    //       updateTable(view, bounds.liveFrom, bounds.liveTo, next);
-    //       focusTableCell(view, bounds.liveFrom, next.length - 1, 0);
-    //     })
-    //   );
-    // }
     const colBtn = createTableActionButton('col', () => {
       const bounds = this.getLiveBounds(view, container);
       if (!bounds) return;
