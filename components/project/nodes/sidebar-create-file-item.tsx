@@ -86,7 +86,7 @@ const SidebarCreateFileItem = ({ depth }: IProps) => {
           value={title}
           disabled={disabled}
           onChange={e => setTitle(e.target.value)}
-          className="h-4 text-sm text-primary-foreground text-start w-full px-0 focus-visible:ring-0 rounded-none"
+          className="h-4 text-sm text-foreground text-start w-full px-0 focus-visible:ring-0 rounded-none"
         />
       </div>
     </div>

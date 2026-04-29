@@ -107,7 +107,7 @@ const SidebarFileItemComponent = ({ item, depth }: IProps) => {
             value={title || item?.title || ''}
             onKeyDown={handleKeyDown}
             onChange={e => setTitle(e.target.value)}
-            className="h-4 text-sm text-primary-foreground text-start w-full px-0 focus-visible:ring-0 rounded-none"
+            className="h-4 text-sm text-foreground text-start w-full px-0 focus-visible:ring-0 rounded-none"
           />
         </div>
       </div>
