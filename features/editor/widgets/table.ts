@@ -124,6 +124,17 @@ export class TablePreviewWidget extends WidgetType {
       }
     });
 
+    container.addEventListener('focusout', e => {
+      const relatedTarget = e.relatedTarget as Node | null;
+      // If focus is leaving the container entirely (not moving to another child inside it)
+      if (!relatedTarget || !container.contains(relatedTarget)) {
+        if (this.selectedColumn !== null) {
+          this.selectedColumn = null;
+          selectColumn(container, null);
+        }
+      }
+    });
+
     container.addEventListener('paste', e => {
       if (this.selectedColumn === null) return;
       e.preventDefault();
@@ -185,9 +196,8 @@ export class TablePreviewWidget extends WidgetType {
           const tableId = `table-${this.from}`;
           grip.onmousedown = e => {
             e.stopPropagation();
-            this.selectedColumn = null;
-            const isSelecting = this.selectedColumn !== cIdx;
-            this.selectedColumn = isSelecting ? cIdx : null;
+            const isAlreadySelected = this.selectedColumn === cIdx;
+            this.selectedColumn = isAlreadySelected ? null : cIdx;
             selectColumn(container, this.selectedColumn);
             view.dispatch({ effects: [] });
           };
@@ -214,16 +224,32 @@ export class TablePreviewWidget extends WidgetType {
           };
           td.ondrop = e => {
             e.preventDefault();
+            container.querySelectorAll('.drag-over-column').forEach(el => el.classList.remove('drag-over-column'));
+            table.classList.remove('is-dragging-active');
+
             const sourceTableId = e.dataTransfer?.getData('source-table-id');
             const fromIdx = parseInt(e.dataTransfer?.getData('column-index') || '-1');
-            if (sourceTableId !== tableId) return container.querySelectorAll('.drag-over-column').forEach(el => el.classList.remove('drag-over-column'));
+            if (sourceTableId !== tableId) return;
 
-            const newData = moveTableColumn(tableData, fromIdx, cIdx);
-            if (fromIdx !== -1 && fromIdx !== cIdx) {
-              const bounds = this.getLiveBounds(view, container);
-              if (!bounds) return;
-              updateTable(view, bounds.liveFrom, bounds.liveTo, newData);
-            }
+            if (fromIdx === -1 || fromIdx === cIdx) return;
+
+            const currentRaw = container.getAttribute('data-raw-text') || this.rawText;
+            const liveTableData = currentRaw
+              .split('\n')
+              .filter(l => l.trim())
+              .map(splitRow);
+
+            const newData = moveTableColumn(liveTableData, fromIdx, cIdx);
+
+            const bounds = this.getLiveBounds(view, container);
+            if (!bounds) return;
+
+            this.selectedColumn = cIdx;
+            updateTable(view, bounds.liveFrom, bounds.liveTo, newData);
+
+            requestAnimationFrame(() => {
+              selectColumn(container, this.selectedColumn);
+            });
           };
 
           td.ondragenter = e => {
