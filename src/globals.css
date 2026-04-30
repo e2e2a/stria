@@ -574,7 +574,7 @@ body {
 
   .cm-table-cell-editor {
     padding: 8px;
-    caret-color: white !important;
+    caret-color: var(--editor-accent-color) !important;
     outline: none;
     min-height: 1.2em;
     user-select: text;
