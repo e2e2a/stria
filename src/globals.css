@@ -359,6 +359,18 @@ body {
     contain: layout style;
   }
 
+  /* * Target any .cm-line that also has a class containing "cm-h"
+   * Zero out the hidden widget and buffers so they don't shift the baseline
+   */
+  .cm-line span[contenteditable='false'],
+  .cm-line .cm-widgetBuffer {
+    font-size: 0 !important;
+    line-height: 0 !important;
+    padding: 0 !important;
+    margin: 0 !important;
+    vertical-align: baseline !important;
+  }
+
   .cm-content {
     font-family: var(--editor-font-text) !important;
     height: auto !important;
