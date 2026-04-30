@@ -8,7 +8,7 @@ import LeftSidebarTemplate from './left-sidebar/left-sidebar-template';
 import RightSidebarTemplate from './right-sidebar/right-sidebar-template';
 import MiniSidebarTemplate from './mini-left-sidebar';
 import { useNodeStore } from '@/features/editor/stores/nodes';
-import { useParams } from 'react-router-dom';
+import { Link, Navigate, useParams } from 'react-router-dom';
 import { TabsHeader } from './tabs/tab-header';
 import { useProjectByIdQuery } from '@/hooks/project/useProjectQuery';
 import { useNodesProjectIdQuery } from '@/hooks/node/useNodeQuery';
@@ -159,10 +159,14 @@ export default function AppSidebarLayout({ children }: { children: React.ReactNo
 
   if (pError) {
     return (
-      <div className="flex h-full w-full items-center justify-center bg-background text-muted-foreground">
+      <div className="flex h-screen w-full items-center justify-center bg-background text-muted-foreground">
         <div className="rounded-md border border-border bg-card p-6 text-center">
           <p className="text-sm font-medium text-foreground">File scope unavailable</p>
           <p className="mt-1 text-xs">Check `VITE_API_BASE_URL` and the selected file scope.</p>
+
+          <Link to="/" className="mt-4 inline-block text-sm font-medium text-primary underline underline-offset-4 hover:text-primary/80">
+            Return to default file scope
+          </Link>
         </div>
       </div>
     );

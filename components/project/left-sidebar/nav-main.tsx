@@ -39,16 +39,16 @@ export function NavMain({ canMoveNode }: { canMoveNode: boolean }) {
     return map;
   }, [nodes]);
 
-  useEffect(() => {
-    if (!nodes || nodes?.length <= 0) return;
-    const result = sortNodeTree(nodes);
-    setNodes(result);
-  }, [nodes, setNodes]);
+  const sortedNodes = useMemo(() => {
+    if (!nodes || nodes.length <= 0) return [];
+    // Spread into a new array [...nodes] to ensure we don't mutate the original store data
+    return sortNodeTree([...nodes]);
+  }, [nodes]);
 
   // Ref for the final drop logic to avoid unnecessary re-renders
   const targetIdRef = useRef<string | null>(null);
 
-  const { folders, files } = groupNodes(nodes || []);
+  const { folders, files } = groupNodes(sortedNodes || []);
 
   const handleDragFinished = () => {
     const dragged = activeDrag;
