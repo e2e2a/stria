@@ -76,7 +76,7 @@ export default function AppearanceTabContent() {
             <SettingsCard title="Theme & Colors" description="Customize the visual appearance of the editor.">
               <SettingRow title="Appearance" description="Choose between light, dark, or system default.">
                 <Select
-                  value={theme ? theme : 'light'}
+                  value={theme ? theme : 'dark'}
                   onValueChange={val => {
                     updateSetting('theme', val as Appearance);
                     setTheme(val as Appearance);
