@@ -1118,6 +1118,16 @@ body {
     display: block; /* Ensures padding behaves correctly */
   }
 
+  .cm-bullet-marker {
+    color: transparent;
+    font-size: var(--editor-font-size);
+  }
+
+  .cm-bullet-marker::before {
+    content: '•';
+    color: var(--foreground);
+  }
+
   /* .cm-internal-link {
     color: #7d7aff;
     text-decoration: underline;

@@ -3,27 +3,6 @@ import { marked } from 'marked';
 import katex from 'katex';
 import 'katex/dist/katex.min.css';
 
-export class BulletWidget extends WidgetType {
-  constructor(readonly active: boolean) {
-    super();
-  }
-  toDOM() {
-    const content = this.active ? '-' : '•';
-    const span = document.createElement('span');
-    span.textContent = content;
-    span.style.marginLeft = '12px';
-    return span;
-  }
-
-  eq(other: BulletWidget) {
-    return this.active === other.active;
-  }
-
-  ignoreEvent() {
-    return false;
-  }
-}
-
 export class MarkdownLivePreviewWidget extends WidgetType {
   constructor(
     private content: string,

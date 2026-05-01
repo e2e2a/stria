@@ -1,6 +1,6 @@
 import { Decoration, EditorView } from '@codemirror/view';
 import { Range as StateRange, EditorState, RangeSet } from '@codemirror/state';
-import { BulletWidget, CalloutWidget, CheckboxWidget, ImageWidget, InlineMathWidget, MathWidget } from '@/features/editor/widgets';
+import { CalloutWidget, CheckboxWidget, ImageWidget, InlineMathWidget, MathWidget } from '@/features/editor/widgets';
 import { getTableRange, isValidTable } from '@/lib/client/markdown/markdown-table-utils';
 import { chunkModeFacet, sourceModeField } from '../plugins';
 import { FrontmatterWidget } from '../widgets/front-matter-widget';
@@ -200,15 +200,10 @@ export function getBulletListDecos(state: EditorState, text: string, lineFrom: n
     const markerEnd = markerStart + match[2].length;
     const isSelected = isRangeSelected(state, markerStart, markerEnd);
     const showRaw = isLineActive || isSelected;
-    if (viewMode || (!sourceMode && !isChunkMode)) {
-      decos.push(Decoration.mark({ class: 'cm-syntax-hide' }).range(markerStart, markerEnd));
 
-      decos.push(
-        Decoration.widget({
-          widget: new BulletWidget(showRaw),
-          side: 1,
-        }).range(markerStart)
-      );
+    decos.push(Decoration.line({ attributes: { class: 'cm-bullet-line' } }).range(lineFrom));
+    if (viewMode || (!showRaw && !sourceMode && !isChunkMode)) {
+      decos.push(Decoration.mark({ class: 'cm-bullet-marker' }).range(markerStart, markerEnd));
     }
   }
 
