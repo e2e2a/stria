@@ -7,6 +7,7 @@ import { chunkModeFacet, sourceModeField } from '../plugins';
 import { useEditorSettings } from '../stores/setting';
 
 export function extractAllMermaidBlocks(doc: Text, from = 1, to = doc.lines) {
+  console.log('extracting');
   const blocks: { code: string; startLine: number; endLine: number }[] = [];
 
   for (let i = from; i <= to; i++) {
@@ -79,17 +80,33 @@ export async function prerenderThenBuild(state: EditorState, from: number, to: n
 }
 
 export function buildMermaidDecorations(state: EditorState, from: number, to: number) {
-  const builder = new RangeSetBuilder<Decoration>();
   const doc = state.doc;
+  const docStr = doc.toString();
 
+  if (!docStr.includes('```mermaid')) return Decoration.none;
+
+  const mermaidStartPositions = new Set<number>();
+  let searchFrom = 0;
+  while (true) {
+    const idx = docStr.indexOf('```mermaid', searchFrom);
+    if (idx === -1) break;
+    mermaidStartPositions.add(doc.lineAt(idx).number);
+    searchFrom = idx + 1;
+  }
+  console.log('mermaidStartPositions', mermaidStartPositions.size);
+  if (mermaidStartPositions.size === 0) return Decoration.none;
+
+  const builder = new RangeSetBuilder<Decoration>();
   const activeLine = doc.lineAt(state.selection.main.head).number;
+  const sourceMode = state.field(sourceModeField, false);
+  const viewMode = state.facet(EditorState.readOnly);
+  const isChunkMode = state.facet(chunkModeFacet);
+  const theme = useEditorSettings.getState().theme;
 
-  for (let i = from; i <= to; i++) {
-    const line = doc.line(i);
+  for (const startLineNum of mermaidStartPositions) {
+    if (startLineNum < from || startLineNum > to) continue;
 
-    if (!line.text.trim().startsWith('```mermaid')) continue;
-
-    let j = i + 1;
+    let j = startLineNum + 1;
     const content: string[] = [];
     let isClosed = false;
 
@@ -104,22 +121,12 @@ export function buildMermaidDecorations(state: EditorState, from: number, to: nu
     }
 
     const code = content.join('\n');
+    if (!isClosed || code.trim() === '') continue;
 
-    if (!isClosed || code.trim() === '') {
-      i = j;
-      continue;
-    }
-
-    const endLine = j <= doc.lines ? j : i;
-
-    const fromPos = doc.line(i).from;
+    const endLine = j <= doc.lines ? j : startLineNum;
+    const fromPos = doc.line(startLineNum).from;
     const toPos = doc.line(endLine).to;
-
-    const isBlockActive = activeLine >= i && activeLine <= endLine;
-    const sourceMode = state.field(sourceModeField, false);
-    const viewMode = state.facet(EditorState.readOnly);
-    const isChunkMode = state.facet(chunkModeFacet);
-    const theme = useEditorSettings.getState().theme;
+    const isBlockActive = activeLine >= startLineNum && activeLine <= endLine;
 
     if (viewMode || (!isBlockActive && !sourceMode && !isChunkMode)) {
       builder.add(
@@ -130,11 +137,7 @@ export function buildMermaidDecorations(state: EditorState, from: number, to: nu
           block: true,
         })
       );
-    } else {
-      // This is EDIT MODE → DO NOTHING -> let fenceCode Decoration work on it
     }
-
-    i = endLine;
   }
 
   return builder.finish();

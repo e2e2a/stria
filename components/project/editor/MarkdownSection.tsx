@@ -1,7 +1,7 @@
 'use client';
 import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { drawSelection, dropCursor, EditorView, keymap } from '@codemirror/view';
-import CodeMirror, { Compartment, EditorState } from '@uiw/react-codemirror';
+import CodeMirror, { EditorState } from '@uiw/react-codemirror';
 import { history, historyKeymap } from '@codemirror/commands';
 import { yCollab, yUndoManagerKeymap } from 'y-codemirror.next';
 import { markdown, markdownLanguage } from '@codemirror/lang-markdown';
@@ -44,11 +44,12 @@ import EditorTabTitleBar from './options/appearance/tab-title-bar';
 import EditorInlineTitle from './options/appearance/inline-title';
 import createTheme from '@uiw/codemirror-themes';
 import { tags as t } from '@lezer/highlight';
-import { mermaidLivePreviewField, registerView, themeChangedEffect } from '@/features/editor/plugins/mermaid';
+import { mermaidLivePreviewField, mermaidSvgCache, registerView, resetMermaidState, themeChangedEffect } from '@/features/editor/plugins/mermaid';
 import { useEditorSettings } from '@/features/editor/stores/setting';
 import { columnSelectionField, tableSelectionHighlighter } from '@/features/editor/plugins/table';
 import { useNodeByIdQuery } from '@/hooks/node/useNodeQuery';
 import { nodeClient } from '@/lib/client/api/nodeClient';
+import { initMermaid, resolveTheme } from '@/features/editor/widgets/mermaid-widget';
 
 const myTheme = createTheme({
   theme: 'dark',
@@ -365,18 +366,23 @@ function MarkdownSection({ node, isDirty, canEditNode, canEditChunk }: { node: I
 
   useEffect(() => {
     const unsubscribe = useEditorSettings.subscribe((state, prevState) => {
-      if (state.theme !== prevState?.theme) {
-        if (!editorViewRef.current) return;
+      if (state.theme === prevState?.theme) return;
 
-        editorViewRef.current.dispatch({
-          effects: themeChangedEffect.of(),
-        });
-      }
+      const view = editorViewRef.current;
+      if (!view) return;
+
+      const theme = resolveTheme(state.theme);
+
+      initMermaid(theme);
+      mermaidSvgCache.clear();
+      // mermaidHeightCache.clear(); // Do not clear the height; this ensures the scroll position remains consistent when the theme changes.
+
+      view.dispatch({
+        effects: themeChangedEffect.of(),
+      });
     });
 
-    return () => {
-      unsubscribe();
-    };
+    return unsubscribe;
   }, []);
 
   return (
@@ -454,6 +460,7 @@ function MarkdownSection({ node, isDirty, canEditNode, canEditChunk }: { node: I
                     setLocalContent(value);
                   }}
                   onCreateEditor={view => {
+                    resetMermaidState();
                     registerView(view);
                     editorViewRef.current = view;
 

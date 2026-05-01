@@ -1,7 +1,7 @@
 import { EditorView, WidgetType } from '@uiw/react-codemirror';
 import mermaid from 'mermaid';
 import { estimateMermaidHeight } from '../decorations/mermaid-build-decoration';
-import { mermaidHeightCache, mermaidSvgCache } from '../plugins/mermaid';
+import { mermaidEditClickEffect, mermaidHeightCache, mermaidSvgCache } from '../plugins/mermaid';
 
 export function resolveTheme(theme: string) {
   if (theme === 'system') {
@@ -21,6 +21,25 @@ function escapeHtml(str: string) {
     };
     return map[s];
   });
+}
+
+let currentTheme: 'dark' | 'default' | 'base' | 'forest' | 'neutral' | 'null' | undefined = undefined;
+
+export function initMermaid(theme: 'dark' | 'default' | 'base' | 'forest' | 'neutral' | 'null' | undefined) {
+  if (currentTheme === theme) return;
+
+  mermaid.initialize({
+    startOnLoad: false,
+    theme,
+    flowchart: {
+      useMaxWidth: false,
+      htmlLabels: true,
+    },
+    sequence: { useMaxWidth: false },
+    gantt: { useMaxWidth: false },
+  });
+
+  currentTheme = theme;
 }
 
 export class MermaidWidget extends WidgetType {
@@ -43,20 +62,6 @@ export class MermaidWidget extends WidgetType {
     const cachedHeight = mermaidHeightCache.get(this.code);
     mainContainer.style.minHeight = `${cachedHeight ?? estimateMermaidHeight(this.code)}px`;
 
-    mermaid.initialize({
-      startOnLoad: false,
-      theme: resolveTheme(this.theme),
-      flowchart: {
-        useMaxWidth: false,
-        htmlLabels: true,
-        curve: 'basis',
-        nodeSpacing: 50,
-        rankSpacing: 50,
-      },
-      sequence: { useMaxWidth: false },
-      gantt: { useMaxWidth: false },
-    });
-
     const svgCacheKey = `${this.theme}-${this.code}`;
     if (!mermaidSvgCache.has(svgCacheKey)) {
       renderMermaid(this.code, mainContainer, this.from, this.to, view, svgCacheKey);
@@ -68,7 +73,7 @@ export class MermaidWidget extends WidgetType {
   eq(other: MermaidWidget) {
     return (
       other.code === this.code &&
-      other.from === this.from &&
+      // other.from === this.from &&
       other.theme === this.theme &&
       mermaidHeightCache.get(this.code) === mermaidHeightCache.get(other.code) &&
       mermaidSvgCache.get(`${this.theme}-${this.code}`) === mermaidSvgCache.get(`${other.theme}-${other.code}`)
@@ -126,19 +131,32 @@ function mountContent(mainContainer: HTMLElement, code: string, from: number, to
 
   button.onclick = e => {
     e.stopPropagation();
-    view.focus();
-    const safeFrom = Math.min(view.state.doc.length, from + 11);
-    const safeTo = Math.min(view.state.doc.length, to - 4);
-    view.dispatch({
-      selection: {
-        anchor: safeTo,
-        head: safeFrom,
-      },
-      scrollIntoView: true,
-      effects: EditorView.scrollIntoView(from, { y: 'center' }),
+
+    const cmView = EditorView.findFromDOM(mainContainer);
+    if (!cmView) return;
+
+    // ✅ Use the widget's stored from/to — already points to this specific block
+    // Just clamp to current doc length in case doc shrank
+    const safeFrom = Math.min(cmView.state.doc.length, from);
+    const safeTo = Math.min(cmView.state.doc.length, to);
+
+    const fromLine = cmView.state.doc.lineAt(safeFrom).number;
+    const toLine = cmView.state.doc.lineAt(safeTo).number;
+
+    const selectionFrom = safeFrom + '```mermaid\n'.length;
+    const selectionTo = selectionFrom + code.length;
+
+    cmView.dispatch({
+      effects: [mermaidEditClickEffect.of({ from: fromLine, to: toLine })],
+    });
+
+    requestAnimationFrame(() => {
+      cmView.focus();
+      cmView.dispatch({
+        selection: { anchor: selectionTo, head: selectionFrom },
+      });
     });
   };
-
   const scrollWrapper = document.createElement('div');
   scrollWrapper.className = 'block! w-full! max-w-full! relative contain-[inline-size]';
 
