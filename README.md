@@ -1,4 +1,4 @@
-# Stria Editor - Open Source Markdown Live Preview Core
+# Stria Editor - Open Source Markdown Live Preview
 
 Stria is a web-based reproduction of the Obsidian experience, built for the modern web. This repository provides the **open-source frontend editor**, offering a powerful and extensible Markdown environment with full live-preview capabilities.
 
@@ -57,3 +57,56 @@ In the current tech landscape, Retrieval-Augmented Generation (RAG) is a necessi
 > This repository is **frontend-only**. Advanced organizational features like Graph View, Links Mentions, and Tag Counts are part of our proprietary implementation and are not included in this open-source core.
 
 ---
+
+## Runtime
+
+- React + TypeScript + Vite
+- React Router for client-side routes
+- TanStack Query for API state
+- CodeMirror markdown editor
+- Optional client-only collaboration when `VITE_WS_URL` is configured
+
+## Environment
+
+```bash
+VITE_API_BASE_URL=https://your-api.example.com
+VITE_DEFAULT_FILE_SCOPE_ID=default
+# Optional
+VITE_WS_URL=wss://your-realtime-api.example.com
+```
+
+The API adapter preserves the existing project/node-style client methods and calls endpoints under `VITE_API_BASE_URL`.
+
+## Commands
+
+```bash
+npm run dev
+npm run build
+npm run preview
+npm run lint
+npm test
+```
+
+### Access the Editor:
+
+Open your browser and navigate to:
+
+- [http://localhost:5173](http://localhost:5173)
+
+---
+
+## 🔗 Live Demos & Backend Integration
+
+To see the Stria Editor in action or to start building your own full-stack implementation, use the links below. The prototype backend is designed to meet the existing API specifications of the Stria frontend without the overhead of a database.
+
+### 🌐 Production Environments
+
+- **Stria Editor (Frontend Demo):** [https://stria-editor.vercel.app](https://stria-editor.vercel.app)
+- **Backend Prototype (Live API):** [https://stria-api.vercel.app](https://stria-api.vercel.app)
+
+### 🛠 Backend Reference Implementation
+
+This is a **stateless** backend prototype. It fulfills all the API requirements for the Stria Editor (fetching, saving, and listing files) but keeps things simple by using in-memory storage or local file system routing rather than a complex database.
+
+- **GitHub Repository:** [https://github.com/e2e2a/stria-api](https://github.com/e2e2a/stria-api)
+  - _Features:_ Meets all Stria API specs, lightweight Nestjs setup.
