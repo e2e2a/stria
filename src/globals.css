@@ -360,11 +360,11 @@ body {
   }
 
   .cm-gutter {
-    margin-right: 15px;
+    background-color: var(--color-background) !important;
   }
 
   .cm-gutterElement {
-    margin-top: 0.1px;
+    margin-top: 0.1px !important;
   }
 
   .cm-spell-error {
