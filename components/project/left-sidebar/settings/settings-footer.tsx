@@ -8,6 +8,7 @@ import { IconTooltip } from '../../icon-tooltip';
 import AppearanceTabContent from './options/appearance';
 import BacklinkTabContent from './options/backlink';
 import { TooltipProvider } from '@/components/ui/tooltip';
+import EditorTabContent from './options/editor';
 
 const OPTIONS_TABS = [
   { id: 'general', label: 'General', icon: Settings },
@@ -78,6 +79,7 @@ export default function SettingsFooter() {
               <div className="flex flex-row sm:flex-col w-full gap-0.5">{CORE_PLUGINS_TABS.map(renderTabButton)}</div>
             </div>
           </div>
+          {activeTab === 'editor' && <EditorTabContent />}
           {activeTab === 'appearance' && <AppearanceTabContent />}
           {activeTab === 'backlink' && <BacklinkTabContent />}
         </TooltipProvider>

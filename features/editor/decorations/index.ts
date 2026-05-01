@@ -778,7 +778,8 @@ export function getFrontmatterDecos(state: EditorState, activeLineNum: number): 
   if (endLineNum === -1) return { decos: [], skipToLine: -1 };
 
   const from = doc.line(1).from;
-  const to = doc.line(endLineNum).to;
+  const endLine = doc.line(endLineNum);
+  const to = endLine.to;
   const rawContent = doc.sliceString(from, to);
 
   const hasAnyProp = /^[a-zA-Z0-9_-]+:/m.test(rawContent);
@@ -791,17 +792,19 @@ export function getFrontmatterDecos(state: EditorState, activeLineNum: number): 
 
   if (viewMode || (!sourceMode && !isChunkMode && (isAtStart || !isBlockActive) && (isAtStart || isCursorInside))) {
     const decos: StateRange<Decoration>[] = [];
-    for (let i = 1; i <= endLineNum; i++) decos.push(Decoration.line({ attributes: { class: 'cm-syntax-hide' } }).range(doc.line(i).from));
 
+    // Hide lines 1 to endLineNum in the gutter
+    for (let i = 1; i <= endLineNum; i++) {
+      decos.push(Decoration.line({ attributes: { class: 'cm-syntax-hide' } }).range(doc.line(i).from));
+    }
+    console.log('from', from, 'to', to);
     decos.push(
       Decoration.replace({
         widget: new FrontmatterWidget(rawContent, from),
-        side: -1,
         block: true,
-      }).range(from)
+      }).range(from, to)
     );
 
-    decos.push(Decoration.replace({}).range(from, to));
     return { decos, skipToLine: endLineNum };
   }
 

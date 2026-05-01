@@ -12,6 +12,14 @@ export const DEFAULT_APPEARANCE = {
   monospaceFont: [] as string[],
 
   fontSize: 16,
+
+  // Editor
+  defaultView: 'editing' as 'editing' | 'reading',
+  defaultEditingMode: 'live' as 'live' | 'source',
+  readableLineLength: false,
+  lineNumbers: false,
+  spellcheck: true,
+  spellcheckLanguages: 'soon',
 };
 
 export type AppearanceSettings = typeof DEFAULT_APPEARANCE;

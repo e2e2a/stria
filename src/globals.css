@@ -340,7 +340,7 @@ body {
     height: auto !important;
     overflow: visible !important;
     min-height: 290px !important;
-    @apply cursor-text w-full max-w-full! min-w-0;
+    @apply cursor-text w-full max-w-full! min-w-0 gap-x-5;
   }
 
   .cm-content::selection,
@@ -357,6 +357,18 @@ body {
     /* Add these for 1M+ character performance */
     contain-intrinsic-size: auto calc(var(--editor-font-size) * 1.5); /* Match your inherit line-height roughly */
     contain: layout style;
+  }
+
+  .cm-gutter {
+    margin-right: 15px;
+  }
+
+  .cm-gutterElement {
+    margin-top: 0.1px;
+  }
+
+  .cm-spell-error {
+    text-decoration: underline wavy red;
   }
 
   /* * Target any .cm-line that also has a class containing "cm-h"

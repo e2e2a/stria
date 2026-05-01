@@ -34,9 +34,10 @@ interface IBacklink {
 
 interface FooterLinksProps {
   activeNodeId: string;
+  readableContent: boolean;
 }
 
-const FooterLinks = ({ activeNodeId }: FooterLinksProps) => {
+const FooterLinks = ({ activeNodeId, readableContent }: FooterLinksProps) => {
   const [isSearching, setIsSearching] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
   const [sortMode, setSortMode] = useState<ISortMode>('name-asc');
@@ -85,7 +86,7 @@ const FooterLinks = ({ activeNodeId }: FooterLinksProps) => {
           if (parent) setScrollParent(parent);
         }
       }}
-      className="pb-30 mt-10 w-full editor-font-text"
+      className={cn('pb-30 mt-10  editor-font-text', readableContent ? 'w-full max-w-2xl mx-auto' : 'w-full')}
     >
       <Separator className="w-full bg-border/80 mb-4" />
 

@@ -1,6 +1,6 @@
 'use client';
 import React, { useEffect, useMemo, useRef, useState } from 'react';
-import { drawSelection, dropCursor, EditorView, keymap } from '@codemirror/view';
+import { drawSelection, dropCursor, EditorView, keymap, lineNumbers } from '@codemirror/view';
 import CodeMirror, { EditorState } from '@uiw/react-codemirror';
 import { history, historyKeymap } from '@codemirror/commands';
 import { yCollab, yUndoManagerKeymap } from 'y-codemirror.next';
@@ -15,6 +15,7 @@ import {
   permissionGuard,
   setupDragTracking,
   sourceModeField,
+  toggleSourceMode,
   viewportLinesField,
   viewportLinesPlugin,
 } from '@/features/editor/plugins';
@@ -76,6 +77,16 @@ const myTheme = createTheme({
 });
 
 function MarkdownSection({ node, isDirty, canEditNode, canEditChunk }: { node: INode; isDirty: boolean; canEditNode: boolean; canEditChunk: boolean }) {
+  const initialView = useRef(useEditorSettings.getState().defaultView ?? 'editing').current;
+  const initialMode = useRef(useEditorSettings.getState().defaultEditingMode ?? 'live').current;
+  const initialReadableContent = useRef(useEditorSettings.getState().readableLineLength).current;
+  const initialLineNumbers = useRef(useEditorSettings.getState().lineNumbers).current;
+  const initialSpellChecker = useRef(useEditorSettings.getState().spellcheck).current;
+
+  const [readableContent, setReadableContent] = useState(initialReadableContent);
+  const [isLineNumbers, setIsLineNumbers] = useState(initialLineNumbers);
+  const [spellChecker, setSpellChecker] = useState(initialSpellChecker);
+
   const wsUrl = import.meta.env.VITE_WS_URL;
   const isRealtimeEnabled = Boolean(wsUrl);
   const [synced, setSynced] = useState(!isRealtimeEnabled);
@@ -366,20 +377,37 @@ function MarkdownSection({ node, isDirty, canEditNode, canEditChunk }: { node: I
 
   useEffect(() => {
     const unsubscribe = useEditorSettings.subscribe((state, prevState) => {
-      if (state.theme === prevState?.theme) return;
-
       const view = editorViewRef.current;
       if (!view) return;
 
-      const theme = resolveTheme(state.theme);
+      if (state.theme !== prevState?.theme) {
+        console.log('theme');
+        const theme = resolveTheme(state.theme);
+        initMermaid(theme);
+        mermaidSvgCache.clear();
+        // mermaidHeightCache.clear(); // Do not clear the height; this ensures the scroll position remains consistent when the theme changes.
+        view.dispatch({ effects: themeChangedEffect.of() });
+      }
 
-      initMermaid(theme);
-      mermaidSvgCache.clear();
-      // mermaidHeightCache.clear(); // Do not clear the height; this ensures the scroll position remains consistent when the theme changes.
+      if (state.defaultEditingMode !== prevState?.defaultEditingMode) {
+        const isSource = state.defaultEditingMode === 'source';
+        view.dispatch({ effects: toggleSourceMode.of(isSource) });
+      }
 
-      view.dispatch({
-        effects: themeChangedEffect.of(),
-      });
+      if (state.defaultView !== prevState?.defaultView) {
+        const isReading = state.defaultView === 'reading';
+        setIsReadOnly(isReading);
+        if (isReading) {
+          view.scrollDOM.classList.add('cm-readonly');
+          view.contentDOM.blur();
+        } else {
+          view.scrollDOM.classList.remove('cm-readonly');
+        }
+      }
+
+      if (state.readableLineLength !== prevState?.readableLineLength) setReadableContent(state.readableLineLength);
+      if (state.lineNumbers !== prevState?.lineNumbers) setIsLineNumbers(state.lineNumbers);
+      if (state.spellcheck !== prevState?.spellcheck) setSpellChecker(state.spellcheck);
     });
 
     return unsubscribe;
@@ -426,7 +454,11 @@ function MarkdownSection({ node, isDirty, canEditNode, canEditChunk }: { node: I
 
           <ContextMenuClient editorViewRef={editorViewRef} contextType={contextType} setContextType={setContextType} synced={synced}>
             <div
-              className={cn('w-full h-auto pb-4 flex flex-col', isChunkActive ? 'hidden' : 'w-full h-auto')}
+              className={cn(
+                'w-full h-auto pb-4 flex flex-col',
+                isChunkActive ? 'hidden' : 'w-full h-auto',
+                readableContent ? 'w-full max-w-2xl mx-auto' : 'w-full'
+              )}
               onMouseDown={e => {
                 const target = e.target as HTMLElement;
 
@@ -464,13 +496,27 @@ function MarkdownSection({ node, isDirty, canEditNode, canEditChunk }: { node: I
                     registerView(view);
                     editorViewRef.current = view;
 
+                    if (initialMode === 'source') view.dispatch({ effects: toggleSourceMode.of(true) });
+
+                    if (initialView === 'reading') {
+                      setIsReadOnly(true);
+                      view.scrollDOM.classList.add('cm-readonly');
+                      view.contentDOM.blur();
+                    }
+
                     setTimeout(() => {
                       setupDragTracking(view);
                     }, 0);
+                    view.focus();
                   }}
+                  autoFocus={false}
                   theme="none"
                   basicSetup={false}
-                  extensions={editorExtensions}
+                  extensions={[
+                    ...editorExtensions,
+                    isLineNumbers ? [lineNumbers()] : [],
+                    spellChecker ? [EditorView.contentAttributes.of({ spellcheck: 'true' })] : [],
+                  ]}
                   className="h-auto! w-full! min-w-full!"
                 />
               ) : (
@@ -497,7 +543,7 @@ function MarkdownSection({ node, isDirty, canEditNode, canEditChunk }: { node: I
             </div>
           </ContextMenuClient>
         </div>
-        <FooterLinks activeNodeId={node._id} />
+        <FooterLinks activeNodeId={node._id} readableContent={readableContent} />
       </div>
       <EditorStatusBar nodeId={node._id} />
     </>
