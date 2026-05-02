@@ -6,6 +6,8 @@ import { Input } from '@/components/ui/input';
 import SettingRow from './components/setting-row';
 import SettingsCard from './components/settings-card';
 import { CorePluginKey, useCorePluginStore } from '@/features/editor/stores/setting-core-plugin';
+import { useTabStore } from '@/features/editor/stores/tabs';
+import { useParams } from 'react-router-dom';
 
 const CORE_PLUGINS_META: { id: CorePluginKey; title: string; description: string }[] = [
   {
@@ -29,6 +31,8 @@ const CORE_PLUGINS_META: { id: CorePluginKey; title: string; description: string
 ];
 
 export default function CorePluginsTabContent() {
+  const params = useParams();
+  const projectId = params.pid as string;
   const settings = useCorePluginStore(state => state.settings);
   const updateSetting = useCorePluginStore(state => state.updateSetting);
   const [searchQuery, setSearchQuery] = useState('');
@@ -62,7 +66,10 @@ export default function CorePluginsTabContent() {
                 <div className="flex items-center gap-3">
                   <Switch
                     checked={settings[plugin.id]}
-                    onCheckedChange={val => updateSetting(plugin.id, val)}
+                    onCheckedChange={val => {
+                      updateSetting(plugin.id, val);
+                      if (plugin.id === 'graph') useTabStore.getState().closeTab(projectId, 'graph-view');
+                    }}
                     disabled={plugin.id === 'markdown-importer'}
                   />
                 </div>

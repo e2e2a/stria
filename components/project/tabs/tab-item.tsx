@@ -100,6 +100,10 @@ export const TabItem = ({ tab, isActive, isDropBefore, pid, canEditChunk, onDrag
                   ? 'opacity-60 hover:opacity-100 hover:bg-muted hover:scale-105'
                   : 'opacity-0 group-hover:opacity-60 hover:opacity-100! hover:bg-muted/80'
               )}
+              onMouseDown={e => {
+                e.preventDefault();
+                e.stopPropagation();
+              }}
               onClick={e => {
                 e.preventDefault();
                 e.stopPropagation();
