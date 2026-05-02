@@ -63,7 +63,7 @@ export default function EditorTabContent() {
             </SettingRow>
 
             <SettingRow title="Line numbers" description="Display line numbers alongside your content in the editor gutter.">
-              <Switch checked={lineNumbers} onCheckedChange={(val: boolean) => updateSetting('lineNumbers', val)} />
+              <Switch checked={lineNumbers} onCheckedChange={(val: boolean) => updateSetting('lineNumbers', val)} disabled />
             </SettingRow>
           </SettingsCard>
 
