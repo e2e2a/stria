@@ -1,6 +1,6 @@
 import mermaid from 'mermaid';
 import { EditorState, RangeSetBuilder, Text } from '@codemirror/state';
-import { initView, mermaidHeightCache, mermaidPrerenderedEffect, mermaidSvgCache } from '../plugins/mermaid';
+import { mermaidHeightCache, mermaidPrerenderedEffect, mermaidSvgCache, viewRegistry } from '../plugins/mermaid';
 import { MermaidWidget, resolveTheme } from '../widgets/mermaid-widget';
 import { Decoration } from '@uiw/react-codemirror';
 import { chunkModeFacet, sourceModeField } from '../plugins';
@@ -41,29 +41,30 @@ export function estimateMermaidHeight(code: string): number {
   return 120 + lines * 28;
 }
 
-export async function prerenderThenBuild(state: EditorState, from: number, to: number) {
+export async function prerenderThenBuild(state: EditorState, from: number, to: number, nodeId: string) {
   const blocks = extractAllMermaidBlocks(state.doc, from, to);
   const resolvedTheme = resolveTheme(useEditorSettings.getState().theme);
+
   await Promise.all(
     blocks.map(async ({ code }) => {
       const svgCacheKey = `${resolvedTheme}-${code}`;
-      const cachedSvg = mermaidSvgCache.get(svgCacheKey);
       if (mermaidSvgCache.has(svgCacheKey) && mermaidHeightCache.has(code)) return;
 
-      // Only set height estimate as placeholder — don't bother rendering svg
       if (!mermaidHeightCache.has(code)) {
         mermaidHeightCache.set(code, estimateMermaidHeight(code));
       }
-      if (cachedSvg) return;
+
+      if (mermaidSvgCache.has(svgCacheKey)) return;
+
       try {
         const id = `pre-${crypto.randomUUID()}`;
         const { svg } = await mermaid.render(id, code);
         mermaidSvgCache.set(svgCacheKey, svg);
+
         const el = document.createElement('div');
         el.style.cssText = 'position:absolute;visibility:hidden;width:800px';
         el.innerHTML = svg;
         document.body.appendChild(el);
-
         const height = el.getBoundingClientRect().height;
         el.remove();
 
@@ -74,9 +75,8 @@ export async function prerenderThenBuild(state: EditorState, from: number, to: n
     })
   );
 
-  initView?.dispatch({
-    effects: mermaidPrerenderedEffect.of(null),
-  });
+  const targetView = viewRegistry.get(nodeId);
+  targetView?.dispatch({ effects: mermaidPrerenderedEffect.of(null) });
 }
 
 export function buildMermaidDecorations(state: EditorState, from: number, to: number) {

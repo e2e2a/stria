@@ -1,8 +1,8 @@
-import { Decoration, DecorationSet, EditorView, StateEffect, StateField } from '@uiw/react-codemirror';
+import { Decoration, DecorationSet, EditorView, Facet, StateEffect, StateField } from '@uiw/react-codemirror';
 
-export let initView: EditorView | null = null;
+export const initView: EditorView | null = null;
 
-let isPrerendering = false;
+const isPrerendering = false;
 import { setViewportLinesEffect, sourceModeField, viewportLinesField } from '@/features/editor/plugins';
 import { buildMermaidDecorations, prerenderThenBuild } from '../decorations/mermaid-build-decoration';
 import { initMermaid, resolveTheme } from '../widgets/mermaid-widget';
@@ -12,17 +12,31 @@ export const mermaidHeightUpdateEffect = StateEffect.define<{ code: string; heig
 export const mermaidHeightCache = new Map<string, number>();
 export const mermaidSvgCache = new Map<string, string>();
 export const mermaidEditClickEffect = StateEffect.define<{ from: number; to: number }>();
-let activeEditBlock: { from: number; to: number } | null = null;
 
 export const themeChangedEffect = StateEffect.define<void>();
 
-let isBuilt = false;
+export const nodeIdFacet = Facet.define<string, string>({
+  combine: values => values[0] ?? '',
+});
 
-export function resetMermaidState() {
-  isPrerendering = false;
-  isBuilt = false;
-  activeEditBlock = null;
-  // Don't clear caches — SVG/height caches are still valid across tabs
+interface MermaidNodeState {
+  isBuilt: boolean;
+  isPrerendering: boolean;
+  activeEditBlock: { from: number; to: number } | null;
+}
+
+const nodeState = new Map<string, MermaidNodeState>();
+const viewRegistry = new Map<string, EditorView>();
+
+function getState(nodeId: string): MermaidNodeState {
+  if (!nodeState.has(nodeId)) {
+    nodeState.set(nodeId, { isBuilt: false, isPrerendering: false, activeEditBlock: null });
+  }
+  return nodeState.get(nodeId)!;
+}
+
+export function resetMermaidState(nodeId: string) {
+  nodeState.set(nodeId, { isBuilt: false, isPrerendering: false, activeEditBlock: null });
 }
 
 export const mermaidLivePreviewField = StateField.define<DecorationSet>({
@@ -31,15 +45,19 @@ export const mermaidLivePreviewField = StateField.define<DecorationSet>({
   },
 
   update(decos, tr) {
+    const nodeId = tr.state.facet(nodeIdFacet);
+    const s = getState(nodeId);
+
     const sourceMode = tr.state.field(sourceModeField, false);
     if (sourceMode) {
-      isBuilt = false;
+      s.isBuilt = false;
       return Decoration.none;
     }
 
     if (tr.state.doc.length === 0) return decos;
 
-    if (isBuilt && tr.docChanged && !isPrerendering) {
+    // New mermaid block typed while already built
+    if (s.isBuilt && tr.docChanged && !s.isPrerendering) {
       let hasNewMermaid = false;
       let changedFrom = 0;
       let changedTo = 0;
@@ -54,10 +72,10 @@ export const mermaidLivePreviewField = StateField.define<DecorationSet>({
       });
 
       if (hasNewMermaid) {
-        isBuilt = false;
-        isPrerendering = true;
-        prerenderThenBuild(tr.state, changedFrom, changedTo).finally(() => {
-          isPrerendering = false;
+        s.isBuilt = false;
+        s.isPrerendering = true;
+        prerenderThenBuild(tr.state, changedFrom, changedTo, nodeId).finally(() => {
+          s.isPrerendering = false;
         });
       }
     }
@@ -70,34 +88,31 @@ export const mermaidLivePreviewField = StateField.define<DecorationSet>({
     if (viewportChanged && !isPrerendering) {
       const v = tr.state.field(viewportLinesField, false) ?? {
         from: 1,
-        // to: tr.state.doc.lines,
         to: tr.state.doc.lineAt(0).number,
       };
-      isPrerendering = true;
-      console.log('v.from', v.from);
-      console.log('v.to', v.to);
-      prerenderThenBuild(tr.state, v.from, v.to).finally(() => {
-        isPrerendering = false;
+      s.isPrerendering = true;
+      prerenderThenBuild(tr.state, v.from, v.to, nodeId).finally(() => {
+        s.isPrerendering = false;
       });
     }
 
-    // ✅ Prerender done → one full build, then lock
     if (prerenderDone) {
-      isBuilt = true;
+      s.isBuilt = true;
       return buildMermaidDecorations(tr.state, 1, tr.state.doc.lines);
     }
 
-    // ✅ Theme changed → one rebuild
+    // Theme changed → rebuild
     if (themeChanged) {
-      isBuilt = true;
+      s.isBuilt = true;
       return buildMermaidDecorations(tr.state, 1, tr.state.doc.lines);
     }
+
     const selectionChanged = !tr.startState.selection.eq(tr.state.selection);
-    // ✅ Already built → just shift positions, zero scanning
     const editClick = tr.effects.find(e => e.is(mermaidEditClickEffect));
-    if (isBuilt) {
+
+    if (s.isBuilt) {
       if (editClick) {
-        activeEditBlock = editClick.value;
+        s.activeEditBlock = editClick.value;
         const fromPos = tr.state.doc.line(editClick.value.from).from;
         const toPos = tr.state.doc.line(editClick.value.to).to;
         return decos.map(tr.changes).update({
@@ -105,19 +120,16 @@ export const mermaidLivePreviewField = StateField.define<DecorationSet>({
         });
       }
 
-      if (selectionChanged && activeEditBlock) {
+      if (selectionChanged && s.activeEditBlock) {
         const cursorLine = tr.state.doc.lineAt(tr.state.selection.main.head).number;
-        const stillInBlock = cursorLine >= activeEditBlock.from && cursorLine <= activeEditBlock.to;
+        const stillInBlock = cursorLine >= s.activeEditBlock.from && cursorLine <= s.activeEditBlock.to;
 
         if (!stillInBlock) {
-          const blockDecos = buildMermaidDecorations(tr.state, activeEditBlock.from, activeEditBlock.to);
-          activeEditBlock = null;
+          const blockDecos = buildMermaidDecorations(tr.state, s.activeEditBlock.from, s.activeEditBlock.to);
+          s.activeEditBlock = null;
 
           const toAdd = iterDecos(blockDecos);
-          return decos.map(tr.changes).update({
-            add: toAdd,
-            sort: true,
-          });
+          return decos.map(tr.changes).update({ add: toAdd, sort: true });
         }
       }
 
@@ -131,9 +143,10 @@ export const mermaidLivePreviewField = StateField.define<DecorationSet>({
 });
 export const mermaidPrerenderedEffect = StateEffect.define<null>();
 
-export function registerView(view: EditorView) {
+export function registerView(view: EditorView, nodeId: string) {
+  viewRegistry.set(nodeId, view);
+  // resetMermaidState(nodeId);
   const theme = useEditorSettings.getState().theme;
-  initView = view;
   initMermaid(resolveTheme(theme));
 }
 
@@ -146,3 +159,5 @@ function iterDecos(set: DecorationSet): { from: number; to: number; value: Decor
   }
   return result;
 }
+
+export { viewRegistry };

@@ -45,7 +45,7 @@ import EditorTabTitleBar from './options/appearance/tab-title-bar';
 import EditorInlineTitle from './options/appearance/inline-title';
 import createTheme from '@uiw/codemirror-themes';
 import { tags as t } from '@lezer/highlight';
-import { mermaidLivePreviewField, mermaidSvgCache, registerView, resetMermaidState, themeChangedEffect } from '@/features/editor/plugins/mermaid';
+import { mermaidLivePreviewField, mermaidSvgCache, nodeIdFacet, registerView, themeChangedEffect } from '@/features/editor/plugins/mermaid';
 import { useEditorSettings } from '@/features/editor/stores/setting';
 import { columnSelectionField, tableSelectionHighlighter } from '@/features/editor/plugins/table';
 import { useNodeByIdQuery } from '@/hooks/node/useNodeQuery';
@@ -226,6 +226,7 @@ function MarkdownSection({ node, isDirty, canEditNode, canEditChunk }: { node: I
       onDocChange,
       tableBackspace,
       sourceModeField,
+      nodeIdFacet.of(node._id),
       tableSelectionHighlighter,
       tableKeyboardHandler,
       keymap.of([{ key: 'Mod-a', run: selectAllToTop }, ...(isRealtimeEnabled ? yUndoManagerKeymap : historyKeymap)]),
@@ -492,8 +493,7 @@ function MarkdownSection({ node, isDirty, canEditNode, canEditChunk }: { node: I
                     setLocalContent(value);
                   }}
                   onCreateEditor={view => {
-                    resetMermaidState();
-                    registerView(view);
+                    registerView(view, node._id);
                     editorViewRef.current = view;
 
                     if (initialMode === 'source') view.dispatch({ effects: toggleSourceMode.of(true) });
