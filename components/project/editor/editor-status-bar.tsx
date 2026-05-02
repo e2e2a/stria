@@ -3,6 +3,7 @@ import { useCorePluginStore } from '@/features/editor/stores/setting-core-plugin
 export const EditorStatusBar = ({ nodeId, initialContent = '' }: { nodeId: string; initialContent?: string }) => {
   const words = initialContent?.trim() ? initialContent.trim().split(/\s+/).length : 0;
   const editorStatus = useCorePluginStore(state => state.settings['editor-status']);
+  const wordCount = useCorePluginStore(state => state.settings['word-count']);
 
   if (!editorStatus) return null;
 
@@ -15,18 +16,25 @@ export const EditorStatusBar = ({ nodeId, initialContent = '' }: { nodeId: strin
             {words}
           </span>
         </div>
-        <div className="flex gap-1.5">
-          <span>Words:</span>
-          <span id={`cm-word-count-${nodeId}`} className="text-blue-400/80">
-            {words}
-          </span>
-        </div>
-        <div className="flex gap-1.5">
-          <span>Chars:</span>
-          <span id={`cm-char-count-${nodeId}`} className="text-blue-400/80">
-            {initialContent.length}
-          </span>
-        </div>
+
+        {wordCount && (
+          <>
+            <div className="flex gap-1.5">
+              <span>Words:</span>
+              <span id={`cm-word-count-${nodeId}`} className="text-blue-400/80">
+                {words}
+              </span>
+            </div>
+
+            <div className="flex gap-1.5">
+              <span>Chars:</span>
+              <span id={`cm-char-count-${nodeId}`} className="text-blue-400/80">
+                {initialContent.length}
+              </span>
+            </div>
+          </>
+        )}
+
         <div className="ml-auto text-muted-foreground">UTF-8</div>
       </div>
     </div>

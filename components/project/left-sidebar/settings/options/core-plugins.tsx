@@ -33,7 +33,6 @@ export default function CorePluginsTabContent() {
   const updateSetting = useCorePluginStore(state => state.updateSetting);
   const [searchQuery, setSearchQuery] = useState('');
 
-  // Filter and sort plugins alphabetically
   const filteredPlugins = CORE_PLUGINS_META.filter(
     plugin => plugin.title.toLowerCase().includes(searchQuery.toLowerCase()) || plugin.description.toLowerCase().includes(searchQuery.toLowerCase())
   ).sort((a, b) => a.title.localeCompare(b.title));
@@ -41,7 +40,6 @@ export default function CorePluginsTabContent() {
   return (
     <div className="flex-1 bg-background flex flex-col w-full h-full overflow-y-auto p-6 sm:p-10">
       <div className="w-full space-y-6">
-        {/* Header Header & Search */}
         <div>
           <h2 className="text-2xl font-semibold text-foreground tracking-tight mb-4">Core plugins</h2>
 
@@ -62,8 +60,11 @@ export default function CorePluginsTabContent() {
             filteredPlugins.map((plugin, index) => (
               <SettingRow key={plugin.id} title={plugin.title} description={plugin.description} isLast={index === filteredPlugins.length - 1}>
                 <div className="flex items-center gap-3">
-                  {/* Ready for future settings gear icon if you want to add it here later */}
-                  <Switch checked={settings[plugin.id]} onCheckedChange={val => updateSetting(plugin.id, val)} />
+                  <Switch
+                    checked={settings[plugin.id]}
+                    onCheckedChange={val => updateSetting(plugin.id, val)}
+                    disabled={plugin.id === 'markdown-importer'}
+                  />
                 </div>
               </SettingRow>
             ))

@@ -11,6 +11,7 @@ import { IconTooltip } from './icon-tooltip';
 import { flattenNodeTree } from '@/utils/client/node-utils';
 import React, { useDeferredValue, useMemo, useRef } from 'react';
 import { useNodeStore } from '@/features/editor/stores/nodes';
+import { useCorePluginStore } from '@/features/editor/stores/setting-core-plugin';
 
 export const CustomDotsIcon = ({ className }: { className?: string }) => {
   return (
@@ -31,6 +32,9 @@ const MiniSidebarTemplate = ({ LeftSidebarRef, isLeftCollapsed, RightSidebarRef 
   const params = useParams();
   const pid = params.pid || '';
   const nodes = useNodeStore(state => state.nodes);
+
+  const showgraph = useCorePluginStore(state => state.settings['graph']);
+  const showRandomNote = useCorePluginStore(state => state.settings['random-note']);
 
   const setActiveNode = useNodeStore(state => state.setActiveNode);
   const openTab = useTabStore(state => state.openTab);
@@ -78,22 +82,27 @@ const MiniSidebarTemplate = ({ LeftSidebarRef, isLeftCollapsed, RightSidebarRef 
                 </Button>
               </div>
             </IconTooltip>
-            <SidebarMenu className="gap-y-0!">
-              <SidebarMenuItem onClick={() => openTab(pid, 'Graph View', false, 0)}>
-                <IconTooltip label={'Open graph view'} side="right">
-                  <Button type="button" tabIndex={-1} variant={'ghost'} className="cursor-pointer py-1 hover:bg-transparent!">
-                    <Network className="w-5! h-5! stroke-[1px]" />
-                  </Button>
-                </IconTooltip>
-              </SidebarMenuItem>
 
-              <SidebarMenuItem onClick={openRandomNode}>
-                <IconTooltip label={'Open random note'} side="right">
-                  <Button type="button" tabIndex={-1} variant={'ghost'} className="cursor-pointer px-3 py-1 hover:bg-transparent!">
-                    <CustomDotsIcon className="w-5! h-5!" />
-                  </Button>
-                </IconTooltip>
-              </SidebarMenuItem>
+            <SidebarMenu className="gap-y-0!">
+              {showgraph && (
+                <SidebarMenuItem onClick={() => openTab(pid, 'Graph View', false, 0)}>
+                  <IconTooltip label={'Open graph view'} side="right">
+                    <Button type="button" tabIndex={-1} variant={'ghost'} className="cursor-pointer py-1 hover:bg-transparent!">
+                      <Network className="w-5! h-5! stroke-[1px]" />
+                    </Button>
+                  </IconTooltip>
+                </SidebarMenuItem>
+              )}
+
+              {showRandomNote && (
+                <SidebarMenuItem onClick={openRandomNode}>
+                  <IconTooltip label={'Open random note'} side="right">
+                    <Button type="button" tabIndex={-1} variant={'ghost'} className="cursor-pointer px-3 py-1 hover:bg-transparent!">
+                      <CustomDotsIcon className="w-5! h-5!" />
+                    </Button>
+                  </IconTooltip>
+                </SidebarMenuItem>
+              )}
 
               <SidebarMenuItem
                 onClick={() => {
