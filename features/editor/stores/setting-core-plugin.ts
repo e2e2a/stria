@@ -1,32 +1,24 @@
 import { create } from 'zustand';
 
 const DEFAULT_CORE_PLUGINS = {
-  'file-explorer': true,
-  'global-search': true,
-  switcher: true,
-  graph: true,
   backlink: true,
-  canvas: true,
-  'outgoing-link': true,
-  'tag-pane': true,
-  'page-preview': true,
-  templates: true,
-  'note-composer': true,
-  'slash-command': true,
+  'show-backlink': true,
+  bookmark: true,
+  'file-explorer': true,
   'editor-status': true,
-  bookmarks: true,
-  'markdown-importer': true,
-  'zk-prefixer': true,
-  'random-note': true,
-  outline: true,
-  'word-count': true,
-  slides: false,
-  'audio-recorder': false,
-  'file-recovery': true,
-  publish: false,
-  sync: false,
+  'global-search': true,
+
   properties: true,
-  webviewer: false,
+  outline: true,
+  tags: true,
+
+  graph: true,
+  'word-count': true,
+
+  // switcher: true,
+
+  'markdown-importer': true,
+  'random-note': true,
 };
 
 // Automatically extracts the exact keys so TypeScript catches typos

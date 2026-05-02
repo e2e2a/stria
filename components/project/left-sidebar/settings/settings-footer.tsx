@@ -2,7 +2,7 @@
 
 import { useState } from 'react';
 import { Dialog, DialogContent, DialogDescription, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
-import { Settings, PenTool, FileText, Paintbrush, Keyboard, Key, Package, Puzzle, Link, LucideIcon } from 'lucide-react';
+import { Settings, PenTool, Paintbrush, Key, Package, Puzzle, Link, LucideIcon } from 'lucide-react';
 import { useIsMobileSM } from '@/hooks/use-mobile';
 import { IconTooltip } from '../../icon-tooltip';
 import AppearanceTabContent from './options/appearance';
@@ -10,13 +10,14 @@ import BacklinkTabContent from './options/backlink';
 import { TooltipProvider } from '@/components/ui/tooltip';
 import EditorTabContent from './options/editor';
 import GeneralTabContent from './options/general';
+import CorePluginsTabContent from './options/core-plugins';
 
 const OPTIONS_TABS = [
   { id: 'general', label: 'General', icon: Settings },
   { id: 'editor', label: 'Editor', icon: PenTool },
-  { id: 'files', label: 'Files and links', icon: FileText },
+  // { id: 'files', label: 'Files and links', icon: FileText },
   { id: 'appearance', label: 'Appearance', icon: Paintbrush },
-  { id: 'hotkeys', label: 'Hotkeys', icon: Keyboard },
+  // { id: 'hotkeys', label: 'Hotkeys', icon: Keyboard },
   { id: 'keychain', label: 'Keychain', icon: Key },
   { id: 'core-plugins', label: 'Core plugins', icon: Package },
   { id: 'community-plugins', label: 'Community plugins', icon: Puzzle },
@@ -81,6 +82,7 @@ export default function SettingsFooter() {
             </div>
           </div>
 
+          {activeTab === 'core-plugins' && <CorePluginsTabContent />}
           {activeTab === 'general' && <GeneralTabContent />}
           {activeTab === 'editor' && <EditorTabContent />}
           {activeTab === 'appearance' && <AppearanceTabContent />}

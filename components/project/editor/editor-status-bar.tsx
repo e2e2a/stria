@@ -1,5 +1,10 @@
+import { useCorePluginStore } from '@/features/editor/stores/setting-core-plugin';
+
 export const EditorStatusBar = ({ nodeId, initialContent = '' }: { nodeId: string; initialContent?: string }) => {
   const words = initialContent?.trim() ? initialContent.trim().split(/\s+/).length : 0;
+  const editorStatus = useCorePluginStore(state => state.settings['editor-status']);
+
+  if (!editorStatus) return null;
 
   return (
     <div className="absolute bottom-0 left-0 right-0 h-6 w-full justify-end flex items-center z-49 select-none">

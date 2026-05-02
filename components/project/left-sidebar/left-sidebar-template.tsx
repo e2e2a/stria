@@ -18,8 +18,19 @@ import { SearchTabContent } from './search-tab-content';
 import { cn } from '@/lib/utils';
 import NodeTabHeader from './node-tab-header';
 import { IconTooltip } from '../icon-tooltip';
+import { useCorePluginStore } from '@/features/editor/stores/setting-core-plugin';
+
+type SidebarTab = 'nodes' | 'search' | 'bookmarks';
 
 function LeftSidebarTemplate({ projectData }: { projectData: IProject }) {
+  const isBookmark = useCorePluginStore(state => state.settings.bookmark);
+  const fileExplorer = useCorePluginStore(state => state.settings['file-explorer']);
+  const globalSearch = useCorePluginStore(state => state.settings['global-search']);
+
+  const [showBookmark, setShowBookmark] = useState(isBookmark);
+  const [showFileExplorer, setShowFileExplorer] = useState(fileExplorer);
+  const [showGlobalSearch, setShowGlobalSearch] = useState(globalSearch);
+
   const nodes = useNodeStore(state => state.nodes);
   const setActiveNode = useNodeStore(state => state.setActiveNode);
   const undo = useNodeStore(state => state.undo);
@@ -122,6 +133,41 @@ function LeftSidebarTemplate({ projectData }: { projectData: IProject }) {
     openTab(projectData._id, node, true);
     setActiveNode(node._id);
   };
+
+  useEffect(() => {
+    const unsubscribe = useCorePluginStore.subscribe((state, prevState) => {
+      const { leftSidebarTab, setLeftSidebarTab } = useProjectUIStore.getState();
+      const settings = state.settings;
+      const prevSettings = prevState?.settings || {};
+
+      const changed =
+        settings['bookmark'] !== prevSettings['bookmark'] ||
+        settings['file-explorer'] !== prevSettings['file-explorer'] ||
+        settings['global-search'] !== prevSettings['global-search'];
+
+      if (!changed) return;
+
+      setShowBookmark(settings['bookmark']);
+      setShowFileExplorer(settings['file-explorer']);
+      setShowGlobalSearch(settings['global-search']);
+
+      const tabVisibility: Record<SidebarTab, boolean> = {
+        bookmarks: settings['bookmark'],
+        nodes: settings['file-explorer'],
+        search: settings['global-search'],
+      };
+
+      if (!tabVisibility[leftSidebarTab]) {
+        const fallbackTab = (Object.keys(tabVisibility) as SidebarTab[]).find(tab => tabVisibility[tab]);
+        if (fallbackTab) {
+          setLeftSidebarTab(fallbackTab);
+        }
+      }
+    });
+
+    return unsubscribe;
+  }, []);
+
   return (
     <Sidebar
       id="sidebar-tree-nodes"
@@ -132,125 +178,151 @@ function LeftSidebarTemplate({ projectData }: { projectData: IProject }) {
       variant="inset"
     >
       <div className="h-screen flex flex-col">
-        <div className="h-full overflow-hidden flex flex-col">
-          <Tabs
-            defaultValue="nodes"
-            value={leftSidebarTab}
-            onValueChange={e => setLeftSidebarTab(e as 'search' | 'nodes' | 'bookmarks')}
-            className="w-full flex flex-col flex-1 min-h-0 gap-y-0"
-          >
-            <SidebarHeader className="h-10 p-0">
-              <SidebarMenu className="h-10 flex w-full flex-row items-center justify-center px-2 relative">
-                <TabsList className="bg-transparent w-full flex items-start gap-x-3 justify-start">
-                  <IconTooltip label={'Files'}>
-                    <TabsTrigger
-                      className="grow-0 hover:bg-accent/50 text-muted-foreground hover:text-foreground! data-[state=active]:text-foreground data-[state=active]:bg-accent/50! data-[state=active]:border-accent!"
-                      value="nodes"
-                    >
-                      <FolderOpen className="w-5! h-5!" />
-                    </TabsTrigger>
-                  </IconTooltip>
-                  <IconTooltip label={'Search'}>
-                    <TabsTrigger
-                      className="grow-0 hover:bg-accent/50 text-muted-foreground hover:text-foreground! data-[state=active]:text-foreground data-[state=active]:bg-accent/50! data-[state=active]:border-accent!"
-                      value="search"
-                    >
-                      <Search className="w-5! h-5!" />
-                    </TabsTrigger>
-                  </IconTooltip>
-                  <IconTooltip label={'Bookmarks'}>
-                    <TabsTrigger
-                      className="grow-0 hover:bg-accent/50 text-muted-foreground hover:text-foreground! data-[state=active]:text-foreground data-[state=active]:bg-accent/50! data-[state=active]:border-accent!"
-                      value="bookmarks"
-                    >
-                      <Bookmark className="w-5! h-5!" />
-                    </TabsTrigger>
-                  </IconTooltip>
-                </TabsList>
+        {!showBookmark && !showFileExplorer && !showGlobalSearch ? (
+          <div className=" w-full h-screen bg-sidebar pt-5 text-center text-sm">
+            <span className="">The sidebar is Empty.</span>
+          </div>
+        ) : (
+          <div className="h-full overflow-hidden flex flex-col">
+            <Tabs
+              defaultValue="nodes"
+              value={leftSidebarTab}
+              onValueChange={e => setLeftSidebarTab(e as 'search' | 'nodes' | 'bookmarks')}
+              className="w-full flex flex-col flex-1 min-h-0 gap-y-0"
+            >
+              <SidebarHeader className="h-10 p-0">
+                <SidebarMenu className="h-10 flex w-full flex-row items-center justify-center px-2 relative">
+                  <TabsList className="bg-transparent w-full flex items-start gap-x-3 justify-start">
+                    {showFileExplorer && (
+                      <IconTooltip label={'Files'}>
+                        <TabsTrigger
+                          className="grow-0 hover:bg-accent/50 text-muted-foreground hover:text-foreground! data-[state=active]:text-foreground data-[state=active]:bg-accent/50! data-[state=active]:border-accent!"
+                          value="nodes"
+                        >
+                          <FolderOpen className="w-5! h-5!" />
+                        </TabsTrigger>
+                      </IconTooltip>
+                    )}
+                    {showGlobalSearch && (
+                      <IconTooltip label={'Search'}>
+                        <TabsTrigger
+                          className="grow-0 hover:bg-accent/50 text-muted-foreground hover:text-foreground! data-[state=active]:text-foreground data-[state=active]:bg-accent/50! data-[state=active]:border-accent!"
+                          value="search"
+                        >
+                          <Search className="w-5! h-5!" />
+                        </TabsTrigger>
+                      </IconTooltip>
+                    )}
 
-                <div className="absolute top-10 left-0 right-0 h-1 z-12 w-full bg-border dark:bg-border/50" />
-                <div className="absolute top-11 left-0 right-0 h-10 z-50 flex px-3 items-center border-b border-border bg-sidebar/80 backdrop-blur-lg pointer-events-auto cursor-default">
-                  <div className="flex w-full">
-                    <NodeTabHeader projectData={projectData} />
+                    {showBookmark && (
+                      <IconTooltip label={'Bookmarks'}>
+                        <TabsTrigger
+                          className="grow-0 hover:bg-accent/50 text-muted-foreground hover:text-foreground! data-[state=active]:text-foreground data-[state=active]:bg-accent/50! data-[state=active]:border-accent!"
+                          value="bookmarks"
+                        >
+                          <Bookmark className="w-5! h-5!" />
+                        </TabsTrigger>
+                      </IconTooltip>
+                    )}
+                  </TabsList>
 
-                    <TabsContent className="h-full min-h-0 w-full flex items-center" value="search">
-                      <div className="relative w-full px-1">
-                        <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                        <input
-                          value={searchQuery}
-                          onChange={e => {
-                            setSearchQuery(e.target.value);
-                            if (!e.target.value) setIsDropdownOpen(true);
-                            else setIsDropdownOpen(false);
-                          }}
-                          onFocus={() => {
-                            if (!searchQuery) setIsDropdownOpen(true);
-                          }}
-                          onKeyDown={e => {
-                            if (e.key === 'Enter' && searchQuery.trim().length >= 2) {
-                              const updatedHistory = [searchQuery.trim(), ...history.filter(item => item !== searchQuery.trim())].slice(0, 10);
-                              setHistory(updatedHistory);
-                              localStorage.setItem(STORAGE_KEY, JSON.stringify(updatedHistory));
-                              setIsDropdownOpen(false);
-                            }
-                          }}
-                          onBlur={() => {
-                            setIsDropdownOpen(false);
-                          }}
-                          placeholder="Search content..."
-                          className="w-full bg-background/50 border border-border/80 rounded-md py-1 pl-9 pr-8 text-sm focus:outline-none focus:ring-1 focus:ring-primary/50 transition-all"
-                        />
-                        {searchQuery && (
-                          <button onClick={() => setSearchQuery('')} className="absolute right-3 top-1/2 -translate-y-1/2 hover:text-foreground">
-                            <X className="h-4 w-4" />
-                          </button>
-                        )}
+                  <div className="absolute top-10 left-0 right-0 h-1 z-12 w-full bg-border dark:bg-border/50" />
+                  {showFileExplorer && leftSidebarTab === 'nodes' && (
+                    <div className="absolute top-11 left-0 right-0 h-10 z-50 flex px-3 items-center border-b border-border bg-sidebar/80 backdrop-blur-lg pointer-events-auto cursor-default">
+                      <div className="flex w-full">
+                        <NodeTabHeader projectData={projectData} />
                       </div>
-                      {isDropdownOpen && (
-                        <SearchOverlay
-                          query={searchQuery}
-                          history={history}
-                          setHistory={setHistory}
-                          STORAGE_KEY={STORAGE_KEY}
-                          onSelect={val => {
-                            setSearchQuery(val);
-                            setIsDropdownOpen(false);
-                          }}
-                        />
-                      )}
+                    </div>
+                  )}
+
+                  {showGlobalSearch && leftSidebarTab === 'search' && (
+                    <div className="absolute top-11 left-0 right-0 h-10 z-50 flex px-3 items-center border-b border-border bg-sidebar/80 backdrop-blur-lg pointer-events-auto cursor-default">
+                      <div className="flex w-full">
+                        <TabsContent className="h-full min-h-0 w-full flex items-center" value="search">
+                          <div className="relative w-full px-1">
+                            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                            <input
+                              value={searchQuery}
+                              onChange={e => {
+                                setSearchQuery(e.target.value);
+                                if (!e.target.value) setIsDropdownOpen(true);
+                                else setIsDropdownOpen(false);
+                              }}
+                              onFocus={() => {
+                                if (!searchQuery) setIsDropdownOpen(true);
+                              }}
+                              onKeyDown={e => {
+                                if (e.key === 'Enter' && searchQuery.trim().length >= 2) {
+                                  const updatedHistory = [searchQuery.trim(), ...history.filter(item => item !== searchQuery.trim())].slice(0, 10);
+                                  setHistory(updatedHistory);
+                                  localStorage.setItem(STORAGE_KEY, JSON.stringify(updatedHistory));
+                                  setIsDropdownOpen(false);
+                                }
+                              }}
+                              onBlur={() => {
+                                setIsDropdownOpen(false);
+                              }}
+                              placeholder="Search content..."
+                              className="w-full bg-background/50 border border-border/80 rounded-md py-1 pl-9 pr-8 text-sm focus:outline-none focus:ring-1 focus:ring-primary/50 transition-all"
+                            />
+                            {searchQuery && (
+                              <button onClick={() => setSearchQuery('')} className="absolute right-3 top-1/2 -translate-y-1/2 hover:text-foreground">
+                                <X className="h-4 w-4" />
+                              </button>
+                            )}
+                          </div>
+                          {isDropdownOpen && (
+                            <SearchOverlay
+                              query={searchQuery}
+                              history={history}
+                              setHistory={setHistory}
+                              STORAGE_KEY={STORAGE_KEY}
+                              onSelect={val => {
+                                setSearchQuery(val);
+                                setIsDropdownOpen(false);
+                              }}
+                            />
+                          )}
+                        </TabsContent>
+                      </div>
+                    </div>
+                  )}
+                </SidebarMenu>
+              </SidebarHeader>
+              <div className="min-h-0 flex-1 overflow-hidden!">
+                <SidebarContent className="ml-0 p-0! space-y-0! h-full flex">
+                  {showFileExplorer && (
+                    <SidebarContextMenu node={null}>
+                      <TabsContent
+                        forceMount
+                        className={cn('h-full min-h-0 p-0! gap-0! space-x-0 space-y-0! m-0!', leftSidebarTab !== 'nodes' && 'hidden')}
+                        value="nodes"
+                      >
+                        <NavMain canMoveNode={true} />
+                      </TabsContent>
+                    </SidebarContextMenu>
+                  )}
+
+                  {showGlobalSearch && (
+                    <TabsContent
+                      forceMount // i force it to not hide so it wont rerender everytime tabs change.
+                      value="search"
+                      className={cn('h-full min-h-0 p-0! gap-0! space-x-0 space-y-0! flex', leftSidebarTab !== 'search' && 'hidden')}
+                    >
+                      <SearchTabContent query={searchQuery} onResultClick={handleSearchResultClick} />
                     </TabsContent>
-                  </div>
-                </div>
-              </SidebarMenu>
-            </SidebarHeader>
-            <div className="min-h-0 flex-1 overflow-hidden!">
-              <SidebarContent className="ml-0 p-0! space-y-0! h-full flex">
-                <SidebarContextMenu node={null}>
-                  <TabsContent
-                    forceMount
-                    className={cn('h-full min-h-0 p-0! gap-0! space-x-0 space-y-0! m-0!', leftSidebarTab !== 'nodes' && 'hidden')}
-                    value="nodes"
-                  >
-                    <NavMain canMoveNode={true} />
-                  </TabsContent>
-                </SidebarContextMenu>
+                  )}
 
-                {/* SEARCH RESULTS CONTENT */}
-                <TabsContent
-                  forceMount // i force it to not hide so it wont rerender everytime tabs change.
-                  value="search"
-                  className={cn('h-full min-h-0 p-0! gap-0! space-x-0 space-y-0! flex', leftSidebarTab !== 'search' && 'hidden')}
-                >
-                  <SearchTabContent query={searchQuery} onResultClick={handleSearchResultClick} />
-                </TabsContent>
-
-                <TabsContent value="bookmarks" className="text-foreground text-center pt-12">
-                  Bookmarks
-                </TabsContent>
-              </SidebarContent>
-            </div>
-          </Tabs>
-        </div>
+                  {showBookmark && (
+                    <TabsContent value="bookmarks" className="text-foreground text-center pt-9">
+                      <span className="text-muted-foreground">No Bookmarks Found</span>
+                    </TabsContent>
+                  )}
+                </SidebarContent>
+              </div>
+            </Tabs>
+          </div>
+        )}
 
         <SidebarFooter className="h-auto mt-1 bg-background/70 p-1! border-t border-border/80">
           <LeftSidebarFooter projectData={projectData} />
