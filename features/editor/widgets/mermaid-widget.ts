@@ -73,7 +73,7 @@ export class MermaidWidget extends WidgetType {
   eq(other: MermaidWidget) {
     return (
       other.code === this.code &&
-      // other.from === this.from &&
+      other.from === this.from &&
       other.theme === this.theme &&
       mermaidHeightCache.get(this.code) === mermaidHeightCache.get(other.code) &&
       mermaidSvgCache.get(`${this.theme}-${this.code}`) === mermaidSvgCache.get(`${other.theme}-${other.code}`)
