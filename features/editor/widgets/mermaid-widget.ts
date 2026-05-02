@@ -121,8 +121,9 @@ function mountContent(mainContainer: HTMLElement, code: string, from: number, to
   const svg = mermaidSvgCache.get(svgCacheKey)!;
 
   const container = document.createElement('div');
+  // 'group border border-transparent hover:border-border transition-colors relative block w-full max-w-full box-border z-10 select-none leading-[0] overflow-x-auto! overflow-y-hidden!';
   container.className =
-    'group border border-transparent hover:border-border transition-colors relative block w-full max-w-full box-border z-10 select-none leading-[0] overflow-x-auto! overflow-y-hidden!';
+    'group border border-transparent hover:border-border transition-colors relative block w-fit max-w-full box-border z-10 select-none leading-[0]';
   container.tabIndex = -1;
 
   const button = document.createElement('button');
@@ -158,10 +159,12 @@ function mountContent(mainContainer: HTMLElement, code: string, from: number, to
     });
   };
   const scrollWrapper = document.createElement('div');
-  scrollWrapper.className = 'block! w-full! max-w-full! relative contain-[inline-size]';
+  // scrollWrapper.className = 'block! w-fit! max-w-fit! relative contain-[inline-size]';
+  scrollWrapper.className = 'block w-fit max-w-full overflow-x-auto overflow-y-hidden relative';
 
   const renderArea = document.createElement('div');
-  renderArea.className = 'mermaid-render-area min-h-auto h-auto relative inline-block pr-[5px] pb-[5px] w-auto! min-w-full';
+  // renderArea.className = 'mermaid-render-area min-h-auto h-auto relative inline-block pr-[5px] pb-[5px] w-auto! min-w-full';
+  renderArea.className = 'mermaid-render-area min-h-auto h-auto relative inline-block pr-[5px] pb-[5px]';
   renderArea.innerHTML = svg;
   if (error) {
     renderArea.style.cssText = `
