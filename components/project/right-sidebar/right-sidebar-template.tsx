@@ -181,7 +181,7 @@ const RightSidebarTemplate = ({ activeNodeId }: { activeNodeId: string; activeNo
                     </IconTooltip>
                   )}
 
-                  {isShowOutline && (
+                  {showOutline && (
                     <IconTooltip label={'Outline of backpressure Handling Pattern'}>
                       <TabsTrigger
                         className="grow-0 hover:bg-accent/50 text-muted-foreground hover:text-foreground! data-[state=active]:text-foreground data-[state=active]:bg-accent/50! data-[state=active]:border-accent!"
@@ -252,7 +252,7 @@ const RightSidebarTemplate = ({ activeNodeId }: { activeNodeId: string; activeNo
           )}
 
           {/* Outline Header Content */}
-          {showProperties && rightSidebarTab === 'outline' && (
+          {showProperties && rightSidebarTab === 'properties' && (
             <div className="h-10 flex items-center border-b text-muted-foreground border-border w-full">
               <OutlineTabHeader
                 isSearchingInOutline={isSearchingInOutline}
