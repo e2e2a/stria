@@ -4,7 +4,7 @@ Stria is a web-based reproduction of the Obsidian experience, built for the mode
 
 ---
 
-## 🚀 The Vision: Obsidian for the Web
+## 🚀 The Vision
 
 While this repository is strictly the **Editor Core**, high-quality Markdown (`.md`) is the gold standard for modern data systems. We provide the frontend foundation that allows users to create structured, clean Markdown files that serve as the perfect source for any backend implementation.
 
