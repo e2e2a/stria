@@ -42,9 +42,9 @@ const MainContentArea = memo(function MainContentArea({ children, RightSidebarRe
   return (
     <AppContent variant="sidebar" className="text-muted-foreground h-screen overflow-hidden">
       <div className="flex flex-col h-full w-full gap-1">
-        <div className="h-12 bg-sidebar flex">
+        <div className="h-10 bg-sidebar flex">
           <TabsHeader pid={pid} />
-          <div className="w-fit h-12 flex items-center px-1">
+          <div className="w-fit h-10 flex items-center px-1">
             <IconTooltip label={'Collapse'} side="left">
               <Button type="button" tabIndex={-1} variant={'ghost'} onClick={toggleRightSidebar} className="w-8 h-8 cursor-pointer ">
                 {isRightCollapsed ? <PanelRightOpenIcon className="w-5! h-5!" /> : <PanelRightCloseIcon className="w-5! h-5!" />}
